@@ -1166,7 +1166,7 @@ const GS = {
   stats:{ money:34, fight:33, charm:33 },
   cash:0,                                     // cents
   room:'boardwalk',
-  inv:[], flags:{}, verb:'look', sel:null,
+  inv:[], flags:{}, heat:{}, verb:'look', sel:null,
   player:{ x:60, y:150, tx:60, ty:150, walking:false, phase:0 },
   msg:null, invOpen:false, deaths:0, hustleTries:0
 };
@@ -1174,13 +1174,13 @@ const GS = {
 function saveGame(){
   try{ localStorage.setItem(SAVE_KEY, JSON.stringify({
     name:GS.name, look:GS.look, stats:GS.stats, cash:GS.cash, room:GS.room,
-    inv:GS.inv, flags:GS.flags, deaths:GS.deaths, v:1 })); }catch(e){}
+    inv:GS.inv, flags:GS.flags, heat:GS.heat, deaths:GS.deaths, v:1 })); }catch(e){}
 }
 function loadGame(){
   try{ const s = JSON.parse(localStorage.getItem(SAVE_KEY)||'null');
     if(s && s.v===1 && s.name){ Object.assign(GS, {
       name:s.name, look:s.look, stats:s.stats, cash:s.cash, room:s.room,
-      inv:s.inv||[], flags:s.flags||{}, deaths:s.deaths||0 }); return true; }
+      inv:s.inv||[], flags:s.flags||{}, heat:s.heat||{}, deaths:s.deaths||0 }); return true; }
   }catch(e){}
   return false;
 }
@@ -1191,7 +1191,7 @@ const money = () => '$' + (GS.cash/100).toFixed(2);
 function pay(cents, sfx){
   GS.cash += cents;
   if(sfx!==false) Audio_.sfx(cents>0?'cash':'deny');
-  if(GS.cash >= 10000 && !GS.flags.stake) GS.flags.stake = true;   // the Level 1 win line
+  if(GS.cash >= ECONOMY.winLine && !GS.flags.stake) GS.flags.stake = true;  // the Level 1 win line
   saveGame();
 }
 function has(id){ return GS.inv.indexOf(id) >= 0; }
@@ -1639,9 +1639,11 @@ arrival:{
   hotspots:[
     { id:'chip', pri:2, name:'Chip Winthrop', x:194, y:100, w:34, h:44, approach:[190,146],
       hidden:()=>GS.flags.chipGone,
-      look:()=>narrate('Boat shoes with no socks, a polo with the collar standing at attention, '+
+      look:()=>narrate(['Boat shoes with no socks, a polo with the collar standing at attention, '+
         'and the deep, even tan of a man who has never once been told no. He is leaning on the car '+
-        'the way other people lean on inherited wealth.'),
+        'the way other people lean on inherited wealth.',
+        'The genuinely infuriating part — the part you would like on the record as infuriating — is '+
+        'that it works. It is working right now, a little, and he has not even turned around yet.']),
       talk:()=>chipIntro(),
       take:()=>narrate('You would need a much larger bag and a much better lawyer.'),
       use:()=>narrate('He is not a tool. He is a warning.') },
@@ -1726,13 +1728,17 @@ boardwalk:{
         'afternoons in Florida history.') },
 
     { id:'brenda', pri:2, name:'the woman with the clipboard', x:258, y:118, w:28, h:46, approach:[248,160],
-      look:()=>narrate('Navy blazer in ninety-degree heat, a lanyard, and a smile with the '+
+      look:()=>narrate(['Navy blazer in ninety-degree heat, a lanyard, and a smile with the '+
         'structural integrity of a bank vault. She has already decided how this conversation goes. '+
-        'She has decided that about everyone on this boardwalk.'),
+        'She has decided that about everyone on this boardwalk.',
+        'She has not taken the jacket off once all day. That is not stubbornness. That is a woman '+
+        'who knows precisely what the jacket is doing and has priced the heat into it.']),
       talk:()=>brendaTalk(),
-      useItem:(it)=>{ if(it==='coupon'){ sayAs('brenda','That coupon is redeemable at any '+
-        'participating Shoreline property. There are no participating Shoreline properties. That is '+
-        'not a lie, it is a *structure*.'); return true; } return false; } },
+      useItem:(it)=>{ if(it==='coupon'){ addHeat('brenda', 4);
+        sayAs('brenda',['That coupon is redeemable at any participating Shoreline property. There '+
+          'are no participating Shoreline properties. That is not a lie, it is a *structure*.',
+          'She is enjoying explaining this to you. She is aware that she is enjoying it.']);
+        return true; } return false; } },
 
     { id:'booth', name:'the timeshare booth', x:240, y:100, w:62, h:56, approach:[228,158],
       look:()=>narrate('"SHORELINE RESIDENCES — OWN THE SUNSET." The brochures show a building that '+
@@ -1894,11 +1900,94 @@ underpier:{
 /* ---------- 5d. SCRIPTED SCENES ------------------------------------------ */
 /* Every beat offers a build-specific route and a route anyone can take. The
    build never locks you out of Level 1 — it changes what the win looks like. */
-const GATE = 38;
+const GATE = 38;                       // default stat needed to open a build route
+
+/* ---------------------------------------------------------------------------
+   THE ECONOMY, IN ONE TABLE.
+   Every figure Level 1 can move is declared here, in cents, so the balance can
+   be read, simulated and regenerated without anybody reading dialogue. Routes
+   are 'base' (open to any build) and the three build routes. Change a number
+   here and the game, the docs and the balance simulation all move together.
+   --------------------------------------------------------------------------- */
+const ECONOMY = {
+  startPerMoneyPoint: 10,              // opening purse = Money stat x this
+  winLine: 10000,                      // cross it and the level's curtain fires
+  monteStake: 5000,                    // cost to sit at the shell game
+  earn: {
+    brendaGift:   { base:0,     charm:500,   money:500,   fight:0     },
+    gilAloe:      { base:2000,  charm:3000,  money:2500,  fight:2000  },
+    dickieSplit:  { base:2500,  charm:4500,  money:4000,  fight:3000  },
+    dickieEncore: { base:1500,  charm:2000,  money:1500,  fight:1500  },
+    monteWin:     { base:10000, charm:17500, money:15000, fight:12000 }
+  }
+};
+/* Every stat check in the level, by name, so they can be listed and tuned
+   individually. RULE: no gate may be the only route past a required beat. */
+const GATES = {
+  chipIntro:    { stat:'any',   need:GATE, opens:'a build-specific opening line with Chip' },
+  brendaPitch:  { stat:'any',   need:GATE, opens:'the good bag in one pass instead of two' },
+  gilPrice:     { stat:'any',   need:GATE, opens:'a better price for the aloe' },
+  dickieSplit:  { stat:'any',   need:GATE, opens:'a bigger cut of the tip jar' },
+  dickieEncore: { stat:'charm', need:GATE, opens:'+$5 on every encore' },
+  monteTable:   { stat:'any',   need:GATE, opens:'a bigger take at the shell game' }
+};
+const gateNeed = k => (GATES[k] ? GATES[k].need : GATE);
+const gated = (k, stat) => S()[stat] >= gateNeed(k);
+const earn  = (k, route) => ECONOMY.earn[k][route] !== undefined
+                          ? ECONOMY.earn[k][route] : ECONOMY.earn[k].base;
+
+/* ---------------------------------------------------------------------------
+   INTRIGUE.
+   Attraction is tracked, never resolved — nothing in Act 1 is winnable (§5.4
+   gates low-tier conquests to Act 2 and the rest to Act 3). What the player
+   builds here is a number the later acts read, and a reason to talk to somebody
+   twice when the puzzle does not require it.
+   --------------------------------------------------------------------------- */
+const HEAT_TIERS = [[80,'a problem for later'],[60,'circling'],[35,'interested'],
+                    [15,'noticed you'],[1,'clocked you']];
+const heatOf   = who => GS.heat[who] || 0;
+function heatTier(v){ for(const [n,label] of HEAT_TIERS) if(v >= n) return label; return null; }
+function addHeat(who, amt){
+  GS.heat[who] = clamp(heatOf(who) + amt, 0, 100);
+  saveGame();
+}
+/* Repeat flirtation is capped so it cannot be farmed for a number. */
+function flirtBeat(who, beats, perBeat){
+  const key = who + 'Flirt';
+  const i = GS.flags[key] || 0;
+  if(i < beats.length){
+    GS.flags[key] = i + 1;
+    addHeat(who, perBeat);
+    return beats[i];
+  }
+  return null;
+}
 const you = () => GS.name || 'you';
 
+/* Three beats he does not have to give you. Each one costs him something. */
+const CHIP_BEATS = [
+  ['He has moved four feet along the car so that he is facing you now, which he would describe, '+
+   'if anybody asked him, as a coincidence.',
+   '"Do you know the worst thing about a town like this? Everybody wants the same six things."',
+   '"You want them too. You just want them out loud. It is —" he goes looking for a word he can '+
+   'afford "— unbecoming."',
+   'He says the word to your mouth rather than your eyes. Then he notices that he has done it.'],
+  ['"You are still here."',
+   'He says it like an accusation. It arrives like a compliment. Both of you hear which one it '+
+   'was, and neither of you does anything about that.',
+   '"People wash up here every June and they are gone by the Fourth. I have a system. I do not '+
+   'learn the names until August."',
+   'A pause. "What was it again?"'],
+  ['"There is a room at the top of that tower," he says, looking at the tower and not at you, '+
+   '"with one window that faces the whole boardwalk. You can see every single person down here '+
+   'from up there. Nobody can see in."',
+   'The pause runs exactly one beat longer than a pause is supposed to.',
+   '"It is a very boring room," Chip says. "You would hate it."']
+];
 function chipIntro(){
   if(GS.flags.metChip){
+    const beat = flirtBeat('chip', CHIP_BEATS, 6);
+    if(beat){ sayAs('chip', beat); return; }
     const lines = { money:'Still counting it? There\'s less of it than there was a minute ago.',
                     fight:'You\'ve got the shoulders for this town and the shoes for a different one.',
                     charm:'You\'re still handsome. In a rental sort of way.' }[leanName()];
@@ -1921,10 +2010,14 @@ function chipIntro(){
 }
 function chipBeat(kind){
   GS.flags.metChip = true;
+  if(kind==='charm') addHeat('chip', 18);
+  if(kind==='money') addHeat('chip', 8);     // being read is its own kind of intimate
   const beat = {
     charm:['Chip takes off the sunglasses. That is not nothing. That is a man buying time.',
       '"...Cute," he says, in the voice of somebody making a note. "That works down here, you know. '+
-      'For about a season. Then everybody\'s seen it."'],
+      'For about a season. Then everybody has seen it."',
+      'He looks at you for a good deal longer than the insult required, catches himself doing it, '+
+      'and puts the sunglasses back on like a man closing a door he did not mean to open.'],
     fight:['He does not move the car. But he checks — fast, and hoping you missed it — where his '+
       'hands are.','"Muscle," he says, pleased with himself for landing on a category. "There\'s '+
       'work for muscle in this town. It\'s all somebody else\'s work, but there\'s work."'],
@@ -1962,30 +2055,50 @@ function gilTalk(){
 }
 function gilPayoff(){
   drop('aloe'); GS.flags.gilPaid = true;
-  const opts = [{ text:'"Twenty. Pleasure doing business."', fn:()=>gilPay(2000,
+  const opts = [{ text:'"Twenty. Pleasure doing business."', fn:()=>gilPay('base',
     ['He pays. He does not haggle. A man in that condition has no leverage and both of you know it.']) }];
-  if(S().charm >= GATE) opts.unshift({ text:'"Twenty? Gil. Look at me. This is medical."', tag:'CHARM',
-    fn:()=>gilPay(3000, ['You hold the tube just out of reach and say his name like you have known '+
+  if(gated('gilPrice','charm')) opts.unshift({ text:'"Twenty? Gil. Look at me. This is medical."', tag:'CHARM',
+    fn:()=>gilPay('charm', ['You hold the tube just out of reach and say his name like you have known '+
       'him for years. He hears a friend. He is paying a stranger thirty dollars.']) });
-  if(S().money >= GATE) opts.unshift({ text:'"Twenty-five, and the shade of that awning."',
-    tag:'MONEY', fn:()=>gilPay(2500, ['You bundle it: product, plus a service he was already getting '+
+  if(gated('gilPrice','money')) opts.unshift({ text:'"Twenty-five, and the shade of that awning."',
+    tag:'MONEY', fn:()=>gilPay('money', ['You bundle it: product, plus a service he was already getting '+
       'for free. He accepts the bundle. Everyone accepts the bundle. That is why there is always '+
       'a bundle.']) });
-  if(S().fight >= GATE) opts.unshift({ text:'"Twenty." (Hold out your hand. Wait.)',
-    tag:'FIGHTING', fn:()=>gilPay(2000, ['You say the number once and then say nothing at all, which '+
+  if(gated('gilPrice','fight')) opts.unshift({ text:'"Twenty." (Hold out your hand. Wait.)',
+    tag:'FIGHTING', fn:()=>gilPay('fight', ['You say the number once and then say nothing at all, which '+
       'is a thing you are apparently good at. He finds the twenty very quickly. He finds another five '+
       'and puts it away again while watching your face.']) });
   say('The tube changes hands. Gil makes a noise that should not be made in public.', { choices:opts });
 }
-function gilPay(cents, lines){
-  pay(cents);
+function gilPay(route, lines){
+  pay(earn('gilAloe', route));
   say(lines.concat(['You are ' + money() + ' into Vanity Shores. It is not power. It is the thing '+
     'you buy power with.']), { speaker:CAST.gil.name, look:CAST.gil });
 }
 
 /* ---- Brenda Tang: the timeshare shark ---------------------------------- */
+/* Offered only once her business with you is finished — she does not flirt on the clock. */
+const BRENDA_BEATS = [
+  ['"Still here." She checks the clipboard. The clipboard does not need checking.',
+   '"I work until seven. Then the jacket comes off and I stop being pleasant to people for money, '+
+   'and those two events are related."'],
+  ['"You want to know what I actually sell?" She does not wait to find out.',
+   '"One week of being somebody else. Fifty-one weeks a year they are whoever they actually are, '+
+   'and for one week they get to be the person they described to me at this table."',
+   'She taps the pen against the clipboard twice.',
+   '"You are trying to run the whole year like that. It is the most ambitious thing anybody has '+
+   'said to me on this boardwalk, and I have been out here since March."'],
+  ['She writes something on the back of a brochure and does not hand it over.',
+   '"When you have real money," she says, "come and find me. Not for a unit."',
+   'Then she puts the brochure in her blazer pocket, which is either the entire point of the '+
+   'gesture or it is not, and goes back to work.']
+];
+const brendaDone = () => GS.flags.gotPremium || GS.flags.brendaWary ||
+                         (GS.flags.pitchCount||0) >= 2;
 function brendaTalk(){
-  if(GS.flags.pitchDone && GS.flags.gotPremium){
+  if(brendaDone()){
+    const beat = flirtBeat('brenda', BRENDA_BEATS, 6);
+    if(beat){ sayAs('brenda', beat); return; }
     sayAs('brenda','You already got the gift, sweetheart. The gift is a one-time offer. '+
       'Everything is a one-time offer. That\'s what makes it an offer.'); return; }
   const opts = [];
@@ -2011,15 +2124,19 @@ function brendaTalk(){
 function brendaOut(kind){
   GS.flags.pitchDone = true;
   if(kind==='charm'){
-    GS.flags.gotPremium = true; give('aloe'); give('coupon'); pay(500);
-    sayAs('brenda', ['...Huh.','She looks at you properly for the first time — the quick top-to-bottom '+
-      'appraisal of somebody who prices things for a living.',
-      '"You\'re going to do well here," she says, "and I\'m going to hate reading about it." She '+
-      'reaches under the table and hands you the good bag. Aloe, drink coupon, and a five-dollar gift '+
-      'card she was supposed to log.']); return;
+    GS.flags.gotPremium = true; give('aloe'); give('coupon');
+    pay(earn('brendaGift','charm')); addHeat('brenda', 20);
+    sayAs('brenda', ['...Huh.',
+      'She looks at you properly for the first time — the quick top-to-bottom appraisal of somebody '+
+      'who prices things for a living. Then a second pass, which pricing did not require.',
+      '"You are going to do well here," she says, "and I am going to hate reading about it."',
+      'She reaches under the table for the good bag: aloe, a drink coupon, and a five-dollar gift '+
+      'card she was supposed to log. When you take it she does not let go of it immediately, which '+
+      'is either a negotiating habit or it is not.']); return;
   }
   if(kind==='money'){
-    GS.flags.gotPremium = true; give('aloe'); give('coupon'); pay(500);
+    GS.flags.gotPremium = true; give('aloe'); give('coupon');
+    pay(earn('brendaGift','money')); addHeat('brenda', 12);
     sayAs('brenda', ['Her whole face changes. Not warmer — *lighter*. The relief of not having to '+
       'do the voice.','"Oh, thank God, you\'re in the business. Twelve to one, and they moved '+
       'maintenance off the disclosure page in March, which should be illegal and is instead '+
@@ -2028,12 +2145,14 @@ function brendaOut(kind){
       'coupon, and a gift card she is definitely not logging.']); return;
   }
   if(kind==='fight'){
-    give('aloe');
+    give('aloe'); GS.flags.brendaWary = true;   // earned now, not on dismissal
     sayAs('brenda', ['You do not say anything. You just stay exactly where you are, at exactly the '+
       'distance where a person has to decide what you are.',
       'Twenty seconds of that and her pitch dies in the middle of a sentence about *equity*.',
       '"Take the aloe," she says flatly, "and go stand somewhere else. You\'re costing me the '+
-      'four-thirty crowd."'], { then:()=>{ GS.flags.brendaWary = true; saveGame(); } }); return;
+      'four-thirty crowd."',
+      'She does not look away while she says it, and she does not look away after. Whatever she '+
+      'has decided you are, she has decided it all the way through.'], { then:saveGame }); return;
   }
   // anyone can simply sit through it — twice, if that is what it takes
   GS.flags.pitchCount = (GS.flags.pitchCount||0) + 1;
@@ -2046,7 +2165,7 @@ function brendaOut(kind){
       'settling a debt: a canvas tote, a bottle of Coco Blast SPF 2, and a drink coupon.',
       '"Come back if you want to hear about financing," she says, already looking past you.']);
   } else {
-    give('aloe');
+    give('aloe'); addHeat('brenda', 8);
     sayAs('brenda', ['You sit through it again. On purpose. Voluntarily.',
       'Somewhere around minute six she stops selling and just looks at you, and something in her '+
       'goes quiet, and you understand that she has met her own kind.',
@@ -2097,6 +2216,11 @@ function zsaReading(){
     'checking fruit.', personal,
     '"Three of them are coming for you. A man who laughs before he does it. A woman you\'ll tell '+
     'things to. And one more I can\'t see, because they haven\'t decided to hate you yet."',
+    (['chip','brenda'].some(w => heatOf(w) >= 15)
+      ? '"And somebody up on that strip has been thinking about you when you are not in the room," '+
+        'she adds. "That one is not a prophecy, sugar. That one is just me having eyes."'
+      : '"Nobody is in love with you yet. Give it a week. This town falls hard and it falls for '+
+        'the wrong reasons."'),
     'Then she lets go, writes something on a card, and presses it into your palm.',
     '"That one\'s free, and it\'s worth more than the reading. There\'s a table under the pier. Read '+
     'it before you sit down at it."'], { then:saveGame });
@@ -2121,22 +2245,22 @@ function dickieTalk(){
 function plantSign(){
   if(!has('sign')){ narrate('You would need something that makes people stop.'); return; }
   drop('sign'); GS.flags.crowdDrawn = true;
-  const opts = [{ text:'Stand back and let it happen.', fn:()=>dickiePay(2500,
+  const opts = [{ text:'Stand back and let it happen.', fn:()=>dickiePay('base',
     ['You lean on the railing and watch a crowd assemble itself out of nothing but the word FREE.',
      'Dickie sings. Dickie is, it turns out, genuinely good — which makes the whole thing sadder and '+
      'the tips larger.']) }];
-  if(S().charm >= GATE) opts.unshift({ text:'Work the crowd yourself between numbers.', tag:'CHARM',
-    fn:()=>dickiePay(4500, ['You move through them during the second number telling everyone the '+
+  if(gated('dickieSplit','charm')) opts.unshift({ text:'Work the crowd yourself between numbers.', tag:'CHARM',
+    fn:()=>dickiePay('charm', ['You move through them during the second number telling everyone the '+
       'same thing: that they got here early, that this never happens, that they should not tell '+
       'anybody.',
       'People will pay almost anything to have been somewhere first.']) });
-  if(S().money >= GATE) opts.unshift({ text:'Call the tip jar a cover charge.',
-    tag:'MONEY', fn:()=>dickiePay(4000, ['You move the tip jar to the mouth of the bandshell and '+
+  if(gated('dickieSplit','money')) opts.unshift({ text:'Call the tip jar a cover charge.',
+    tag:'MONEY', fn:()=>dickiePay('money', ['You move the tip jar to the mouth of the bandshell and '+
       'stand behind it, and just like that it stops being a jar and starts being a door.',
       'Fewer people come in. All of them pay. You have invented the velvet rope from first '+
       'principles.']) });
-  if(S().fight >= GATE) opts.unshift({ text:'Make sure nobody wanders off mid-song.', tag:'FIGHTING',
-    fn:()=>dickiePay(3000, ['You position yourself at the open end of the bandshell with your arms '+
+  if(gated('dickieSplit','fight')) opts.unshift({ text:'Make sure nobody wanders off mid-song.', tag:'FIGHTING',
+    fn:()=>dickiePay('fight', ['You position yourself at the open end of the bandshell with your arms '+
       'folded, and it is remarkable how many people discover they had nowhere else to be.',
       'The crowd stays. The crowd is also, you notice, standing very close together.']) });
   narrate(['You plant the FREE GIFT sign at the mouth of the bandshell.',
@@ -2145,15 +2269,15 @@ function plantSign(){
     'Dickie Vermouth steps to the microphone with the expression of a man who has been kept in a '+
     'garage for nine years.'], { choices:opts });
 }
-function dickiePay(cents, lines){
-  pay(cents); GS.flags.dickiePaid = true; Audio_.sfx('fanfare');
+function dickiePay(route, lines){
+  pay(earn('dickieSplit', route)); GS.flags.dickiePaid = true; Audio_.sfx('fanfare');
   say(lines.concat(['He counts the jar out on the stage lip, halves it without being asked, and '+
     'presses your share into your hand with both of his.',
     '"Don\'t say thank you," he says. "Say *when*."',
     'You are carrying ' + money() + '.']), { speaker:CAST.dickie.name, look:CAST.dickie, then:saveGame });
 }
 function dickieEncore(){
-  const take = 1500 + (S().charm >= GATE ? 500 : 0);
+  const take = earn('dickieEncore', gated('dickieEncore','charm') ? 'charm' : 'base');
   pay(take); Audio_.sfx('cash');
   sayAs('dickie', ['He does it again. It is thinner the second time — the crowd is smaller, the '+
     'jokes land a half-beat late, and he knows it, and he does it anyway.',
@@ -2167,17 +2291,17 @@ function monteTalk(){
   if(GS.flags.monteWon){
     sayAs('monte', ['Table\'s closed.','It\'s closed for you specifically. Everybody else, table\'s '+
       'wide open.']); return; }
-  if(GS.cash < 5000){
+  if(GS.cash < ECONOMY.monteStake){
     sayAs('monte', ['Fifty to sit.','That\'s not me being tough, that\'s the whole business. Under '+
       'fifty you\'re not a player, you\'re *weather*.',
       'Come back when you\'re holding.']); return; }
   const opts = [];
   if(has('fortune')){
-    if(S().charm >= GATE) opts.push({ text:'Play — but sell the crowd on you first.', tag:'CHARM',
+    if(gated('monteTable','charm')) opts.push({ text:'Play — but sell the crowd on you first.', tag:'CHARM',
       fn:()=>monteWin('charm') });
-    if(S().money >= GATE) opts.push({ text:'Play — and bet like you already know.', tag:'MONEY',
+    if(gated('monteTable','money')) opts.push({ text:'Play — and bet like you already know.', tag:'MONEY',
       fn:()=>monteWin('money') });
-    if(S().fight >= GATE) opts.push({ text:'Play — then take hold of his left wrist.', tag:'FIGHTING',
+    if(gated('monteTable','fight')) opts.push({ text:'Play — then take hold of his left wrist.', tag:'FIGHTING',
       fn:()=>monteWin('fight') });
     opts.push({ text:'Play — and watch only his left hand.', fn:()=>monteWin('plain') });
   }
@@ -2190,7 +2314,7 @@ function monteTalk(){
     'Everybody looks at my hands. That\'s free too.'], { choices:opts });
 }
 function monteLose(){
-  pay(-5000, false); Audio_.sfx('shell'); GS.hustleTries++;
+  pay(-ECONOMY.monteStake, false); Audio_.sfx('shell'); GS.hustleTries++;
   say(['You put fifty on the felt and you watch the shells. You watch them *hard*. You do not blink.',
     'You are extremely confident about the middle one.',
     'It is not the middle one. It was never any of them, and somewhere in the last four seconds your '+
@@ -2202,9 +2326,9 @@ function monteLose(){
         'Vermouth would do another set at gunpoint, and there is no gun.', { then:saveGame }); } });
 }
 function monteWin(kind){
-  pay(-5000, false); Audio_.sfx('shell');
+  pay(-ECONOMY.monteStake, false); Audio_.sfx('shell');
   const beats = {
-    charm:{ take:17500, lines:[
+    charm:{ take:earn('monteWin','charm'), lines:[
       'You put fifty down. Then you turn your back on the table entirely and start talking to the '+
       'two onlookers, who are not onlookers, about how sorry you feel for the next mark.',
       'By the third shuffle they are betting against you to save face, and the small crowd that '+
@@ -2213,14 +2337,14 @@ function monteWin(kind){
       'call it out loud with a showman\'s certainty about four seconds before it is true.',
       'The side bets alone come to more than the pot. Monte pays because a crowd is watching him '+
       'pay, and that is the one thing his business cannot survive refusing.'] },
-    money:{ take:15000, lines:[
+    money:{ take:earn('monteWin','money'), lines:[
       'You put fifty down and you do not follow the shells at all. You follow the *money* — where he '+
       'lets it sit, what he covers first, which loss he can afford.',
       'His left hand palms the pea before the first shell moves. The card said so. You knew before '+
       'you sat down, which means the only real question was how much to make it worth.',
       'You lose the first two on purpose, small, and let him raise you. Then you take the third at '+
       'three to one and stand up while he is still working out when it started.'] },
-    plain:{ take:10000, lines:[
+    plain:{ take:earn('monteWin','base'), lines:[
       'You put fifty down and you do not watch the shells at all. You watch his left hand, the '+
       'way the card told you to, and you keep watching it while every other person at this table '+
       'watches the walnut shells dance.',
@@ -2228,7 +2352,7 @@ function monteWin(kind){
       'twenty-five cents for.',
       'You take it on the third pass, quietly, and you do not make a face about it. Monte pays '+
       'without a word and looks at you for slightly too long.'] },
-    fight:{ take:12000, lines:[
+    fight:{ take:earn('monteWin','fight'), lines:[
       'You put fifty down, let him run one clean shuffle, and then you reach across the felt and '+
       'take hold of his left wrist.',
       'You do not squeeze. You just hold it up where the two onlookers and the four tourists behind '+
@@ -2273,12 +2397,16 @@ function chipFinale(){
       { text:'Say nothing. Just let him look at it.', fn:()=>chipCrack(false) } ] }) });
 }
 function chipCrack(spoke){
+  addHeat('chip', spoke ? 12 : 16);          // the silence costs him more
   say(spoke ?
     ['Chip Winthrop opens his mouth.','Nothing comes out of it.',
      'It lasts less than a second — a hairline crack across ninety years of family money — and then '+
      'the sunglasses go back on and the smile comes back up like a garage door.'] :
     ['You do not say anything. You just hold it, loosely, the way people hold money they expect to '+
-     'have more of.','Chip looks at it for exactly one second longer than he means to.',
+     'have more of.',
+     'Chip looks at it for exactly one second longer than he means to, and then he looks at the '+
+     'hand holding it, and then at you, and the whole survey takes less than a breath and he '+
+     'files every part of it.',
      'Then the sunglasses go back on and the smile comes back up like a garage door.'],
     { speaker:CAST.chip.name, look:CAST.chip, then:()=>sayAs('chip', [
       '"Enjoy your hundred dollars," he says. "It\'s a very nice hundred dollars."',
@@ -2585,6 +2713,10 @@ function routeNotes(){
   if(GS.flags.readingDone) n.push('Paid LaRue two bits for the tell.');
   if(GS.flags.monteEnemy)  n.push('Took Monte by the wrist. He will remember it.');
   else if(GS.flags.monteWon) n.push('Beat the shells without watching the shells.');
+  for(const who of ['chip','brenda']){
+    const tier = heatTier(heatOf(who));
+    if(tier) n.push(CAST[who].name + ' ' + tier + '.');
+  }
   if(GS.deaths) n.push('Died ' + GS.deaths + (GS.deaths===1?' time. It happens.':' times. Enthusiastically.'));
   return n;
 }
@@ -2713,7 +2845,7 @@ function createClick(p){
   if(inRect(p,{x:8,y:40,w:108,h:13})){ nameBox.focus(); return; }
   if(100-ccTotal()===0 && GS.name.trim() && inRect(p,{x:104,y:164,w:112,h:17})){
     GS.look = ccLook(); GS.stats = { money:CC.stats.money, fight:CC.stats.fight, charm:CC.stats.charm };
-    GS.cash = GS.stats.money * 10;               // you start with what you brought
+    GS.cash = GS.stats.money * ECONOMY.startPerMoneyPoint;   // what you brought with you
     Audio_.lean(GS.stats.money, GS.stats.fight, GS.stats.charm);
     Audio_.sfx('fanfare'); showNameBox(false);
     GS.scene = 'drive'; driveT = 0; Audio_.scene('play'); saveGame();

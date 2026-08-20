@@ -1,0 +1,742 @@
+<title>Vanity Shores Bible</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Silkscreen:wght@400;700&family=VT323&display=swap">
+<style>
+:root{
+  --void:#10071c; --panel:#1a0d2c; --panel2:#221237; --edge:#33204a;
+  --bone:#f0e4d4; --mute:#a08cb4; --dim:#6f5a8c;
+  --hot:#ff2e88; --surf:#21e0d6; --gold:#ffc23d; --bad:#ff5f6d; --good:#4de0a0;
+  --ui:"Silkscreen",ui-monospace,monospace;
+  --body:"Archivo",system-ui,sans-serif;
+  --game:"VT323",ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--void); color:var(--bone); font-family:var(--body);
+  font-size:16px; line-height:1.6; -webkit-font-smoothing:antialiased;
+}
+.wrap{display:grid; grid-template-columns:210px minmax(0,1fr); gap:44px;
+  max-width:1120px; margin:0 auto; padding:40px 24px 96px}
+@media (max-width:820px){ .wrap{grid-template-columns:1fr; gap:24px} nav.side{position:static !important} }
+
+nav.side{position:sticky; top:40px; align-self:start}
+nav.side .brand{font-family:var(--ui); font-size:11px; letter-spacing:.16em;
+  color:var(--hot); text-transform:uppercase; line-height:1.7; margin-bottom:18px}
+nav.side .brand b{display:block; color:var(--bone); font-weight:400}
+nav.side ol{list-style:none; counter-reset:s; border-left:1px solid var(--edge)}
+nav.side a{display:block; padding:5px 0 5px 14px; margin-left:-1px;
+  border-left:1px solid transparent; color:var(--mute); text-decoration:none; font-size:13.5px}
+nav.side a:hover{color:var(--bone); border-left-color:var(--hot)}
+nav.side a:focus-visible{outline:2px solid var(--surf); outline-offset:2px}
+
+h1{font-family:var(--ui); font-size:25px; line-height:1.35; letter-spacing:.01em; color:var(--bone);
+  text-wrap:balance; margin-bottom:8px}
+.sub{color:var(--mute); max-width:64ch; margin-bottom:34px}
+section{margin-bottom:52px; scroll-margin-top:24px}
+h2{font-family:var(--ui); font-size:13px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--surf); padding-bottom:8px; border-bottom:1px solid var(--edge); margin-bottom:18px}
+h2 span{color:var(--dim); float:right; letter-spacing:.1em}
+p.lede{color:var(--mute); max-width:66ch; margin-bottom:18px}
+
+.grid{display:grid; gap:14px}
+@media (min-width:700px){ .grid.two{grid-template-columns:1fr 1fr} }
+.card{background:var(--panel); border:1px solid var(--edge); border-radius:3px; padding:16px 18px}
+.card header{display:flex; align-items:center; gap:10px; margin-bottom:6px}
+.card h3{font-family:var(--ui); font-size:14px; letter-spacing:.04em; color:var(--bone); flex:1}
+.role{color:var(--mute); font-size:14px; margin-bottom:12px}
+
+.pill{font-family:var(--ui); font-size:9px; letter-spacing:.1em; text-transform:uppercase;
+  padding:3px 7px; border-radius:2px; white-space:nowrap}
+.pill.ok{background:rgba(77,224,160,.14); color:var(--good)}
+.pill.warn{background:rgba(255,194,61,.14); color:var(--gold)}
+.pill.crit{background:rgba(255,95,109,.14); color:var(--bad)}
+
+dl.facts{display:grid; gap:2px; margin-bottom:12px}
+dl.facts div{display:flex; gap:10px; font-size:13.5px; padding:4px 0;
+  border-bottom:1px solid rgba(51,32,74,.55)}
+dt{font-family:var(--ui); font-size:9px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--dim); min-width:78px; padding-top:3px}
+dd{color:var(--bone)}
+
+.meter{height:4px; background:var(--panel2); border-radius:2px; overflow:hidden; margin-bottom:10px}
+.meter span{display:block; height:100%}
+.meter .ok{background:var(--good)} .meter .warn{background:var(--gold)} .meter .crit{background:var(--bad)}
+.axes{font-size:13px; color:var(--mute)}
+.mute{color:var(--dim)}
+code{font-family:var(--ui); font-size:10px; letter-spacing:.04em; color:var(--surf);
+  background:var(--panel2); padding:2px 5px; border-radius:2px}
+
+details{margin-top:12px; border-top:1px solid var(--edge); padding-top:10px}
+summary{font-family:var(--ui); font-size:10px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--hot); cursor:pointer; list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"+ "; color:var(--dim)}
+details[open] summary::before{content:"– "}
+summary:focus-visible{outline:2px solid var(--surf); outline-offset:3px}
+
+.scroll{overflow-x:auto; margin-top:10px}
+table{border-collapse:collapse; width:100%; font-size:13.5px}
+th,td{text-align:left; padding:7px 12px 7px 0; border-bottom:1px solid rgba(51,32,74,.6);
+  vertical-align:top}
+thead th{font-family:var(--ui); font-size:9px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--dim); border-bottom-color:var(--edge)}
+tbody th{font-weight:600; color:var(--bone); white-space:nowrap; padding-right:18px}
+td.num,th.num{font-variant-numeric:tabular-nums; white-space:nowrap}
+tr.bad th{color:var(--bad)}
+table.pay td{font-variant-numeric:tabular-nums; color:var(--gold)}
+
+.tag{font-family:var(--ui); font-size:9px; letter-spacing:.06em; padding:2px 5px;
+  border:1px solid var(--edge); border-radius:2px; color:var(--mute)}
+.tag.exit{border-color:var(--surf); color:var(--surf)}
+
+ol.beats{list-style:none; margin-top:12px; display:grid; gap:12px}
+ol.beats li{display:grid; grid-template-columns:20px minmax(0,1fr); gap:10px; align-items:start}
+ol.beats .n{font-family:var(--ui); font-size:10px; color:var(--hot); padding-top:4px}
+ol.beats .say{min-width:0}
+ol.beats p{font-family:var(--game); font-size:17px; line-height:1.32; color:var(--bone);
+  margin-bottom:6px}
+ol.beats p:last-child{margin-bottom:0}
+
+ul.plain{list-style:none; display:grid; gap:9px; max-width:68ch}
+ul.plain li{padding-left:15px; position:relative; color:var(--mute); font-size:14.5px}
+ul.plain li::before{content:""; position:absolute; left:0; top:.62em;
+  width:5px; height:5px; background:var(--hot); border-radius:1px}
+ul.plain b{color:var(--bone); font-weight:600}
+
+.stats{display:grid; grid-template-columns:repeat(4,1fr); gap:1px;
+  background:var(--edge); border:1px solid var(--edge); border-radius:3px; overflow:hidden;
+  margin-bottom:20px}
+.stat{background:var(--panel); padding:13px 14px}
+.stat b{display:block; font-family:var(--ui); font-size:19px; color:var(--gold);
+  font-variant-numeric:tabular-nums; font-weight:400; line-height:1.2}
+.stat span{font-family:var(--ui); font-size:9px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--dim)}
+.chain{font-family:var(--ui); font-size:11px; line-height:2; color:var(--mute);
+  background:var(--panel); border:1px solid var(--edge); border-radius:3px;
+  padding:16px 18px; overflow-x:auto; white-space:pre}
+.chain b{color:var(--gold); font-weight:400}
+.chain i{color:var(--surf); font-style:normal}
+@media (max-width:620px){ .stats{grid-template-columns:repeat(2,1fr)} }
+footer{border-top:1px solid var(--edge); padding-top:16px; color:var(--dim); font-size:13px}
+</style>
+
+<div class="wrap">
+<nav class="side">
+  <div class="brand">Vanity Shores<b>Act 1 · Level 1</b></div>
+  <ol><li><a href="#glance">At a glance</a></li><li><a href="#cast">Characters</a></li><li><a href="#places">Locations</a></li><li><a href="#items">Items</a></li><li><a href="#economy">Economy</a></li><li><a href="#gates">Gates & odds</a></li><li><a href="#intrigue">Intrigue</a></li><li><a href="#deaths">Deaths</a></li><li><a href="#flags">Flags</a></li><li><a href="#chain">Progression</a></li><li><a href="#ai">When to reach for AI</a></li></ol>
+</nav>
+
+<main>
+<h1>Small Change — the whole level, taken apart</h1>
+<p class="sub">Generated from the shipping game, not written alongside it. Every number,
+rectangle and word count below was read out of <code>index.html</code> at build time, so
+this cannot drift from what actually plays. Regenerate with <code>node tools/bible.js</code>.</p>
+
+<section id="glance">
+  <h2>At a glance</h2>
+  <div class="stats">
+    <div class="stat"><b>4</b><span>locations</span></div>
+    <div class="stat"><b>6</b><span>speaking cast</span></div>
+    <div class="stat"><b>31</b><span>hotspots</span></div>
+    <div class="stat"><b>8</b><span>items</span></div>
+    <div class="stat"><b>3,637</b><span>words spoken</span></div>
+    <div class="stat"><b>4</b><span>ways to die</span></div>
+    <div class="stat"><b>$100.00</b><span>win line</span></div>
+    <div class="stat"><b>30,240</b><span>look combinations</span></div>
+  </div>
+  <ul class="plain">
+    <li><b>The win condition is one number.</b> Cross $100.00 and walking onto
+      the boardwalk fires the curtain. There is no other exit.</li>
+    <li><b>Opening purse is Money × $0.10.</b> Everything else is
+      taken off this boardwalk.</li>
+    <li><b>One hard dependency:</b> the shell game cannot be beaten without the fortune card.
+      Without it the stake is simply lost.</li>
+  </ul>
+</section>
+
+<section id="cast">
+  <h2>Characters <span>6</span></h2>
+  <p class="lede">Each card carries what the character gates, what they pay, and how much
+  hand-written dialogue they are now carrying. The band is the authoring-load read — see
+  <a href="#ai" style="color:var(--surf)">when to reach for AI</a>.</p>
+  <div class="grid two">
+    <article class="card" id="cast-chip">
+      <header>
+        <h3>Chip Winthrop</h3>
+        <span class="pill ok">comfortable</span>
+      </header>
+      <p class="role">Demo antagonist. Legacy heir; flips to ally at Level 4.</p>
+      <dl class="facts">
+        <div><dt>Found</dt><dd>Bus stop, then the boardwalk</dd></div>
+        <div><dt>Stance</dt><dd>pocket</dd></div>
+        <div><dt>Dialogue</dt><dd>908 words across 5 scenes</dd></div>
+        <div><dt>Branches</dt><dd>6 choices, 3 behind a stat gate</dd></div>
+        <div><dt>Load</dt><dd>12 <span class="mute">(6 &times; 2 axes)</span></dd></div>
+      </dl>
+      <div class="meter" title="authoring load 12 of ~110">
+        <span style="width:17%" class="ok"></span>
+      </div>
+      <p class="axes">Varies on: <code>build</code> <code>flags</code>
+        &middot; <span class="mute">Well inside hand-authored territory.</span></p>
+      
+      <details><summary>Optional beats (3)</summary>
+        <ol class="beats"><li><span class="n">1</span><div class="say"><p>He has moved four feet along the car so that he is facing you now, which he would describe, if anybody asked him, as a coincidence.</p><p>"Do you know the worst thing about a town like this? Everybody wants the same six things."</p><p>"You want them too. You just want them out loud. It is —" he goes looking for a word he can afford "— unbecoming."</p><p>He says the word to your mouth rather than your eyes. Then he notices that he has done it.</p></div></li><li><span class="n">2</span><div class="say"><p>"You are still here."</p><p>He says it like an accusation. It arrives like a compliment. Both of you hear which one it was, and neither of you does anything about that.</p><p>"People wash up here every June and they are gone by the Fourth. I have a system. I do not learn the names until August."</p><p>A pause. "What was it again?"</p></div></li><li><span class="n">3</span><div class="say"><p>"There is a room at the top of that tower," he says, looking at the tower and not at you, "with one window that faces the whole boardwalk. You can see every single person down here from up there. Nobody can see in."</p><p>The pause runs exactly one beat longer than a pause is supposed to.</p><p>"It is a very boring room," Chip says. "You would hate it."</p></div></li></ol></details>
+    </article>
+    <article class="card" id="cast-brenda">
+      <header>
+        <h3>Brenda Tang</h3>
+        <span class="pill ok">comfortable</span>
+      </header>
+      <p class="role">Timeshare shark. Gatekeeper for the aloe and the sign.</p>
+      <dl class="facts">
+        <div><dt>Found</dt><dd>Timeshare booth, boardwalk</dd></div>
+        <div><dt>Stance</dt><dd>hold</dd></div>
+        <div><dt>Dialogue</dt><dd>831 words across 4 scenes</dd></div>
+        <div><dt>Branches</dt><dd>5 choices, 3 behind a stat gate</dd></div>
+        <div><dt>Load</dt><dd>10 <span class="mute">(5 &times; 2 axes)</span></dd></div>
+      </dl>
+      <div class="meter" title="authoring load 10 of ~110">
+        <span style="width:15%" class="ok"></span>
+      </div>
+      <p class="axes">Varies on: <code>build</code> <code>flags</code>
+        &middot; <span class="mute">Well inside hand-authored territory.</span></p>
+      <details><summary>What they pay</summary>
+        <div class="scroll"><table class="pay"><thead><tr><th>flow</th><th>base</th>
+        <th>charm</th><th>money</th><th>fighting</th></tr></thead><tbody><tr><th>brendaGift</th><td>$0.00</td><td>$5.00</td>
+         <td>$5.00</td><td>$0.00</td></tr></tbody></table></div>
+        </details>
+      <details><summary>Optional beats (3)</summary>
+        <ol class="beats"><li><span class="n">1</span><div class="say"><p>"Still here." She checks the clipboard. The clipboard does not need checking.</p><p>"I work until seven. Then the jacket comes off and I stop being pleasant to people for money, and those two events are related."</p></div></li><li><span class="n">2</span><div class="say"><p>"You want to know what I actually sell?" She does not wait to find out.</p><p>"One week of being somebody else. Fifty-one weeks a year they are whoever they actually are, and for one week they get to be the person they described to me at this table."</p><p>She taps the pen against the clipboard twice.</p><p>"You are trying to run the whole year like that. It is the most ambitious thing anybody has said to me on this boardwalk, and I have been out here since March."</p></div></li><li><span class="n">3</span><div class="say"><p>She writes something on the back of a brochure and does not hand it over.</p><p>"When you have real money," she says, "come and find me. Not for a unit."</p><p>Then she puts the brochure in her blazer pocket, which is either the entire point of the gesture or it is not, and goes back to work.</p></div></li></ol></details>
+    </article>
+    <article class="card" id="cast-gil">
+      <header>
+        <h3>Gil Furnace</h3>
+        <span class="pill ok">comfortable</span>
+      </header>
+      <p class="role">Sunburnt tourist. Your first customer.</p>
+      <dl class="facts">
+        <div><dt>Found</dt><dd>Bench, boardwalk</dd></div>
+        <div><dt>Stance</dt><dd>stiff</dd></div>
+        <div><dt>Dialogue</dt><dd>314 words across 3 scenes</dd></div>
+        <div><dt>Branches</dt><dd>6 choices, 3 behind a stat gate</dd></div>
+        <div><dt>Load</dt><dd>18 <span class="mute">(6 &times; 3 axes)</span></dd></div>
+      </dl>
+      <div class="meter" title="authoring load 18 of ~110">
+        <span style="width:22%" class="ok"></span>
+      </div>
+      <p class="axes">Varies on: <code>build</code> <code>flags</code> <code>items</code>
+        &middot; <span class="mute">Well inside hand-authored territory.</span></p>
+      <details><summary>What they pay</summary>
+        <div class="scroll"><table class="pay"><thead><tr><th>flow</th><th>base</th>
+        <th>charm</th><th>money</th><th>fighting</th></tr></thead><tbody><tr><th>gilAloe</th><td>$20.00</td><td>$30.00</td>
+         <td>$25.00</td><td>$20.00</td></tr></tbody></table></div>
+        </details>
+      
+    </article>
+    <article class="card" id="cast-dickie">
+      <header>
+        <h3>Dickie Vermouth</h3>
+        <span class="pill ok">comfortable</span>
+      </header>
+      <p class="role">Has-been lounge act. Repeatable income.</p>
+      <dl class="facts">
+        <div><dt>Found</dt><dd>Bandshell, pier</dd></div>
+        <div><dt>Stance</dt><dd>hold</dd></div>
+        <div><dt>Dialogue</dt><dd>507 words across 4 scenes</dd></div>
+        <div><dt>Branches</dt><dd>6 choices, 3 behind a stat gate</dd></div>
+        <div><dt>Load</dt><dd>18 <span class="mute">(6 &times; 3 axes)</span></dd></div>
+      </dl>
+      <div class="meter" title="authoring load 18 of ~110">
+        <span style="width:22%" class="ok"></span>
+      </div>
+      <p class="axes">Varies on: <code>build</code> <code>flags</code> <code>items</code>
+        &middot; <span class="mute">Well inside hand-authored territory.</span></p>
+      <details><summary>What they pay</summary>
+        <div class="scroll"><table class="pay"><thead><tr><th>flow</th><th>base</th>
+        <th>charm</th><th>money</th><th>fighting</th></tr></thead><tbody><tr><th>dickieSplit</th><td>$25.00</td><td>$45.00</td>
+         <td>$40.00</td><td>$30.00</td></tr><tr><th>dickieEncore</th><td>$15.00</td><td>$20.00</td>
+         <td>$15.00</td><td>$15.00</td></tr></tbody></table></div>
+        </details>
+      
+    </article>
+    <article class="card" id="cast-zsazsa">
+      <header>
+        <h3>Madame LaRue</h3>
+        <span class="pill ok">comfortable</span>
+      </header>
+      <p class="role">Boardwalk psychic. Sells the tell that beats the table.</p>
+      <dl class="facts">
+        <div><dt>Found</dt><dd>Fortune tent, pier</dd></div>
+        <div><dt>Stance</dt><dd>default</dd></div>
+        <div><dt>Dialogue</dt><dd>342 words across 2 scenes</dd></div>
+        <div><dt>Branches</dt><dd>2 choices, 0 behind a stat gate</dd></div>
+        <div><dt>Load</dt><dd>8 <span class="mute">(2 &times; 4 axes)</span></dd></div>
+      </dl>
+      <div class="meter" title="authoring load 8 of ~110">
+        <span style="width:13%" class="ok"></span>
+      </div>
+      <p class="axes">Varies on: <code>build</code> <code>flags</code> <code>heat</code> <code>items</code>
+        &middot; <span class="mute">Well inside hand-authored territory.</span></p>
+      
+      
+    </article>
+    <article class="card" id="cast-monte">
+      <header>
+        <h3>Monte</h3>
+        <span class="pill ok">comfortable</span>
+      </header>
+      <p class="role">Shell game. The level’s boss fight.</p>
+      <dl class="facts">
+        <div><dt>Found</dt><dd>Folding table, under the pier</dd></div>
+        <div><dt>Stance</dt><dd>crossed</dd></div>
+        <div><dt>Dialogue</dt><dd>735 words across 3 scenes</dd></div>
+        <div><dt>Branches</dt><dd>6 choices, 3 behind a stat gate</dd></div>
+        <div><dt>Load</dt><dd>24 <span class="mute">(6 &times; 4 axes)</span></dd></div>
+      </dl>
+      <div class="meter" title="authoring load 24 of ~110">
+        <span style="width:28%" class="ok"></span>
+      </div>
+      <p class="axes">Varies on: <code>build</code> <code>flags</code> <code>items</code> <code>purse</code>
+        &middot; <span class="mute">Well inside hand-authored territory.</span></p>
+      <details><summary>What they pay</summary>
+        <div class="scroll"><table class="pay"><thead><tr><th>flow</th><th>base</th>
+        <th>charm</th><th>money</th><th>fighting</th></tr></thead><tbody><tr><th>monteWin</th><td>$100.00</td><td>$175.00</td>
+         <td>$150.00</td><td>$120.00</td></tr></tbody></table></div>
+        </details>
+      
+    </article></div>
+</section>
+
+<section id="places">
+  <h2>Locations <span>4</span></h2>
+  <p class="lede">Coordinates are the game's 320×200 logical space. Priority breaks ties when
+  hotspots overlap — people outrank the scenery behind them.</p>
+  <div class="grid two">
+    <article class="card" id="place-arrival">
+      <header><h3>arrival</h3>
+        <span class="pill crit">lethal ground</span></header>
+      <dl class="facts">
+        <div><dt>Walkable</dt><dd>x 16&ndash;304, y 134&ndash;168</dd></div>
+        <div><dt>Entry</dt><dd>40, 150</dd></div>
+        <div><dt>Standing here</dt><dd>chip</dd></div>
+        <div><dt>Hotspots</dt><dd>7</dd></div>
+      </dl>
+      <details><summary>Every hotspot</summary>
+        <div class="scroll"><table><thead><tr><th>what</th><th>verbs</th>
+        <th>rect</th><th></th></tr></thead><tbody><tr>
+        <th>Chip Winthrop</th>
+        <td><span class="tag">look</span> <span class="tag">talk</span> <span class="tag">use</span> <span class="tag">take</span></td>
+        <td class="num">194, 100, 34, 44</td>
+        <td>conditional &middot; pri 2</td>
+      </tr><tr>
+        <th>the pink convertible</th>
+        <td><span class="tag">look</span> <span class="tag">use</span> <span class="tag">take</span></td>
+        <td class="num">194, 108, 66, 20</td>
+        <td></td>
+      </tr><tr>
+        <th>the welcome sign</th>
+        <td><span class="tag">look</span></td>
+        <td class="num">104, 28, 130, 24</td>
+        <td></td>
+      </tr><tr>
+        <th>the bus shelter</th>
+        <td><span class="tag">look</span> <span class="tag">take</span></td>
+        <td class="num">12, 90, 56, 44</td>
+        <td></td>
+      </tr><tr>
+        <th>a quarter</th>
+        <td><span class="tag">look</span> <span class="tag">use</span> <span class="tag">take</span></td>
+        <td class="num">176, 150, 14, 12</td>
+        <td>conditional &middot; pri 3</td>
+      </tr><tr>
+        <th>the road</th>
+        <td><span class="tag">look</span> <span class="tag">talk</span> <span class="tag">use</span> <span class="tag">take</span></td>
+        <td class="num">0, 92, 320, 20</td>
+        <td></td>
+      </tr><tr>
+        <th>the boardwalk</th>
+        <td><span class="tag exit">exit</span></td>
+        <td class="num">296, 120, 24, 52</td>
+        <td></td>
+      </tr></tbody></table></div></details>
+    </article>
+    <article class="card" id="place-boardwalk">
+      <header><h3>boardwalk</h3>
+        </header>
+      <dl class="facts">
+        <div><dt>Walkable</dt><dd>x 14&ndash;306, y 126&ndash;168</dd></div>
+        <div><dt>Entry</dt><dd>40, 150</dd></div>
+        <div><dt>Standing here</dt><dd>gil, brenda</dd></div>
+        <div><dt>Hotspots</dt><dd>11</dd></div>
+      </dl>
+      <details><summary>Every hotspot</summary>
+        <div class="scroll"><table><thead><tr><th>what</th><th>verbs</th>
+        <th>rect</th><th></th></tr></thead><tbody><tr>
+        <th>the sunburnt man</th>
+        <td><span class="tag">look</span> <span class="tag">talk</span> <span class="tag">take</span> <span class="tag">useItem</span></td>
+        <td class="num">50, 112, 28, 46</td>
+        <td>pri 2</td>
+      </tr><tr>
+        <th>the bench</th>
+        <td><span class="tag">look</span></td>
+        <td class="num">42, 130, 44, 24</td>
+        <td></td>
+      </tr><tr>
+        <th>the woman with the clipboard</th>
+        <td><span class="tag">look</span> <span class="tag">talk</span> <span class="tag">useItem</span></td>
+        <td class="num">258, 118, 28, 46</td>
+        <td>pri 2</td>
+      </tr><tr>
+        <th>the timeshare booth</th>
+        <td><span class="tag">look</span></td>
+        <td class="num">240, 100, 62, 56</td>
+        <td></td>
+      </tr><tr>
+        <th>the FREE GIFT sign</th>
+        <td><span class="tag">look</span> <span class="tag">take</span></td>
+        <td class="num">230, 116, 30, 38</td>
+        <td>conditional &middot; pri 3</td>
+      </tr><tr>
+        <th>the churro cart</th>
+        <td><span class="tag">look</span> <span class="tag">talk</span> <span class="tag">take</span></td>
+        <td class="num">172, 106, 40, 36</td>
+        <td></td>
+      </tr><tr>
+        <th>the railing</th>
+        <td><span class="tag">look</span> <span class="tag">take</span></td>
+        <td class="num">0, 96, 320, 14</td>
+        <td></td>
+      </tr><tr>
+        <th>the casino tower</th>
+        <td><span class="tag">look</span></td>
+        <td class="num">224, 16, 32, 62</td>
+        <td></td>
+      </tr><tr>
+        <th>the steps down to the beach</th>
+        <td><span class="tag exit">exit</span></td>
+        <td class="num">107, 130, 46, 34</td>
+        <td></td>
+      </tr><tr>
+        <th>the top of the strip</th>
+        <td><span class="tag exit">exit</span></td>
+        <td class="num">0, 118, 16, 54</td>
+        <td></td>
+      </tr><tr>
+        <th>the pier</th>
+        <td><span class="tag exit">exit</span></td>
+        <td class="num">306, 112, 14, 60</td>
+        <td></td>
+      </tr></tbody></table></div></details>
+    </article>
+    <article class="card" id="place-pier">
+      <header><h3>pier</h3>
+        </header>
+      <dl class="facts">
+        <div><dt>Walkable</dt><dd>x 14&ndash;306, y 132&ndash;168</dd></div>
+        <div><dt>Entry</dt><dd>40, 150</dd></div>
+        <div><dt>Standing here</dt><dd>dickie, zsazsa, r1, r2</dd></div>
+        <div><dt>Hotspots</dt><dd>7</dd></div>
+      </dl>
+      <details><summary>Every hotspot</summary>
+        <div class="scroll"><table><thead><tr><th>what</th><th>verbs</th>
+        <th>rect</th><th></th></tr></thead><tbody><tr>
+        <th>the lounge singer</th>
+        <td><span class="tag">look</span> <span class="tag">talk</span> <span class="tag">useItem</span></td>
+        <td class="num">40, 96, 26, 42</td>
+        <td>pri 2</td>
+      </tr><tr>
+        <th>the bandshell</th>
+        <td><span class="tag">look</span> <span class="tag">useItem</span></td>
+        <td class="num">6, 70, 98, 62</td>
+        <td></td>
+      </tr><tr>
+        <th>the fortune teller</th>
+        <td><span class="tag">look</span> <span class="tag">talk</span> <span class="tag">useItem</span></td>
+        <td class="num">254, 120, 26, 44</td>
+        <td>pri 2</td>
+      </tr><tr>
+        <th>the fortune tent</th>
+        <td><span class="tag">look</span></td>
+        <td class="num">222, 74, 92, 62</td>
+        <td></td>
+      </tr><tr>
+        <th>the crate</th>
+        <td><span class="tag">look</span> <span class="tag">take</span></td>
+        <td class="num">118, 118, 44, 12</td>
+        <td></td>
+      </tr><tr>
+        <th>the pier railing</th>
+        <td><span class="tag">look</span> <span class="tag">use</span> <span class="tag">take</span></td>
+        <td class="num">0, 112, 320, 10</td>
+        <td></td>
+      </tr><tr>
+        <th>the boardwalk</th>
+        <td><span class="tag exit">exit</span></td>
+        <td class="num">0, 118, 14, 54</td>
+        <td></td>
+      </tr></tbody></table></div></details>
+    </article>
+    <article class="card" id="place-underpier">
+      <header><h3>underpier</h3>
+        <span class="pill crit">lethal ground</span></header>
+      <dl class="facts">
+        <div><dt>Walkable</dt><dd>x 16&ndash;298, y 118&ndash;168</dd></div>
+        <div><dt>Entry</dt><dd>60, 150</dd></div>
+        <div><dt>Standing here</dt><dd>monte, u1, u2</dd></div>
+        <div><dt>Hotspots</dt><dd>6</dd></div>
+      </dl>
+      <details><summary>Every hotspot</summary>
+        <div class="scroll"><table><thead><tr><th>what</th><th>verbs</th>
+        <th>rect</th><th></th></tr></thead><tbody><tr>
+        <th>the man with the shells</th>
+        <td><span class="tag">look</span> <span class="tag">talk</span> <span class="tag">useItem</span></td>
+        <td class="num">192, 110, 28, 44</td>
+        <td>pri 2</td>
+      </tr><tr>
+        <th>the folding table</th>
+        <td><span class="tag">look</span> <span class="tag">take</span></td>
+        <td class="num">174, 144, 60, 16</td>
+        <td></td>
+      </tr><tr>
+        <th>the two onlookers</th>
+        <td><span class="tag">look</span> <span class="tag">talk</span></td>
+        <td class="num">140, 136, 34, 36</td>
+        <td>pri 1</td>
+      </tr><tr>
+        <th>the water</th>
+        <td><span class="tag">look</span> <span class="tag">use</span> <span class="tag">take</span></td>
+        <td class="num">0, 86, 320, 14</td>
+        <td></td>
+      </tr><tr>
+        <th>the driftwood</th>
+        <td><span class="tag">look</span></td>
+        <td class="num">36, 152, 30, 12</td>
+        <td></td>
+      </tr><tr>
+        <th>the way back up</th>
+        <td><span class="tag exit">exit</span></td>
+        <td class="num">280, 96, 38, 56</td>
+        <td></td>
+      </tr></tbody></table></div></details>
+    </article></div>
+</section>
+
+<section id="items">
+  <h2>Items <span>8</span></h2>
+  <div class="scroll"><table><thead><tr><th>item</th><th>id</th><th>what it says when looked at</th>
+  </tr></thead><tbody><tr><th>a quarter</th><td><code>quarter</code></td><td>Twenty-five cents. Chip Winthrop flicked it at you like you were a fountain.</td></tr><tr><th>a canvas tote</th><td><code>tote</code></td><td>"SHORELINE RESIDENCES — OWN THE SUNSET." It smells faintly of a rented conference room.</td></tr><tr><th>Coco Blast SPF 2</th><td><code>spf</code></td><td>SPF two. That is not sun protection, that is a marinade. Warning label: DO NOT DRINK. Sure.</td></tr><tr><th>aloe gel</th><td><code>aloe</code></td><td>Ice-blue, medical-grade, aggressively soothing. Somewhere out there is a man who would pay real money for this.</td></tr><tr><th>a drink coupon</th><td><code>coupon</code></td><td>One (1) complimentary Sunset Cooler at any participating Shoreline property. Participating properties: none.</td></tr><tr><th>a fortune card</th><td><code>fortune</code></td><td>Madame LaRue's spidery handwriting: "THE PEA IS NEVER UNDER A SHELL. WATCH THE LEFT HAND, NOT THE SHELLS."</td></tr><tr><th>a FREE GIFT sign</th><td><code>sign</code></td><td>Two feet of laminated hot pink promising something for nothing. The most powerful object in Vanity Shores.</td></tr><tr><th>a churro</th><td><code>churro</code></td><td>Cinnamon, sugar, and structural regret. Still warm.</td></tr></tbody></table></div>
+</section>
+
+<section id="economy">
+  <h2>Economy</h2>
+  <p class="lede">Every figure the level can move, in one table, driving the game directly.
+  Columns are the route taken, not the player's lean — a charm build that picks the plain
+  option is paid the plain rate.</p>
+  <div class="scroll"><table class="pay"><thead><tr><th>flow</th><th>base</th><th>charm</th>
+  <th>money</th><th>fighting</th></tr></thead><tbody><tr><th>brendaGift</th><td>$0.00</td><td>$5.00</td>
+     <td>$5.00</td><td>$0.00</td></tr><tr><th>gilAloe</th><td>$20.00</td><td>$30.00</td>
+     <td>$25.00</td><td>$20.00</td></tr><tr><th>dickieSplit</th><td>$25.00</td><td>$45.00</td>
+     <td>$40.00</td><td>$30.00</td></tr><tr><th>dickieEncore</th><td>$15.00</td><td>$20.00</td>
+     <td>$15.00</td><td>$15.00</td></tr><tr><th>monteWin</th><td>$100.00</td><td>$175.00</td>
+     <td>$150.00</td><td>$120.00</td></tr>
+  <tr><th>monte stake</th><td colspan="4">-$50.00 to sit down</td></tr>
+  </tbody></table></div>
+
+  <h3 style="font-family:var(--ui);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin:26px 0 8px">Balance check — every build, best available route</h3>
+  <div class="scroll"><table><thead><tr><th>build</th><th>M / F / C</th><th>before the table</th>
+  <th>encores needed</th><th>finishes</th><th></th></tr></thead><tbody><tr class=""><th>Even 34/33/33</th>
+     <td class="num">34 / 33 / 33</td>
+     <td class="num">$63.40</td>
+     <td class="num">1</td>
+     <td class="num">$113.40</td>
+     <td><span class="pill ok">clears</span></td></tr><tr class=""><th>Money 60</th>
+     <td class="num">60 / 20 / 20</td>
+     <td class="num">$76.00</td>
+     <td class="num">0</td>
+     <td class="num">$176.00</td>
+     <td><span class="pill ok">clears</span></td></tr><tr class=""><th>Fighting 60</th>
+     <td class="num">20 / 60 / 20</td>
+     <td class="num">$52.00</td>
+     <td class="num">0</td>
+     <td class="num">$122.00</td>
+     <td><span class="pill ok">clears</span></td></tr><tr class=""><th>Charm 60</th>
+     <td class="num">20 / 20 / 60</td>
+     <td class="num">$82.00</td>
+     <td class="num">0</td>
+     <td class="num">$207.00</td>
+     <td><span class="pill ok">clears</span></td></tr><tr class=""><th>Money 45 / Charm 45</th>
+     <td class="num">45 / 10 / 45</td>
+     <td class="num">$84.50</td>
+     <td class="num">0</td>
+     <td class="num">$209.50</td>
+     <td><span class="pill ok">clears</span></td></tr><tr class=""><th>Minimum lean 38</th>
+     <td class="num">38 / 31 / 31</td>
+     <td class="num">$73.80</td>
+     <td class="num">0</td>
+     <td class="num">$173.80</td>
+     <td><span class="pill ok">clears</span></td></tr></tbody></table></div>
+  <p class="lede" style="margin-top:12px">Dickie's encore is uncapped on purpose: it is the grind
+  path that guarantees no dead end. Re-run this whenever a payout changes.</p>
+</section>
+
+<section id="gates">
+  <h2>Gates &amp; odds</h2>
+  <p class="lede">Every stat check in the level. <b style="color:var(--bone)">The rule:</b> no gate
+  may be the only route past a required beat — an even split clears nothing, so every required
+  beat needs an ungated path.</p>
+  <div class="scroll"><table><thead><tr><th>gate</th><th>needs</th><th>stat</th><th>opens</th>
+  </tr></thead><tbody><tr><th>chipIntro</th><td class="num">38</td><td>any</td>
+     <td>a build-specific opening line with Chip</td></tr><tr><th>brendaPitch</th><td class="num">38</td><td>any</td>
+     <td>the good bag in one pass instead of two</td></tr><tr><th>gilPrice</th><td class="num">38</td><td>any</td>
+     <td>a better price for the aloe</td></tr><tr><th>dickieSplit</th><td class="num">38</td><td>any</td>
+     <td>a bigger cut of the tip jar</td></tr><tr><th>dickieEncore</th><td class="num">38</td><td>charm</td>
+     <td>+$5 on every encore</td></tr><tr><th>monteTable</th><td class="num">38</td><td>any</td>
+     <td>a bigger take at the shell game</td></tr></tbody></table></div>
+  <div class="stats" style="margin-top:18px">
+    <div class="stat"><b>97.9%</b><span>builds clearing any gate</span></div>
+    <div class="stat"><b>38.3%</b><span>clear money 38</span></div>
+    <div class="stat"><b>38.3%</b><span>clear fighting 38</span></div>
+    <div class="stat"><b>38.3%</b><span>clear charm 38</span></div>
+  </div>
+  <p class="lede" style="margin-top:12px">Across all 3,741 legal
+  100-point splits (minimum 5 per stat). Raising <code>GATE</code> above 38 narrows
+  every one of these at once.</p>
+</section>
+
+<section id="intrigue">
+  <h2>Intrigue</h2>
+  <p class="lede">Attraction is tracked, never resolved — nothing in Act 1 is winnable. What the
+  player builds here is a number the later acts read, and a reason to talk to somebody twice when
+  the puzzle does not require it. Repeat flirtation is capped so it cannot be farmed.</p>
+  <div class="grid two">
+    <div class="card"><header><h3>Tiers</h3></header>
+      <div class="scroll"><table><thead><tr><th>heat</th><th>reads as</th></tr></thead>
+      <tbody><tr><th class="num">1+</th><td>clocked you</td></tr><tr><th class="num">15+</th><td>noticed you</td></tr><tr><th class="num">35+</th><td>interested</td></tr><tr><th class="num">60+</th><td>circling</td></tr><tr><th class="num">80+</th><td>a problem for later</td></tr></tbody></table></div></div>
+    <div class="card"><header><h3>Where it comes from</h3></header>
+      <ul class="plain">
+        <li><b>Chip</b> — charm opener +18, money opener +8, three optional beats +6 each,
+          the curtain +12 spoken or +16 silent.</li>
+        <li><b>Brenda</b> — charm route +20, money route +12, sitting through the pitch twice +8,
+          handing back the coupon +4.</li>
+        <li><b>Fighting earns wariness, not heat.</b> That is a real build difference, not an
+          oversight.</li>
+      </ul></div>
+  </div>
+</section>
+
+<section id="deaths">
+  <h2>Deaths <span>4</span></h2>
+  <p class="lede">All instant-retry gags. The curtain counts them.</p>
+  <div class="scroll"><table><thead><tr><th>card</th><th>id</th><th>copy</th></tr></thead>
+  <tbody><tr><th>FLATTENED</th><td><code>road</code></td>
+     <td>You step into the road to admire the sunset. A pink convertible the size of a small country removes you from the timeline. The driver does not slow down. <span class="mute">Right of way belongs to whoever owns more of the road.</span></td></tr><tr><th>DROWNED</th><td><code>surf</code></td>
+     <td>You wade out to rinse the boardwalk off your ankles. The riptide has other plans, and the riptide has seniority. <span class="mute">Nobody on that beach looked up. Their tans were at a critical stage.</span></td></tr><tr><th>DECEASED, TROPICALLY</th><td><code>oil</code></td>
+     <td>It said TROPICAL. It said COCONUT. It said, in letters you chose not to read, DO NOT DRINK. <span class="mute">You die golden, glistening, and evenly bronzed on the inside.</span></td></tr><tr><th>DASHED UPON THE PILINGS</th><td><code>rail</code></td>
+     <td>You climb the pier railing because it looked like something a man with a future does. The railing is ninety years old. <span class="mute">The pilings below are barnacled, immovable, and well attended by crabs.</span></td></tr></tbody></table></div>
+</section>
+
+<section id="flags">
+  <h2>Flags <span>21</span></h2>
+  <p class="lede">Level 1's entire persistent state. A flag with reads but no writes, or writes but
+  no reads, is a bug worth chasing.</p>
+  <div class="scroll"><table><thead><tr><th>flag</th><th>written</th><th>read</th></tr></thead>
+  <tbody><tr><th><code>arrived</code></th><td class="num">1</td>
+     <td class="num">1</td></tr><tr><th><code>brendaWary</code></th><td class="num">1</td>
+     <td class="num">2</td></tr><tr><th><code>chipGone</code></th><td class="num">1</td>
+     <td class="num">4</td></tr><tr><th><code>crowdDrawn</code></th><td class="num">1</td>
+     <td class="num">4</td></tr><tr><th><code>dickiePaid</code></th><td class="num">1</td>
+     <td class="num">1</td></tr><tr><th><code>finale</code></th><td class="num">1</td>
+     <td class="num">1</td></tr><tr><th><code>gilPaid</code></th><td class="num">1</td>
+     <td class="num">1</td></tr><tr><th><code>gotPremium</code></th><td class="num">2</td>
+     <td class="num">2</td></tr><tr><th><code>levelDone</code></th><td class="num">1</td>
+     <td class="num">1</td></tr><tr><th><code>metChip</code></th><td class="num">1</td>
+     <td class="num">1</td></tr><tr><th><code>monteEnemy</code></th><td class="num">1</td>
+     <td class="num">1</td></tr><tr><th><code>monteWon</code></th><td class="num">1</td>
+     <td class="num">2</td></tr><tr><th><code>pitchCount</code></th><td class="num">2</td>
+     <td class="num">2</td></tr><tr><th><code>pitchDone</code></th><td class="num">1</td>
+     <td class="num">2</td></tr><tr><th><code>quarterOnGround</code></th><td class="num">2</td>
+     <td class="num">1</td></tr><tr><th><code>readingDone</code></th><td class="num">1</td>
+     <td class="num">2</td></tr><tr><th><code>sawPier</code></th><td class="num">1</td>
+     <td class="num">1</td></tr><tr><th><code>sawStrip</code></th><td class="num">1</td>
+     <td class="num">1</td></tr><tr><th><code>sawUnder</code></th><td class="num">1</td>
+     <td class="num">1</td></tr><tr><th><code>signTaken</code></th><td class="num">1</td>
+     <td class="num">2</td></tr><tr><th><code>stake</code></th><td class="num">1</td>
+     <td class="num">2</td></tr></tbody></table></div>
+</section>
+
+<section id="chain">
+  <h2>Progression</h2>
+  <div class="chain">Chip mocks you ──▶ flicks a quarter ──▶ <i>TAKE quarter</i>
+                                 │
+Brenda's pitch ──▶ <b>aloe</b>   <span class="mute">(charm / money / fighting / sit through it twice)</span>
+      │              │
+      │              └──▶ <i>USE aloe on Gil</i> ──▶ <b>$20.00–$30.00</b>
+      └──▶ <i>TAKE the FREE GIFT sign</i>
+                 │
+                 └──▶ <i>USE sign on the bandshell</i> ──▶ crowd ──▶ <b>$25.00–$45.00</b>
+                                                              │
+quarter ──▶ LaRue's reading ──▶ <b>fortune card</b> ──────────┤
+                                                              ▼
+                                        Monte's table — <b>$50.00</b> to sit
+                                        with the card: <b>$100.00–$175.00</b>
+                                        without it: the stake is gone
+                                                              │
+                                        purse ≥ <b>$100.00</b> ──▶ curtain</div>
+</section>
+
+<section id="ai">
+  <h2>When to reach for AI</h2>
+  <p class="lede">The design doc keeps goal-driven NPCs out of the MVP and names the Wildcard rival
+  as the first candidate. On the evidence below that is the wrong first candidate — the pressure is
+  building on Chip, because he is the one who persists across all eleven levels, flips allegiance at
+  Level 4, and now carries a heat track as well as a build check.</p>
+  <ul class="plain">
+    <li><b>Word count is not the trigger.</b> Prose is cheap to write. The trigger is the number of
+      <b>independent axes</b> a character's lines must vary on at once, because the hand-authored
+      matrix is their product, not their sum.</li>
+    <li><b>The measure used here</b> is <code>branches × axes</code> — multiplicative, because the
+      matrix you write by hand is the product of the axes, not their sum. Adding one
+      heat-conditioned reply to a character who already varies on build does not add a line, it
+      doubles a column.</li>
+    <li><b>Comfortable</b> — under 30. The tree stays readable and every branch can be written well.</li>
+    <li><b>Watch</b> — 30 to 80. Still writable, but you begin repeating yourself and the seams show.</li>
+    <li><b>Reach for a goal-driven NPC</b> — over 80.</li>
+    <li><b>The architecture is already ready for it.</b> Every scene is a plain function that calls
+      <code>say()</code>. Swapping one for a generated response means replacing a function body,
+      not a rewrite — which is exactly the modularity §11 asks for.</li>
+  </ul>
+  <div class="scroll" style="margin-top:18px"><table><thead><tr><th>character</th><th>words</th>
+  <th>branches</th><th>axes</th><th>load</th><th>read</th></tr></thead><tbody>
+  <tr><th>Monte</th><td class="num">735</td>
+    <td class="num">6</td>
+    <td class="num">4 <span class="mute">build flags items purse</span></td>
+    <td class="num">24</td>
+    <td><span class="pill ok">comfortable</span></td></tr><tr><th>Gil Furnace</th><td class="num">314</td>
+    <td class="num">6</td>
+    <td class="num">3 <span class="mute">build flags items</span></td>
+    <td class="num">18</td>
+    <td><span class="pill ok">comfortable</span></td></tr><tr><th>Dickie Vermouth</th><td class="num">507</td>
+    <td class="num">6</td>
+    <td class="num">3 <span class="mute">build flags items</span></td>
+    <td class="num">18</td>
+    <td><span class="pill ok">comfortable</span></td></tr><tr><th>Chip Winthrop</th><td class="num">908</td>
+    <td class="num">6</td>
+    <td class="num">2 <span class="mute">build flags</span></td>
+    <td class="num">12</td>
+    <td><span class="pill ok">comfortable</span></td></tr><tr><th>Brenda Tang</th><td class="num">831</td>
+    <td class="num">5</td>
+    <td class="num">2 <span class="mute">build flags</span></td>
+    <td class="num">10</td>
+    <td><span class="pill ok">comfortable</span></td></tr><tr><th>Madame LaRue</th><td class="num">342</td>
+    <td class="num">2</td>
+    <td class="num">4 <span class="mute">build flags heat items</span></td>
+    <td class="num">8</td>
+    <td><span class="pill ok">comfortable</span></td></tr>
+  </tbody></table></div>
+</section>
+
+<footer>Generated from <code>index.html</code> by <code>tools/bible.js</code>.
+Change the game and regenerate; do not edit this page by hand.</footer>
+</main>
+</div>

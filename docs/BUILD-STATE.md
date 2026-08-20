@@ -82,8 +82,29 @@ webfonts are slow, blocked, or substituted.
 reader has reached the final view of the final page, matching what's drawn.
 
 **Money is in cents.** `GS.cash` is an integer; `money()` formats it. `pay()` also
-sets `flags.stake` the moment the purse crosses $100, which is the Level 1 win
-line however the player got there.
+sets `flags.stake` the moment the purse crosses the win line, however the player
+got there.
+
+**The economy is a table, not prose.** Every figure the level can move lives in
+`ECONOMY` — opening purse, win line, the shell-game stake, and a payout row per
+income source with a column per route (`base` / `charm` / `money` / `fight`).
+Scenes call `earn(key, route)`; nothing hard-codes a number any more. Likewise
+every stat check is a named entry in `GATES`, read through `gated(name, stat)`,
+so checks can be listed and tuned individually instead of hunted through
+dialogue. Change a number in either table and the game, the docs and the balance
+simulation all move together.
+
+**Intrigue is tracked, never resolved.** `GS.heat[who]` is a 0-100 number seeded
+in Act 1 for later acts to read — §5.4 gates low-tier conquests to Act 2 and the
+rest to Act 3, so nothing here is winnable. `addHeat` writes it, `heatTier` turns
+it into prose for the ending card, and `flirtBeat(who, beats, perBeat)` serves
+optional repeat dialogue from a capped list so heat cannot be farmed by clicking
+the same person forever. Fighting routes deliberately earn wariness instead of
+heat — that is a real build difference, not an oversight.
+
+**Set flags when they are earned, not in a `then` callback.** A `then` fires on
+dismissal; if the message is replaced by a room transition first, the flag never
+lands. `brendaWary` had this bug.
 
 ## Level 1 puzzle chain
 
@@ -165,6 +186,25 @@ icons at the top right of the status bar, the buttons under the cabinet, or the
 Content scales fine, but `index.html` will not stay comfortable much past ~5000
 lines. When Level 3 lands, split content out into a `LEVELS` array of modules and
 concatenate at build time, keeping the single-file output.
+
+## The game bible
+
+`node tools/bible.js` drives the real `index.html` in a headless browser, reads
+the live game objects, scans the source for dialogue volume and flag traffic,
+and writes `docs/game-bible.html`. It is the answer to "what is in this game
+now" and it is generated, never hand-maintained — a written breakdown would
+drift the first time a payout changed.
+
+It carries an **authoring-load** read per character: `branches × axes`, where an
+axis is something a line *varies on* (build, flags, heat, items, purse) and not
+something a scene *does* (`give`, `addHeat`, `pay` cost nothing to author). The
+measure is multiplicative because the matrix you write by hand is the product of
+the axes, not their sum. Under 30 is comfortable, 30-80 is worth watching, over
+80 is where a goal-driven NPC starts earning its keep. Everyone is currently
+comfortable; Monte is highest at 24.
+
+Regenerate it whenever you add a location, a character, a payout or a gate, and
+check the balance table still says every build clears.
 
 ## Testing
 
