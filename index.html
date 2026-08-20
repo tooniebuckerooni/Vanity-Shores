@@ -1,0 +1,2643 @@
+<title>Vanity Shores</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monoton&family=Silkscreen:wght@400;700&family=VT323&display=swap">
+<style>
+:root{
+  --void:#10071c; --dusk:#2a1140; --bezel:#1b0c2c;
+  --chrome:#f5e6d3; --dim:#a08cb4;
+  --hot:#ff2e88; --surf:#21e0d6; --gold:#ffc23d;
+  --ui:"Silkscreen",ui-monospace,monospace;
+  --body:"VT323",ui-monospace,monospace;
+  --marquee:"Monoton",fantasy,cursive;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--void);
+  color:var(--chrome);
+  font-family:var(--ui);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:14px; padding:16px; overflow:hidden;
+  background-image:
+    radial-gradient(120% 90% at 50% 0%, #2a1140 0%, #10071c 62%),
+    repeating-linear-gradient(0deg, rgba(0,0,0,.28) 0 2px, transparent 2px 4px);
+}
+#cab{
+  display:flex; flex-direction:column; align-items:center; gap:10px;
+  max-width:100%;
+}
+#bezelwrap{
+  position:relative; line-height:0;
+  padding:10px; border-radius:6px;
+  background:linear-gradient(180deg,#26103c,#150a24);
+  box-shadow:0 0 0 1px var(--hot), 0 0 26px -6px rgba(255,46,136,.55), 0 24px 60px -20px #000;
+}
+canvas#screen{
+  display:block; image-rendering:pixelated; image-rendering:crisp-edges;
+  background:#000; border-radius:2px; cursor:crosshair; touch-action:manipulation;
+  max-width:100%;
+}
+#scan{
+  position:absolute; inset:10px; pointer-events:none; border-radius:2px;
+  background:repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 2px, transparent 2px 4px);
+  mix-blend-mode:multiply;
+}
+#vig{
+  position:absolute; inset:10px; pointer-events:none; border-radius:2px;
+  background:radial-gradient(115% 105% at 50% 45%, transparent 55%, rgba(16,7,28,.55) 100%);
+}
+#namebox{
+  position:absolute; display:none; font-family:var(--body);
+  background:#1a0f2e; color:var(--gold); border:2px solid var(--hot);
+  outline:none; padding:2px 6px; letter-spacing:.06em;
+}
+#namebox:focus-visible{box-shadow:0 0 0 2px var(--surf)}
+#strip{
+  display:flex; flex-wrap:wrap; gap:8px 18px; align-items:center; justify-content:center;
+  font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim);
+  min-height:16px;
+}
+#strip b{color:var(--chrome);font-weight:400}
+#strip .m{color:var(--gold)} #strip .f{color:var(--hot)} #strip .c{color:var(--surf)}
+#strip .sep{color:#4b3168}
+#foot{
+  font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:#6b4d8a;
+  text-align:center; display:flex; gap:14px; flex-wrap:wrap; justify-content:center;
+}
+#foot button{
+  font:inherit; letter-spacing:.16em; text-transform:uppercase;
+  background:none; border:none; color:#8a68ad; cursor:pointer; padding:2px 4px;
+}
+#foot button:hover{color:var(--surf)}
+#foot button:focus-visible{outline:2px solid var(--surf);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){ *{animation-duration:.001ms !important} }
+</style>
+
+<div id="cab">
+  <div id="bezelwrap">
+    <canvas id="screen" width="320" height="200" aria-label="Vanity Shores game screen"></canvas>
+    <div id="scan"></div>
+    <div id="vig"></div>
+    <input id="namebox" maxlength="14" autocomplete="off" spellcheck="false" aria-label="Enter your name">
+  </div>
+  <div id="strip"></div>
+  <div id="foot">
+    <button id="btnSound" type="button">Sound: On</button>
+    <button id="btnScale" type="button">Size</button>
+    <button id="btnWipe" type="button">Erase Save</button>
+    <span>Act 1 &middot; Level 1 &middot; Free Demo</span>
+  </div>
+</div>
+<script>
+"use strict";
+/* ============================================================================
+   VANITY SHORES — Act 1, Level 1
+   A self-contained 16-bit-style adventure. No external assets: every sprite,
+   backdrop and note is generated at runtime.
+   ---------------------------------------------------------------------------
+   SECTIONS:  0 core  1 art  2 backdrops  3 audio  4 engine  5 content  6 boot
+   ========================================================================= */
+
+/* ---------- 0. CORE ------------------------------------------------------ */
+const W = 320, H = 200;
+const cvs = document.getElementById('screen');
+let   g   = cvs.getContext('2d', { alpha:false });
+const MAIN = g;
+function withTarget(ctx, fn){ const o=g; g=ctx; fn(); g=o; }
+function offscreen(w,h){ const c=document.createElement('canvas'); c.width=w; c.height=h;
+  const x=c.getContext('2d'); x.imageSmoothingEnabled=false; return c; }
+g.imageSmoothingEnabled = false;
+
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function r(x,y,w,h,c){ g.fillStyle=c; g.fillRect(x|0,y|0,w|0,h|0); }
+function px(x,y,c){ g.fillStyle=c; g.fillRect(x|0,y|0,1,1); }
+function clamp(v,a,b){ return v<a?a:v>b?b:v; }
+function lerp(a,b,t){ return a+(b-a)*t; }
+function rnd32(seed){ return function(){ seed|=0; seed=seed+0x6D2B79F5|0;
+  let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t;
+  return ((t^t>>>14)>>>0)/4294967296; }; }
+
+/* World palette — sun-bleached resort at golden hour */
+const P = {
+  ink:'#160b22', ink2:'#241134', shadow:'#3a1d4e',
+  bone:'#f5e6d3', dim:'#a08cb4',
+  hot:'#ff2e88', hot2:'#c41d68', surf:'#21e0d6', surf2:'#0e9c97',
+  gold:'#ffc23d', gold2:'#c98a1a', amber:'#ff8a3d',
+  sky1:'#ff9a4d', sky2:'#ff5f8f', sky3:'#7b3fa0', sky4:'#2e1a52',
+  sea1:'#1b5c8a', sea2:'#2a7fa8', sea3:'#48b3c4', foam:'#cfeef2',
+  sand:'#e8c98f', sand2:'#c9a468', sand3:'#9c7b48',
+  wood:'#9c6b3f', wood2:'#7a5230', wood3:'#5c3d24', wood4:'#b98a55',
+  palm:'#2c1a3e', palmL:'#4a2c66',
+  white:'#ffffff', black:'#000000'
+};
+
+/* ---------- 1. ART: procedural cast -------------------------------------- */
+/* One renderer, many people. Every NPC is this function with different knobs. */
+
+const SKIN = {
+  fair:{ s:'#f0c9a0', d:'#c9976c', l:'#ffe0bd' },
+  tan :{ s:'#d99a63', d:'#a86f45', l:'#f2bb85' },
+  deep:{ s:'#8a5433', d:'#5e3520', l:'#a97048' },
+  burn:{ s:'#f0533f', d:'#b8352a', l:'#ff7a63' },
+  pale:{ s:'#f7ddc4', d:'#d0ab8c', l:'#fff2e2' }
+};
+
+function hairShape(x, hy, hw, style, c, c2, sway){
+  // x = left edge of head, hy = top of head, hw = head width
+  switch(style){
+    case 'blowout': // feathered 80s wall of hair
+      r(x-1,hy-4,hw+2,4,c); r(x-3,hy-2,3,8,c); r(x+hw,hy-2,3,8,c);
+      r(x+1,hy-6,hw-2,2,c); r(x-2,hy-3,2,2,c2); r(x+hw,hy-3,2,2,c2);
+      r(x+1,hy,hw-4,2,c);                       // fringe over the brow
+      r(x+2,hy-5,3,2,c2); break;
+    case 'spikes': // bleached surf spikes
+      for(let i=0;i<5;i++){ const sx=x+i*2; r(sx,hy-3-(i%2?2:0),2,4+(i%2?2:0),c); }
+      r(x-1,hy-1,hw+2,3,c); r(x,hy-1,hw,1,c2); break;
+    case 'perm': // big volumized perm
+      r(x-3,hy-4,hw+6,7,c); r(x-4,hy-1,2,8,c); r(x+hw+2,hy-1,2,8,c);
+      r(x-2,hy-5,hw+4,2,c); px(x-1,hy-2,c2); px(x+hw,hy-2,c2);
+      r(x+1,hy-4,3,2,c2); break;
+    case 'ponytail': // slicked back, tail out the rear
+      r(x-1,hy-2,hw+2,4,c); r(x-1,hy-2,hw+2,1,c2);
+      r(x+hw+1,hy+1,2,7,c); r(x+hw+2,hy+5+sway,2,4,c); break;
+    case 'pomp': // greased pompadour
+      r(x-1,hy-4,hw+2,5,c); r(x,hy-6,hw-2,3,c); r(x+1,hy-6,3,2,c2); break;
+    case 'bun':
+      r(x-1,hy-2,hw+2,4,c); r(x+hw-1,hy-5,4,4,c); px(x+hw,hy-4,c2); break;
+    case 'turban':
+      r(x-2,hy-5,hw+4,7,c); r(x-2,hy-3,hw+4,1,c2); r(x+hw,hy-7,3,3,P.gold);
+      px(x+hw+1,hy-6,P.white); break;
+    case 'cap':
+      r(x-1,hy-3,hw+2,4,c); r(x-4,hy-1,5,2,c2); break;
+    case 'bald': r(x,hy,hw,2,SKIN.fair.d); break;
+    default: r(x-1,hy-3,hw+2,5,c);
+  }
+}
+
+/* Draw a person. (x,y) = centre of feet. o = look options. t = ms clock. */
+function drawPerson(x, y, o, t, walkPhase){
+  const sk   = SKIN[o.skin||'tan'];
+  const size = o.size|0;                      // -4 .. +6 height delta
+  const bd   = o.build||0;                    // -1 slim, 0, +1 broad
+  const legH = 15 + Math.round(size*0.45);
+  const torH = 13 + Math.round(size*0.45);
+  const hdH  = 10, hdW = 9;
+  const tw   = 10 + (bd>0?3:0) + (bd<0?-2:0); // torso width
+  const bob  = (o.still||REDUCED) ? 0 : (Math.floor(t/420)%2 ? 0 : -1);
+  const wk   = walkPhase||0;                  // 0 = standing
+
+  const cx   = x|0;
+  const legT = (y-legH)|0;                    // top of legs
+  const torT = (legT-torH+bob)|0;             // top of torso
+  const hdT  = (torT-hdH)|0;                  // top of head
+  const hx   = (cx-(hdW>>1))|0;
+
+  // shadow
+  g.globalAlpha=.28; r(cx-tw/2-1, y, tw+2, 2, P.ink); g.globalAlpha=1;
+
+  // legs (split for walk cycle)
+  const step = wk ? (Math.sin(wk)*2)|0 : 0;
+  const pants = o.pants||'#2f3a6b', pantsD = o.pantsD||'#1e2648';
+  if(o.skirt){
+    r(cx-tw/2, legT-1, tw, 7, o.skirt);
+    r(cx-tw/2, legT+5, tw, 1, pantsD);
+    r(cx-3+step, legT+6, 2, legH-6, sk.s);
+    r(cx+1-step, legT+6, 2, legH-6, sk.s);
+  } else {
+    r(cx-4+step, legT, 3, legH, pants);
+    r(cx+1-step, legT, 3, legH, pants);
+    r(cx-4+step, legT, 3, 1, pantsD); r(cx+1-step, legT, 3, 1, pantsD);
+  }
+  // shoes
+  const sh = o.shoes||'#e9e4d8';
+  r(cx-5+step, y-2, 4, 2, sh); r(cx+1-step, y-2, 4, 2, sh);
+
+  // torso
+  const sc = o.shirt||'#e94f6a', scD = o.shirtD||'#b8324a';
+  r(cx-tw/2, torT, tw, torH, sc);
+  r(cx-tw/2, torT, tw, 1, o.shirtL||scD);
+  if(o.shirtStyle==='hawaii'){                       // loud florals
+    const q=rnd32(7);
+    for(let i=0;i<10;i++){ const px1=cx-tw/2+((q()*tw)|0), py=torT+2+((q()*(torH-3))|0);
+      px(px1,py,P.gold); px(px1+1,py,P.surf); }
+  } else if(o.shirtStyle==='tank'){                  // shoulders bare
+    r(cx-tw/2, torT, 2, torH, sk.s); r(cx+tw/2-2, torT, 2, torH, sk.s);
+    r(cx-1, torT, 2, 3, sk.s);
+  } else if(o.shirtStyle==='blazer'){                // lapels + inner shirt
+    r(cx-1, torT+1, 2, torH-1, o.inner||P.bone);
+    r(cx-tw/2+2, torT+1, 2, 5, scD); r(cx+tw/2-4, torT+1, 2, 5, scD);
+  } else if(o.shirtStyle==='sequin'){                // lounge-act shimmer
+    const q=rnd32(19+((t/260)|0)%5);
+    for(let i=0;i<14;i++) px(cx-tw/2+((q()*tw)|0), torT+((q()*torH)|0), P.gold);
+  } else if(o.shirtStyle==='polo'){
+    r(cx-2, torT, 4, 4, o.inner||P.white);           // popped collar
+    r(cx-3, torT-1, 2, 3, o.inner||P.white); r(cx+1, torT-1, 2, 3, o.inner||P.white);
+  }
+
+  // arms
+  const armY = torT+2, armL = torH-2;
+  const swing = wk ? (Math.sin(wk+Math.PI)*1.5)|0 : 0;
+  r(cx-tw/2-2, armY+swing, 2, armL, o.shirtStyle==='tank'?sk.s:sc);
+  r(cx+tw/2,   armY-swing, 2, armL, o.shirtStyle==='tank'?sk.s:sc);
+  r(cx-tw/2-2, armY+armL+swing, 2, 2, sk.s);          // hands
+  r(cx+tw/2,   armY+armL-swing, 2, 2, sk.s);
+
+  // neck + head
+  r(cx-1, torT-2, 2, 2, sk.d);
+  r(hx, hdT, hdW, hdH, sk.s);
+  r(hx, hdT, hdW, 1, sk.l);
+  r(hx, hdT+hdH-1, hdW, 1, sk.d);
+  if(o.skin==='burn'){ px(hx+2,hdT+3,P.bone); px(hx+6,hdT+5,P.bone); px(hx+4,hdT+7,P.bone); }
+
+  // face
+  const blink = (!REDUCED && Math.floor(t/2600)%7===0 && Math.floor(t/130)%2===0);
+  if(!blink){ px(hx+2, hdT+4, P.ink); px(hx+6, hdT+4, P.ink); }
+  else { r(hx+2,hdT+4,1,1,sk.d); r(hx+6,hdT+4,1,1,sk.d); }
+  if(o.lips) r(hx+3, hdT+7, 3, 1, o.lips);
+  else r(hx+3, hdT+7, 3, 1, sk.d);
+  if(o.stubble) r(hx+1, hdT+6, hdW-2, 3, 'rgba(40,25,60,.35)');
+
+  // hair
+  hairShape(hx, hdT, hdW, o.hair||'blowout', o.hairC||'#3b2416', o.hairC2||'#6b4426',
+            (Math.floor(t/300)%2));
+
+  // accessory
+  switch(o.acc){
+    case 'shades': r(hx+1,hdT+3,3,3,P.ink); r(hx+5,hdT+3,3,3,P.ink);
+                   r(hx+4,hdT+4,1,1,P.ink); px(hx+2,hdT+3,P.surf); break;
+    case 'chain':  r(cx-2,torT+2,4,1,P.gold); px(cx,torT+3,P.gold); break;
+    case 'fanny':  r(cx-tw/2,legT-3,tw,3,'#4de0a0'); r(cx-1,legT-2,2,1,P.ink); break;
+    case 'band':   r(hx-1,hdT+1,hdW+2,2,P.hot); break;
+    case 'hoops':  r(hx-1,hdT+4,1,3,P.gold); r(hx+hdW,hdT+4,1,3,P.gold); break;
+    case 'visor':  r(hx-2,hdT+2,hdW+4,2,P.hot); break;
+  }
+  if(o.hat==='fedora'){ r(hx-3,hdT-1,hdW+6,2,o.hatC||'#e8dcc4'); r(hx-1,hdT-4,hdW+2,3,o.hatC||'#e8dcc4');
+                        r(hx-1,hdT-2,hdW+2,1,'#6b4426'); }
+  return { headTop: hdT, headX: hx, headW: hdW, torsoTop: torT };
+}
+
+/* Dialogue portrait: same person, drawn large and close. 34x36 box. */
+function drawPortrait(bx, by, o, t){
+  const sk = SKIN[o.skin||'tan'];
+  const BW=34, BH=36;
+  // backing plate
+  r(bx,by,BW,BH,P.ink2);
+  const grd=g.createLinearGradient(bx,by,bx,by+BH);
+  grd.addColorStop(0,'rgba(255,46,136,.30)'); grd.addColorStop(1,'rgba(33,224,214,.10)');
+  g.fillStyle=grd; g.fillRect(bx,by,BW,BH);
+
+  const cx = bx+17, top = by+5;
+  // shoulders
+  const sc=o.shirt||'#e94f6a';
+  r(cx-13, by+28, 26, 8, sc); r(cx-13, by+28, 26, 1, o.shirtD||sc);
+  if(o.shirtStyle==='tank'){ r(cx-13,by+28,5,8,sk.s); r(cx+8,by+28,5,8,sk.s); }
+  if(o.shirtStyle==='sequin'){ const q=rnd32(31+((t/240)|0)%4);
+    for(let i=0;i<10;i++) px(cx-13+((q()*26)|0), by+28+((q()*8)|0), P.gold); }
+  r(cx-4, by+25, 8, 4, sk.d);                        // neck
+
+  // head 18x22
+  const hw=18, hh=21, hx=cx-9;
+  r(hx, top, hw, hh, sk.s);
+  r(hx, top, hw, 2, sk.l);
+  r(hx, top+hh-2, hw, 2, sk.d);
+  r(hx-1, top+6, 1, 8, sk.d); r(hx+hw, top+6, 1, 8, sk.d);   // ears
+  if(o.skin==='burn'){ const q=rnd32(11);
+    for(let i=0;i<9;i++) px(hx+2+((q()*14)|0), top+4+((q()*14)|0), P.bone); }
+
+  // brows, eyes, nose, mouth
+  const eyY = top+8;
+  r(hx+3, eyY-3, 5, 1, o.hairC||'#3b2416'); r(hx+10, eyY-3, 5, 1, o.hairC||'#3b2416');
+  r(hx+3, eyY, 5, 3, P.bone); r(hx+10, eyY, 5, 3, P.bone);
+  const look = REDUCED?0:(Math.floor(t/1900)%3===0?1:0);
+  r(hx+5+look, eyY+1, 2, 2, o.eyes||'#3a5a8c');
+  r(hx+12+look, eyY+1, 2, 2, o.eyes||'#3a5a8c');
+  const blink = !REDUCED && Math.floor(t/3100)%6===0 && Math.floor(t/150)%2===0;
+  if(blink){ r(hx+3,eyY,5,3,sk.s); r(hx+10,eyY,5,3,sk.s); }
+  r(hx+8, eyY+4, 2, 3, sk.d);                        // nose
+  r(hx+6, top+16, 6, 1, o.lips||sk.d);
+  if(o.lips){ r(hx+6, top+15, 6, 1, o.lips); r(hx+7, top+17, 4, 1, o.lips); }
+  if(o.stubble) r(hx+2, top+14, hw-4, 5, 'rgba(40,25,60,.30)');
+  if(o.mustache) r(hx+5, top+14, 8, 2, o.hairC||'#3b2416');
+
+  // hair (portrait scale)
+  const hc=o.hairC||'#3b2416', hc2=o.hairC2||'#6b4426';
+  switch(o.hair){
+    case 'blowout': r(hx-4,top-7,hw+8,9,hc); r(hx-5,top-2,3,13,hc); r(hx+hw+2,top-2,3,13,hc);
+                    r(hx-3,top-8,7,3,hc2); r(hx+hw-4,top-8,7,3,hc2); break;
+    case 'spikes':  for(let i=0;i<7;i++) r(hx-1+i*3, top-6-(i%2?3:0), 3, 8+(i%2?3:0), hc);
+                    r(hx-2,top-2,hw+4,4,hc); break;
+    case 'perm':    r(hx-6,top-7,hw+12,11,hc); r(hx-7,top-1,3,14,hc); r(hx+hw+4,top-1,3,14,hc);
+                    r(hx-2,top-9,hw+4,3,hc); r(hx+1,top-6,5,3,hc2); break;
+    case 'ponytail':r(hx-2,top-4,hw+4,6,hc); r(hx-2,top-4,hw+4,2,hc2);
+                    r(hx+hw+2,top+2,4,12,hc); r(hx+hw+3,top+11,4,6,hc); break;
+    case 'pomp':    r(hx-2,top-7,hw+4,9,hc); r(hx,top-11,hw-4,5,hc); r(hx+2,top-10,5,3,hc2); break;
+    case 'bun':     r(hx-2,top-4,hw+4,6,hc); r(hx+hw-2,top-9,7,7,hc); break;
+    case 'turban':  r(hx-3,top-9,hw+6,12,hc); r(hx-3,top-5,hw+6,2,hc2);
+                    r(hx+hw,top-13,5,5,P.gold); r(hx+hw+1,top-12,2,2,P.white); break;
+    case 'cap':     r(hx-2,top-6,hw+4,8,hc); r(hx-8,top-1,8,3,hc2); break;
+    case 'bald':    r(hx,top,hw,3,sk.l); break;
+    default:        r(hx-2,top-6,hw+4,8,hc);
+  }
+  if(o.hat==='fedora'){ r(hx-6,top-3,hw+12,3,o.hatC||'#e8dcc4'); r(hx-2,top-9,hw+4,6,o.hatC||'#e8dcc4');
+                        r(hx-2,top-5,hw+4,2,'#6b4426'); }
+  switch(o.acc){
+    case 'shades': r(hx+2,eyY-1,6,5,P.ink); r(hx+10,eyY-1,6,5,P.ink); r(hx+8,eyY,2,2,P.ink);
+                   px(hx+3,eyY,P.surf); px(hx+11,eyY,P.surf); break;
+    case 'hoops':  r(hx-2,top+9,2,5,P.gold); r(hx+hw,top+9,2,5,P.gold); break;
+    case 'band':   r(hx-2,top-1,hw+4,3,P.hot); break;
+    case 'visor':  r(hx-4,top+1,hw+8,3,P.hot); break;
+    case 'chain':  r(cx-5,by+29,10,1,P.gold); r(cx-1,by+30,2,2,P.gold); break;
+  }
+  // frame
+  r(bx,by,BW,1,P.hot); r(bx,by+BH-1,BW,1,P.hot);
+  r(bx,by,1,BH,P.hot); r(bx+BW-1,by,1,BH,P.hot);
+}
+
+/* ---------- 1b. TEXT: real fonts, thresholded to 1-bit pixel text --------- */
+const FONT = { sm:'8px Silkscreen, monospace', bg:'16px Silkscreen, monospace',
+               dlg:'16px VT323, monospace', big:'24px Silkscreen, monospace' };
+const _measure = offscreen(4,4).getContext('2d');
+const _tcache  = new Map();
+
+function hex2rgb(h){ h=h.replace('#',''); if(h.length===3) h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+  const n=parseInt(h,16); return [(n>>16)&255,(n>>8)&255,n&255]; }
+
+function textW(str, font){ _measure.font=font; return Math.ceil(_measure.measureText(str).width); }
+
+function textCanvas(str, font, color){
+  const key = font+'|'+color+'|'+str;
+  const hit = _tcache.get(key); if(hit) return hit;
+  const w = Math.max(1, textW(str,font)+2), h = parseInt(font,10)+7;
+  const oc = offscreen(w,h), x = oc.getContext('2d');
+  x.font = font; x.textBaseline = 'top'; x.fillStyle = '#fff'; x.fillText(str, 1, 3);
+  const id = x.getImageData(0,0,w,h), d = id.data, c = hex2rgb(color);
+  for(let i=0;i<d.length;i+=4){
+    if(d[i+3] > 108){ d[i]=c[0]; d[i+1]=c[1]; d[i+2]=c[2]; d[i+3]=255; } else d[i+3]=0;
+  }
+  x.putImageData(id,0,0);
+  if(_tcache.size > 1200) _tcache.clear();
+  _tcache.set(key, oc); return oc;
+}
+function text(str, x, y, color, font){
+  const c = textCanvas(str, font||FONT.sm, color||P.bone);
+  g.drawImage(c, x|0, y|0); return c.width;
+}
+function textC(str, cx, y, color, font){
+  const f = font||FONT.sm; return text(str, (cx - textW(str,f)/2)|0, y, color, f);
+}
+function wrap(str, font, maxw){
+  const words = String(str).split(' '), lines = []; let cur = '';
+  for(const w of words){
+    const test = cur ? cur+' '+w : w;
+    if(textW(test,font) <= maxw) cur = test;
+    else { if(cur) lines.push(cur); cur = w; }
+  }
+  if(cur) lines.push(cur); return lines;
+}
+
+/* ---------- 2. BACKDROPS ------------------------------------------------- */
+function paintSky(y0, y1){
+  const grd = g.createLinearGradient(0,y0,0,y1);
+  grd.addColorStop(0,   P.sky4); grd.addColorStop(0.35, P.sky3);
+  grd.addColorStop(0.68,P.sky2); grd.addColorStop(1,    P.sky1);
+  g.fillStyle = grd; g.fillRect(0,y0,W,y1-y0);
+  const q = rnd32(4);                                   // a few high stars up top
+  for(let i=0;i<26;i++){ const sx=(q()*W)|0, sy=(q()*28)|0;
+    g.globalAlpha = .10+q()*.35; px(sx,sy,P.bone); }
+  g.globalAlpha = 1;
+}
+function synthSun(cx, cy, rad){                          // banded Outrun sun
+  const grd = g.createLinearGradient(0,cy-rad,0,cy+rad);
+  grd.addColorStop(0,'#ffe9a8'); grd.addColorStop(.45,P.gold);
+  grd.addColorStop(.78,'#ff6a4d'); grd.addColorStop(1,P.hot);
+  g.fillStyle = grd;
+  g.beginPath(); g.arc(cx,cy,rad,0,Math.PI*2); g.fill();
+  for(let i=0;i<9;i++){                                  // cut the classic gaps
+    const yy = cy - rad + 10 + i*i*0.9 + i*3;
+    if(yy > cy+rad) break;
+    g.fillStyle = 'rgba(0,0,0,0)';
+    g.clearRect(0,0,0,0);
+    r(cx-rad, yy, rad*2, 1 + (i>>1), P.sky2);
+  }
+}
+function skyline(baseY){                                 // Vanity Shores strip, far off
+  const towers = [[8,26,'#3a1f5e'],[26,18,'#331b53'],[44,34,'#3a1f5e'],
+                  [206,22,'#331b53'],[228,44,'#452668'],[252,16,'#331b53'],
+                  [270,30,'#3a1f5e'],[296,20,'#331b53']];
+  for(const [x,h,c] of towers){
+    const w = 14 + (h%3)*4;
+    r(x, baseY-h, w, h, c);
+    const q = rnd32(x);
+    for(let yy=baseY-h+3; yy<baseY-2; yy+=3)
+      for(let xx=x+2; xx<x+w-2; xx+=3) if(q()>.45) px(xx,yy,P.gold);
+  }
+  // the casino: taller, crowned, unmistakable
+  r(228, baseY-60, 24, 60, '#4a2a70');
+  r(228, baseY-60, 24, 2, '#5d3689');
+  r(236, baseY-70, 8, 10, '#4a2a70');
+  r(238, baseY-76, 4, 6, '#5d3689');
+  const q2 = rnd32(99);
+  for(let yy=baseY-56; yy<baseY-4; yy+=4)
+    for(let xx=230; xx<250; xx+=3) if(q2()>.35) px(xx,yy,q2()>.5?P.gold:P.amber);
+}
+function paintOcean(y0, y1){
+  const grd = g.createLinearGradient(0,y0,0,y1);
+  grd.addColorStop(0,P.sea1); grd.addColorStop(.5,P.sea2); grd.addColorStop(1,P.sea3);
+  g.fillStyle = grd; g.fillRect(0,y0,W,y1-y0);
+  for(let i=0;i<6;i++){                                   // static swell bands
+    const yy = y0 + 2 + i*Math.max(2,((y1-y0)/7)|0);
+    g.globalAlpha = .18; r(0,yy,W,1,P.foam); g.globalAlpha = 1;
+  }
+}
+function oceanGlints(y0, y1, t, sunX){                    // live, drawn every frame
+  const q = rnd32(((t/150)|0) % 64);
+  g.globalAlpha = .7;
+  for(let i=0;i<34;i++){
+    const gx = (q()*W)|0, gy = (y0 + q()*(y1-y0))|0;
+    const near = 1 - Math.min(1, Math.abs(gx-sunX)/150);
+    if(q() < .25 + near*.5) r(gx, gy, 1+((q()*2)|0), 1, near>.5?'#ffe9a8':P.foam);
+  }
+  g.globalAlpha = 1;
+}
+function palmTree(x, baseY, h, seed, trunkC, frondC){
+  const q = rnd32(seed);
+  trunkC = trunkC||P.palm; frondC = frondC||P.palm;
+  let tx = x;
+  for(let i=0;i<h;i++){                                   // leaning trunk
+    tx = x + Math.round(Math.sin(i/h*1.4)*4);
+    r(tx, baseY-i, 3, 1, i%3===0 ? P.palmL : trunkC);
+  }
+  const ty = baseY-h;
+  for(let f=0; f<7; f++){                                 // fronds
+    const a = -Math.PI*0.92 + f*(Math.PI*1.84/6);
+    const len = 11 + ((q()*7)|0);
+    for(let i=0;i<len;i++){
+      const px1 = tx+1 + Math.cos(a)*i;
+      const py1 = ty + Math.sin(a)*i + (i*i)/(len*1.7);
+      r(px1, py1, 2, 1, frondC);
+      if(i>3 && i%2===0){ px(px1, py1-1, frondC); px(px1+1, py1+1, frondC); }
+    }
+  }
+  r(tx-1, ty-1, 5, 3, frondC);
+  for(let c=0;c<3;c++) px(tx + (c-1), ty+2, P.gold);       // coconuts
+}
+function plankFloor(y0, y1, warm){
+  for(let y=y0; y<y1; y++){
+    const dpt = (y-y0)/(y1-y0);
+    const base = dpt<.33 ? P.wood2 : dpt<.7 ? P.wood : P.wood4;
+    r(0,y,W,1,base);
+    if((y-y0) % Math.max(3, 7-((dpt*4)|0)) === 0) r(0,y,W,1,P.wood3);
+  }
+  const q = rnd32(21);                                     // plank seams + grain
+  for(let i=0;i<70;i++){
+    const gx=(q()*W)|0, gy=(y0+q()*(y1-y0))|0, gw=2+((q()*7)|0);
+    g.globalAlpha=.22; r(gx,gy,gw,1, q()>.5?P.wood3:P.wood4); g.globalAlpha=1;
+  }
+}
+function railing(x0, x1, y){
+  r(x0, y, x1-x0, 2, P.wood4);
+  r(x0, y+2, x1-x0, 1, P.wood3);
+  for(let x=x0+4; x<x1; x+=13){ r(x, y+2, 2, 9, P.wood2); r(x, y+2, 1, 9, P.wood4); }
+  r(x0, y+9, x1-x0, 1, P.wood2);
+}
+function neonTube(x, y, w, h, col, on){
+  const c = on ? col : 'rgba(120,90,140,.5)';
+  r(x,y,w,h,c);
+  if(on){ g.globalAlpha=.30; r(x-1,y-1,w+2,h+2,col); g.globalAlpha=1; }
+}
+
+/* ---------- 2b. PROPS ---------------------------------------------------- */
+const SCENE_H = 174;                       // scene area; verb bar owns 174..200
+
+function busShelter(x, y){                  // y = ground line
+  r(x, y-40, 52, 3, '#6a4a86');             // roof
+  r(x+2, y-38, 48, 26, 'rgba(120,220,230,.30)');
+  r(x, y-40, 2, 40, '#4e3466'); r(x+50, y-40, 2, 40, '#4e3466');
+  r(x+4, y-36, 20, 22, 'rgba(200,240,255,.16)');
+  r(x+6, y-12, 40, 3, P.wood);              // bench
+  r(x+8, y-9, 3, 9, P.wood3); r(x+40, y-9, 3, 9, P.wood3);
+  r(x+6, y-34, 24, 16, P.hot);              // ad panel
+  r(x+7, y-33, 22, 14, '#2a1140');
+  textC('TAN', x+18, y-31, P.gold, FONT.sm);
+  textC('NOW', x+18, y-24, P.surf, FONT.sm);
+}
+function welcomeArch(x, y, w){
+  r(x, y, 4, 46, '#5c3a7a'); r(x+w-4, y, 4, 46, '#5c3a7a');
+  r(x-4, y-2, w+8, 32, '#3d2255');
+  r(x-4, y-2, w+8, 1, '#7a4fa0'); r(x-4, y+29, w+8, 1, '#241134');
+  textC('WELCOME TO', x+w/2, y+1, P.gold, FONT.sm);
+  textC('VANITY SHORES', x+w/2, y+11, P.hot, FONT.bg);
+  for(let i=0;i<w;i+=6) px(x+i, y-3, P.gold);
+}
+function convertible(x, y, t){              // Chip's pink land yacht
+  const b='#ff5fa2', b2='#c93d7a', chrome='#e8e4f0';
+  r(x+4, y-9, 54, 8, b);
+  r(x+14, y-15, 30, 7, b);                  // cabin
+  r(x+16, y-14, 26, 5, '#2a1a3a');          // interior
+  r(x+4, y-9, 54, 1, '#ff8cc0');
+  r(x+2, y-4, 58, 3, b2);
+  r(x, y-6, 4, 4, chrome); r(x+58, y-6, 4, 4, chrome);
+  const spin = REDUCED ? 0 : (Math.floor(t/90)%4);
+  for(const wx of [x+11, x+45]){
+    r(wx, y-4, 9, 6, '#1a1420'); r(wx+2, y-2, 5, 3, chrome);
+    px(wx+4+(spin>1?1:-1), y-1+(spin%2?1:0), '#8a8398');
+  }
+  r(x+36, y-8, 24, 8, P.gold);              // vanity plate
+  r(x+36, y-8, 24, 1, '#fff0b0');
+  textC('CHIP', x+48, y-7, '#2a1140', FONT.sm);
+}
+function bench(x, y){
+  r(x, y-12, 42, 3, P.wood4); r(x, y-9, 42, 2, P.wood2);
+  r(x, y-20, 42, 3, P.wood4); r(x, y-17, 42, 2, P.wood2);
+  r(x+2, y-12, 3, 12, P.wood3); r(x+37, y-12, 3, 12, P.wood3);
+  r(x+2, y-22, 2, 12, P.wood3); r(x+38, y-22, 2, 12, P.wood3);
+}
+function churroCart(x, y){
+  r(x, y-22, 34, 16, '#d8563f'); r(x, y-22, 34, 2, '#f07a5f');
+  r(x+2, y-19, 30, 10, '#3a1d2e');
+  for(let i=0;i<5;i++) r(x+4+i*6, y-17, 4, 7, i%2?P.gold:P.amber);
+  r(x-2, y-30, 38, 8, '#f0e2c8');           // striped awning
+  for(let i=0;i<38;i+=6) r(x-2+i, y-30, 3, 8, '#d8563f');
+  r(x, y-6, 34, 3, '#8a4030');
+  r(x+3, y-3, 7, 5, '#1a1420'); r(x+24, y-3, 7, 5, '#1a1420');
+  text('CHURRO', x+4, y-15, P.bone, FONT.sm);
+}
+function timeshareBooth(x, y){
+  r(x, y-46, 58, 46, '#f2ead8');            // pop-up canopy
+  r(x, y-46, 58, 3, '#e0d4bc');
+  r(x-3, y-52, 64, 7, P.surf);
+  r(x-3, y-52, 64, 1, '#6ff0e6');
+  textC('SHORELINE', x+29, y-51, '#0a3c44', FONT.sm);
+  r(x+2, y-42, 54, 22, '#dcd0b6');
+  r(x+4, y-40, 50, 18, '#2a3f5e');          // brochure wall
+  const q = rnd32(55);
+  for(let i=0;i<12;i++){ const bx=x+6+(i%6)*8, by=y-38+((i/6)|0)*9;
+    r(bx, by, 6, 7, q()>.5?P.gold:P.foam); px(bx+1,by+1,'#2a3f5e'); }
+  r(x+2, y-18, 54, 4, '#c8b894');           // table
+  r(x+2, y-14, 2, 14, '#a89874'); r(x+52, y-14, 2, 14, '#a89874');
+  r(x+8, y-22, 12, 4, P.bone);              // clipboard stack
+  r(x+30, y-21, 9, 3, '#d8563f');
+}
+function bandshell(x, y){
+  r(x, y-58, 96, 40, '#8a5fa8');            // half-dome
+  r(x+4, y-62, 88, 6, '#a37cc0');
+  for(let i=0;i<5;i++) r(x+8+i*18, y-58, 2, 40, '#6b4586');
+  r(x+8, y-54, 80, 34, '#4e3466');          // shell interior
+  const grd = g.createLinearGradient(x+8,y-54,x+8,y-20);
+  grd.addColorStop(0,'#5e3f7e'); grd.addColorStop(1,'#31204a');
+  g.fillStyle = grd; g.fillRect(x+8,y-54,80,34);
+  for(let i=1;i<5;i++){ const rr=i*9; g.strokeStyle='rgba(200,160,230,.22)'; g.lineWidth=1;
+    g.beginPath(); g.arc(x+48, y-20, rr, Math.PI, 0); g.stroke(); }
+  r(x, y-20, 96, 6, '#6b4586');             // stage lip
+  r(x, y-20, 96, 1, '#a37cc0');
+  r(x, y-14, 96, 3, '#3d2255');
+  r(x+14, y-70, 68, 9, '#241134');          // marquee
+  r(x+14, y-70, 68, 1, P.gold);
+  textC('BANDSHELL', x+48, y-69, P.gold, FONT.sm);
+}
+function psychicTent(x, y){
+  for(let i=0;i<44;i++){                    // conical tent
+    const w = 4 + i*1.9;
+    r(x+42-w/2, y-58+i, w, 1, i%7<3 ? '#5b2a8a' : '#7a3aad');
+  }
+  r(x+8, y-16, 68, 16, '#3d1a5e');
+  r(x+8, y-16, 68, 1, '#8a4fc0');
+  r(x+20, y-14, 44, 12, '#241134');         // beaded doorway
+  for(let i=0;i<44;i+=3) for(let j=0;j<12;j+=3) px(x+20+i, y-14+j, P.gold);
+  r(x+40, y-66, 4, 8, P.gold);              // finial
+  r(x+38, y-70, 8, 5, P.gold);
+  r(x-30, y-40, 44, 18, '#241134');         // hand-painted sign
+  r(x-30, y-40, 44, 1, P.hot);
+  r(x-30, y-23, 44, 1, '#4a1d3a');
+  r(x-11, y-22, 3, 10, P.wood3);
+  textC('PALMS', x-8, y-38, P.hot, FONT.sm);
+  textC('READ', x-16, y-30, P.surf, FONT.sm);
+  textC('$.25', x+2, y-30, P.gold, FONT.sm);
+}
+function monteTable(x, y){
+  r(x, y-18, 56, 4, '#3a5e3a');             // felt card table
+  r(x, y-18, 56, 1, '#5a8a5a');
+  r(x+3, y-14, 3, 14, '#2a2a30'); r(x+50, y-14, 3, 14, '#2a2a30');
+  r(x+8, y-21, 10, 4, '#c8b08a');           // three shells
+  r(x+23, y-21, 10, 4, '#c8b08a');
+  r(x+38, y-21, 10, 4, '#c8b08a');
+  for(const sx of [x+8,x+23,x+38]){ r(sx+1,y-22,8,1,'#e0cba8'); r(sx,y-18,10,1,'#8a7458'); }
+}
+function stairwell(x, y){                   // cut into the deck, descending
+  r(x, y, 44, 24, '#241134');
+  for(let i=0;i<6;i++){
+    r(x+i*2, y+i*4, 44-i*4, 3, i%2?P.wood2:P.wood);
+    r(x+i*2, y+i*4+3, 44-i*4, 1, P.wood3);
+  }
+  r(x-2, y-10, 3, 12, P.wood2); r(x+43, y-10, 3, 12, P.wood2);
+  r(x-2, y-12, 48, 3, P.wood4);
+  r(x+2, y-22, 40, 9, '#241134');
+  r(x+2, y-22, 40, 1, P.surf);
+  textC('BEACH', x+22, y-21, P.surf, FONT.sm);
+}
+function piling(x, yTop, yBot){
+  r(x, yTop, 7, yBot-yTop, '#3a2a2a');
+  r(x, yTop, 2, yBot-yTop, '#544040');
+  r(x+5, yTop, 2, yBot-yTop, '#241a1a');
+  const q = rnd32(x*7);
+  for(let i=0;i<10;i++){ const yy=yTop+((q()*(yBot-yTop))|0);
+    g.globalAlpha=.5; r(x, yy, 7, 1, q()>.5?'#2a3a3a':'#4a3a30'); g.globalAlpha=1; }
+  r(x-1, yBot-16, 9, 3, '#1e2a2a');         // barnacle collar
+}
+
+/* ---------- 2c. ROOMS: baked backdrops + live layers ---------------------- */
+const _baked = {};
+function bakedRoom(id){
+  if(_baked[id]) return _baked[id];
+  const oc = offscreen(W, SCENE_H);
+  withTarget(oc.getContext('2d'), () => ROOMART[id].bake());
+  _baked[id] = oc; return oc;
+}
+
+const ROOMART = {
+  /* ---- ARRIVAL: the bus drops you at the top of the strip ---- */
+  arrival: {
+    horizon: 78,
+    bake(){
+      paintSky(0, 84);
+      synthSun(232, 74, 26);
+      skyline(84);
+      r(0, 84, W, 8, '#5a3a72');                       // haze band
+      r(0, 92, W, 34, '#2e2438');                      // the road
+      r(0, 92, W, 2, '#463a52');
+      for(let x=6; x<W; x+=22) r(x, 108, 12, 2, P.gold); // centre line
+      r(0, 124, W, 3, '#6a5a78');                      // kerb
+      r(0, 127, W, SCENE_H-127, '#b8a894');            // sidewalk
+      const q = rnd32(3);
+      for(let i=0;i<180;i++){ const sx=(q()*W)|0, sy=(127+q()*(SCENE_H-127))|0;
+        g.globalAlpha=.16; px(sx,sy, q()>.5?'#8a7a68':'#d8c8b0'); g.globalAlpha=1; }
+      for(let x=0;x<W;x+=40) r(x,127,1,SCENE_H-127,'#a09080');
+      palmTree(92, 130, 40, 5); palmTree(298, 132, 46, 9);
+      welcomeArch(108, 30, 122);
+      busShelter(12, 130);
+      r(150, 118, 24, 9, '#241134');                   // bus-stop post sign
+      r(158, 127, 3, 12, '#4e3466');
+      textC('STOP', 162, 119, P.bone, FONT.sm);
+      g.globalAlpha=.22; r(0,SCENE_H-14,W,14,'#8a7a68'); g.globalAlpha=1;
+    },
+    live(t){
+      if(!GS.flags.chipGone) convertible(196, 124, t);
+      const on = REDUCED || Math.floor(t/1100)%9 !== 0;  // buzzing neon
+      neonTube(108, 62, 122, 1, P.hot, on);
+      if(!REDUCED && Math.floor(t/300)%2===0) px(180+((t/90)|0)%6, 60, P.gold);
+    }
+  },
+
+  /* ---- BOARDWALK: the strip proper ---- */
+  boardwalk: {
+    horizon: 76,
+    bake(){
+      paintSky(0, 76);
+      synthSun(86, 68, 30);
+      skyline(76);
+      paintOcean(76, 98);
+      r(0, 98, W, 10, P.sand);                          // beach
+      r(0, 98, W, 1, P.foam);
+      const q = rnd32(12);
+      for(let i=0;i<90;i++) { g.globalAlpha=.3;
+        px((q()*W)|0, (98+q()*10)|0, q()>.5?P.sand2:P.sand3); g.globalAlpha=1; }
+      plankFloor(108, SCENE_H, true);
+      for(let x=0;x<W;x+=26) r(x,108,1,SCENE_H-108,P.wood3); // plank seams
+      railing(0, 108, 100); railing(140, W, 100);
+      palmTree(16, 122, 44, 2, null, P.palm);
+      palmTree(286, 120, 38, 8, null, P.palm);
+      churroCart(176, 138);
+      bench(44, 152);
+      timeshareBooth(244, 152);
+      stairwell(108, 150);
+      r(0, SCENE_H-4, W, 4, 'rgba(60,30,20,.25)');
+    },
+    live(t){
+      oceanGlints(76, 98, t, 86);
+      const on = REDUCED || Math.floor(t/700)%11 !== 0;
+      neonTube(244, 101, 58, 2, P.surf, on);            // booth valance glow
+      if(!GS.flags.signTaken){                          // the FREE GIFT sign
+        r(232, 118, 26, 20, P.gold);
+        r(233, 119, 24, 18, '#c41d68');
+        textC('FREE', 245, 120, P.bone, FONT.sm);
+        textC('GIFT', 245, 128, P.bone, FONT.sm);
+        r(238, 138, 3, 14, P.wood3);
+      }
+      if(!REDUCED){                                     // a gull, drifting
+        const gx = (t/40) % (W+40) - 20, gy = 52 + Math.sin(t/700)*5;
+        r(gx, gy, 3, 1, P.bone); r(gx-3, gy-1+((t/220)|0)%2, 3, 1, P.bone);
+        r(gx+3, gy-1+((t/220)|0)%2, 3, 1, P.bone);
+      }
+    }
+  },
+
+  /* ---- PIER: bandshell and the fortune tent ---- */
+  pier: {
+    horizon: 74,
+    bake(){
+      paintSky(0, 74);
+      synthSun(160, 66, 24);
+      skyline(74);
+      paintOcean(74, 120);
+      plankFloor(120, SCENE_H, true);
+      for(let x=0;x<W;x+=18) r(x,120,1,SCENE_H-120,P.wood3);
+      for(let i=0;i<7;i++) r(20+i*44, 121, 12, 1, '#3a6a84'); // water through the slats
+      railing(0, W, 116);
+      bandshell(6, 132);
+      psychicTent(226, 134);
+      r(120, 122, 40, 6, P.wood2);                       // a crate, for standing on
+      r(120, 122, 40, 1, P.wood4);
+      r(0, SCENE_H-4, W, 4, 'rgba(60,30,20,.25)');
+    },
+    live(t){
+      oceanGlints(74, 118, t, 160);
+      const on = REDUCED || Math.floor(t/520)%7 !== 0;
+      neonTube(20, 63, 68, 1, P.gold, on);
+      neonTube(226, 70, 6, 6, P.hot, REDUCED || Math.floor(t/800)%5!==0);
+      if(!REDUCED){
+        for(let k=0;k<2;k++){
+          const gx = ((t/32) + k*140) % (W+40) - 20, gy = 40 + Math.sin(t/600+k)*7;
+          r(gx, gy, 3, 1, P.bone);
+          r(gx-3, gy-1+((t/200+k*60)|0)%2, 3, 1, P.bone);
+          r(gx+3, gy-1+((t/200+k*60)|0)%2, 3, 1, P.bone);
+        }
+      }
+    }
+  },
+
+  /* ---- UNDER THE PIER: where the real money changes hands ---- */
+  underpier: {
+    horizon: 96,
+    bake(){
+      r(0, 0, W, SCENE_H, '#241a30');
+      r(0, 0, W, 34, '#1a1220');                          // deck underside
+      for(let x=0;x<W;x+=12) r(x, 0, 3, 34, '#120c18');   // joists
+      for(let x=0;x<W;x+=12) r(x+3, 0, 1, 34, '#2a1e38');
+      const grd = g.createLinearGradient(0,34,0,96);       // gloom under the deck
+      grd.addColorStop(0,'#1e1628'); grd.addColorStop(1,'#3c2f4a');
+      g.fillStyle = grd; g.fillRect(0,34,W,62);
+      r(0, 88, W, 18, '#1e4356');                          // surf beyond
+      r(0, 88, W, 1, '#3a7288');
+      for(let i=0;i<5;i++) r(0, 90+i*4, W, 1, i%2?'#2a5a72':'#183a4c');
+      r(0, 106, W, SCENE_H-106, '#3d3325');                // wet sand
+      const grd2 = g.createLinearGradient(0,106,0,SCENE_H);
+      grd2.addColorStop(0,'#33291e'); grd2.addColorStop(1,'#584838');
+      g.fillStyle = grd2; g.fillRect(0,106,W,SCENE_H-106);
+      const q = rnd32(77);
+      for(let i=0;i<260;i++){ g.globalAlpha=.2;
+        px((q()*W)|0,(106+q()*(SCENE_H-106))|0, q()>.5?'#241d14':'#6a5842'); g.globalAlpha=1; }
+      for(const [x,b] of [[18,132],[84,148],[150,160],[216,150],[282,136]]) piling(x,34,b);
+      for(let i=0;i<9;i++){                                // light through the slats
+        g.globalAlpha = .055;
+        g.fillStyle = P.gold;
+        g.beginPath();
+        g.moveTo(i*36+4, 34); g.lineTo(i*36+12, 34);
+        g.lineTo(i*36+34, SCENE_H); g.lineTo(i*36+18, SCENE_H); g.closePath(); g.fill();
+        g.globalAlpha = 1;
+      }
+      monteTable(178, 150);
+      r(288, 106, 30, 4, P.wood2);                         // way back up
+      for(let i=0;i<5;i++) r(288+i*2, 110+i*6, 30-i*3, 4, i%2?P.wood:P.wood2);
+      r(276, 96, 40, 9, '#241134'); r(276, 96, 40, 1, P.surf);
+      textC('BOARDWALK', 296, 97, P.surf, FONT.sm);
+      // driftwood, a lost sandal, the usual
+      r(40, 158, 22, 3, '#4a3e30'); r(44, 156, 9, 2, '#5a4c3c');
+      r(120, 166, 7, 3, '#8a2c3e');
+      const vg = g.createRadialGradient(160, 118, 40, 160, 118, 190);
+      vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(8,4,14,.72)');
+      g.fillStyle = vg; g.fillRect(0,34,W,SCENE_H-34);
+    },
+    live(t){
+      const q = rnd32(((t/180)|0)%40);                     // breaking surf
+      for(let i=0;i<26;i++){ const sx=(q()*W)|0;
+        if(q()>.5) r(sx, 100+((q()*6)|0), 2+((q()*3)|0), 1, '#9cd4e0'); }
+      g.globalAlpha = REDUCED ? .035 : .035 + Math.sin(t/900)*.02;
+      r(0, 34, W, SCENE_H-34, P.gold); g.globalAlpha = 1;
+    }
+  }
+};
+
+/* ---------- 3. AUDIO: adaptive synthwave, generated live ------------------ */
+/* Stems crossfade against the player's stat lean (§8): the arp carries Money,
+   a distorted saw carries Fighting, pad + lead carry Charm. Nothing is a file. */
+const Audio_ = (() => {
+  let ctx=null, master=null, buses={}, noiseBuf=null, started=false, muted=false;
+  let timer=null, step=0, nextTime=0, scene='title', amb=null, ambGain=null;
+  let lean = { money:.33, fight:.33, charm:.33 };
+  const BPM = 108, SPB = 60/BPM/4;                    // sixteenth notes
+
+  const PROG = [                                       // Am - F - C - G
+    { root:45, chord:[57,60,64], arp:[57,60,64,69] },
+    { root:41, chord:[53,57,60], arp:[53,57,60,65] },
+    { root:48, chord:[52,55,60], arp:[52,55,60,64] },
+    { root:43, chord:[55,59,62], arp:[50,55,59,62] }
+  ];
+  const mtof = m => 440 * Math.pow(2, (m-69)/12);
+
+  function init(){
+    if(ctx) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return;
+    ctx = new AC();
+    master = ctx.createGain(); master.gain.value = 0.0;
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -18; comp.ratio.value = 6;
+    master.connect(comp); comp.connect(ctx.destination);
+    for(const n of ['bass','pad','arp','lead','grit','perc','sfx']){
+      const gn = ctx.createGain(); gn.gain.value = 0; gn.connect(master); buses[n] = gn;
+    }
+    buses.sfx.gain.value = 0.9;
+    const len = ctx.sampleRate * 2;
+    noiseBuf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for(let i=0;i<len;i++) d[i] = Math.random()*2-1;
+    master.gain.linearRampToValueAtTime(muted?0:0.55, ctx.currentTime+1.2);
+  }
+
+  function voice(type, freq, when, dur, bus, vol, opts){
+    if(!ctx) return;
+    opts = opts||{};
+    const o = ctx.createOscillator(), gn = ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, when);
+    if(opts.detune) o.detune.value = opts.detune;
+    if(opts.slideTo) o.frequency.exponentialRampToValueAtTime(Math.max(20,opts.slideTo), when+dur);
+    let node = o;
+    if(opts.filter){
+      const f = ctx.createBiquadFilter();
+      f.type = opts.filter; f.frequency.setValueAtTime(opts.cut||1200, when);
+      f.Q.value = opts.q||1;
+      if(opts.cutTo) f.frequency.exponentialRampToValueAtTime(Math.max(60,opts.cutTo), when+dur);
+      o.connect(f); node = f;
+    }
+    const a = opts.atk!==undefined ? opts.atk : 0.008;
+    gn.gain.setValueAtTime(0.0001, when);
+    gn.gain.exponentialRampToValueAtTime(Math.max(.0002,vol), when+a);
+    gn.gain.exponentialRampToValueAtTime(0.0001, when+dur);
+    node.connect(gn); gn.connect(buses[bus]||buses.sfx);
+    o.start(when); o.stop(when+dur+0.03);
+  }
+  function noise(when, dur, vol, cut, cutTo, bus){
+    if(!ctx) return;
+    const s = ctx.createBufferSource(); s.buffer = noiseBuf;
+    const f = ctx.createBiquadFilter(); f.type='lowpass';
+    f.frequency.setValueAtTime(cut, when);
+    if(cutTo) f.frequency.exponentialRampToValueAtTime(Math.max(60,cutTo), when+dur);
+    const gn = ctx.createGain();
+    gn.gain.setValueAtTime(vol, when);
+    gn.gain.exponentialRampToValueAtTime(0.0001, when+dur);
+    s.connect(f); f.connect(gn); gn.connect(buses[bus]||buses.sfx);
+    s.start(when); s.stop(when+dur+0.02);
+  }
+
+  /* stem levels follow the build — this is the adaptive part */
+  function mix(){
+    if(!ctx) return;
+    const T = ctx.currentTime, R = 1.4;
+    const on = (name, v) => buses[name].gain.setTargetAtTime(Math.max(0,v), T, R/3);
+    const s = { title:{b:.20,p:.34,a:.00,l:.06,g:.00,pc:.00},
+                create:{b:.24,p:.30,a:.10,l:.10,g:.02,pc:.05},
+                play:{b:.30,p:.22,a:.16,l:.12,g:.08,pc:.14},
+                tense:{b:.34,p:.14,a:.10,l:.06,g:.22,pc:.18},
+                win:{b:.30,p:.30,a:.26,l:.22,g:.06,pc:.16} }[scene] || {};
+    on('bass', s.b);
+    on('pad',  s.p * (0.7 + lean.charm*1.1));
+    on('arp',  s.a * (0.4 + lean.money*2.0));
+    on('lead', s.l * (0.4 + lean.charm*1.8));
+    on('grit', s.g * (0.3 + lean.fight*2.2));
+    on('perc', s.pc * (0.7 + lean.fight*0.9));
+  }
+
+  function tick(){
+    if(!ctx) return;
+    while(nextTime < ctx.currentTime + 0.18){
+      const bar = (step>>4) % 4, sixteenth = step % 16, ch = PROG[bar], T = nextTime;
+      if(sixteenth % 4 === 0)                                  // bass pulse
+        voice('sawtooth', mtof(ch.root), T, .30, 'bass', .5,
+              { filter:'lowpass', cut:900, cutTo:220, q:4 });
+      if(sixteenth === 0){                                     // pad chord
+        for(const n of ch.chord){
+          voice('sawtooth', mtof(n),   T, 1.7, 'pad', .16, { atk:.35, filter:'lowpass', cut:1500, q:.7 });
+          voice('sawtooth', mtof(n+12),T, 1.7, 'pad', .07, { atk:.4, detune:9, filter:'lowpass', cut:2200 });
+        }
+      }
+      if(sixteenth % 2 === 0)                                  // money arp
+        voice('square', mtof(ch.arp[(step>>1)%4]+12), T, .13, 'arp', .16,
+              { filter:'lowpass', cut:3400, q:2 });
+      if(sixteenth === 4 || sixteenth === 12)                  // fighting stabs
+        voice('sawtooth', mtof(ch.root+12), T, .18, 'grit', .30,
+              { filter:'lowpass', cut:2600, cutTo:500, q:7 });
+      if(sixteenth === 0 || sixteenth === 10)                  // kick
+        { voice('sine', 110, T, .17, 'perc', .55, { slideTo:44 }); }
+      if(sixteenth === 8) noise(T, .13, .14, 4000, 900, 'perc'); // snare
+      if(sixteenth % 2 === 1) noise(T, .035, .05, 9000, 6000, 'perc'); // hats
+      if(scene==='play' && sixteenth===6 && bar%2===1)         // charm lead
+        voice('triangle', mtof(ch.chord[2]+12), T, .5, 'lead', .22, { atk:.05 });
+      nextTime += SPB; step++;
+    }
+  }
+
+  function ambience(kind){
+    if(!ctx) return;
+    if(amb){ try{ amb.stop(); }catch(e){} amb=null; }
+    if(!kind) return;
+    const s = ctx.createBufferSource(); s.buffer = noiseBuf; s.loop = true;
+    const f = ctx.createBiquadFilter();
+    const gn = ctx.createGain(); ambGain = gn;
+    if(kind==='surf'){ f.type='lowpass'; f.frequency.value=520; gn.gain.value=.055; }
+    else if(kind==='deep'){ f.type='lowpass'; f.frequency.value=280; gn.gain.value=.075; }
+    else { f.type='bandpass'; f.frequency.value=900; gn.gain.value=.03; }
+    const lfo = ctx.createOscillator(), lg = ctx.createGain();
+    lfo.frequency.value = 0.11; lg.gain.value = kind==='deep'?.03:.022;
+    lfo.connect(lg); lg.connect(gn.gain); lfo.start();
+    s.connect(f); f.connect(gn); gn.connect(master);
+    s.start(); amb = s;
+  }
+
+  const API = {
+    start(){
+      init(); if(!ctx || started) return;
+      if(ctx.state === 'suspended') ctx.resume();
+      started = true; nextTime = ctx.currentTime + 0.06;
+      timer = setInterval(tick, 25); mix();
+    },
+    scene(s){ if(scene===s) return; scene = s; mix(); },
+    lean(m,f,c){ const tot=Math.max(1,m+f+c); lean={money:m/tot,fight:f/tot,charm:c/tot}; mix(); },
+    ambience,
+    get muted(){ return muted; },
+    toggle(){
+      muted = !muted;
+      if(master) master.gain.setTargetAtTime(muted?0:0.55, ctx.currentTime, .15);
+      return muted;
+    },
+    /* ---- SFX ---- */
+    sfx(name){
+      if(!ctx || muted) return;
+      const T = ctx.currentTime + 0.01;
+      switch(name){
+        case 'click': voice('square', 1400, T, .035, 'sfx', .10); break;
+        case 'walk':  noise(T, .05, .05, 1600, 500, 'sfx'); break;
+        case 'coin':  voice('square', 988, T, .07, 'sfx', .20);
+                      voice('square', 1319, T+.07, .16, 'sfx', .20); break;
+        case 'cash':  [523,659,784,1047].forEach((f,i)=>
+                        voice('square', f, T+i*.055, .16, 'sfx', .19));
+                      noise(T, .06, .10, 5000, 1200, 'sfx'); break;
+        case 'punch': noise(T, .17, .40, 1800, 90, 'sfx');
+                      voice('sine', 180, T, .16, 'sfx', .34, { slideTo:48 }); break;
+        case 'charm': [659,831,988,1319].forEach((f,i)=>
+                        voice('triangle', f, T+i*.05, .42, 'sfx', .17, { atk:.02 })); break;
+        case 'fail':  voice('sawtooth', 392, T, .42, 'sfx', .22,
+                        { slideTo:120, filter:'lowpass', cut:1600, cutTo:300 }); break;
+        case 'death': [233,220,208].forEach((f,i)=>
+                        voice('sawtooth', f, T+i*.02, 1.5, 'sfx', .20,
+                          { slideTo:f/3.6, filter:'lowpass', cut:1400, cutTo:180 }));
+                      noise(T+.1, 1.0, .16, 900, 120, 'sfx'); break;
+        case 'slots': for(let i=0;i<9;i++) voice('square', 900+i*40, T+i*.045, .03, 'sfx', .13); break;
+        case 'shell': noise(T, .09, .13, 2600, 700, 'sfx'); break;
+        case 'fanfare':[523,659,784,1047,1319].forEach((f,i)=>{
+                        voice('square', f, T+i*.10, .5, 'sfx', .18);
+                        voice('sawtooth', f/2, T+i*.10, .5, 'sfx', .09,
+                          { filter:'lowpass', cut:2000 }); }); break;
+        case 'deny':  voice('square', 220, T, .13, 'sfx', .16, { slideTo:150 }); break;
+        case 'pickup':voice('triangle', 784, T, .09, 'sfx', .18);
+                      voice('triangle', 1175, T+.06, .12, 'sfx', .16); break;
+      }
+    }
+  };
+  return API;
+})();
+
+/* ---------- 4. ENGINE ---------------------------------------------------- */
+const SAVE_KEY = 'vanityshores.act1.l1';
+
+const GS = {
+  scene:'title',
+  name:'', look:{ skin:'tan', hair:'blowout', hairC:'#3b2416', hairC2:'#6b4426',
+                  shirtStyle:'blazer', shirt:'#e94f6a', shirtD:'#b8324a', inner:'#f5e6d3',
+                  pants:'#2f3a6b', pantsD:'#1e2648', acc:'none', eyes:'#3a5a8c' },
+  stats:{ money:34, fight:33, charm:33 },
+  cash:0,                                     // cents
+  room:'boardwalk',
+  inv:[], flags:{}, verb:'look', sel:null,
+  player:{ x:60, y:150, tx:60, ty:150, walking:false, phase:0 },
+  msg:null, invOpen:false, deaths:0, hustleTries:0
+};
+
+function saveGame(){
+  try{ localStorage.setItem(SAVE_KEY, JSON.stringify({
+    name:GS.name, look:GS.look, stats:GS.stats, cash:GS.cash, room:GS.room,
+    inv:GS.inv, flags:GS.flags, deaths:GS.deaths, v:1 })); }catch(e){}
+}
+function loadGame(){
+  try{ const s = JSON.parse(localStorage.getItem(SAVE_KEY)||'null');
+    if(s && s.v===1 && s.name){ Object.assign(GS, {
+      name:s.name, look:s.look, stats:s.stats, cash:s.cash, room:s.room,
+      inv:s.inv||[], flags:s.flags||{}, deaths:s.deaths||0 }); return true; }
+  }catch(e){}
+  return false;
+}
+function wipeSave(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
+
+/* ---- money & items ---- */
+const money = () => '$' + (GS.cash/100).toFixed(2);
+function pay(cents, sfx){
+  GS.cash += cents;
+  if(sfx!==false) Audio_.sfx(cents>0?'cash':'deny');
+  if(GS.cash >= 10000 && !GS.flags.stake) GS.flags.stake = true;   // the Level 1 win line
+  saveGame();
+}
+function has(id){ return GS.inv.indexOf(id) >= 0; }
+function give(id){ if(!has(id)){ GS.inv.push(id); Audio_.sfx('pickup'); } saveGame(); }
+function drop(id){ const i=GS.inv.indexOf(id); if(i>=0) GS.inv.splice(i,1);
+  if(GS.sel===id) GS.sel=null; saveGame(); }
+
+const ITEMS = {
+  quarter:{ name:'a quarter', desc:'Twenty-five cents. Chip Winthrop flicked it at you like you were a fountain.' },
+  tote:{ name:'a canvas tote', desc:'"SHORELINE RESIDENCES — OWN THE SUNSET." It smells faintly of a rented conference room.' },
+  spf:{ name:'Coco Blast SPF 2', desc:'SPF two. That is not sun protection, that is a marinade. Warning label: DO NOT DRINK. Sure.' },
+  aloe:{ name:'aloe gel', desc:'Ice-blue, medical-grade, aggressively soothing. Somewhere out there is a man who would pay real money for this.' },
+  coupon:{ name:'a drink coupon', desc:'One (1) complimentary Sunset Cooler at any participating Shoreline property. Participating properties: none.' },
+  fortune:{ name:'a fortune card', desc:'Madame LaRue\'s spidery handwriting: "THE PEA IS NEVER UNDER A SHELL. WATCH THE LEFT HAND, NOT THE SHELLS."' },
+  sign:{ name:'a FREE GIFT sign', desc:'Two feet of laminated hot pink promising something for nothing. The most powerful object in Vanity Shores.' },
+  churro:{ name:'a churro', desc:'Cinnamon, sugar, and structural regret. Still warm.' }
+};
+function drawItemIcon(id, x, y){
+  switch(id){
+    case 'quarter': r(x+4,y+4,10,10,'#c8c8d4'); r(x+5,y+3,8,12,'#c8c8d4');
+                    r(x+3,y+5,12,8,'#c8c8d4'); r(x+6,y+6,6,6,'#9a9aa8');
+                    px(x+6,y+5,'#e8e8f0'); break;
+    case 'tote':    r(x+3,y+6,12,10,'#e8dcc0'); r(x+3,y+6,12,1,'#c8b898');
+                    r(x+5,y+2,2,5,'#c8b898'); r(x+11,y+2,2,5,'#c8b898');
+                    r(x+5,y+9,8,4,P.surf); break;
+    case 'spf':     r(x+6,y+4,6,12,'#ff8a3d'); r(x+7,y+1,4,3,'#f0e2c8');
+                    r(x+6,y+4,6,1,'#ffb37a'); r(x+7,y+8,4,5,'#f0e2c8');
+                    px(x+8,y+9,'#ff8a3d'); break;
+    case 'aloe':    r(x+6,y+3,6,13,'#3ec98a'); r(x+7,y+1,4,3,'#e8f0ec');
+                    r(x+6,y+3,6,1,'#6ee8b0'); r(x+7,y+7,4,6,'#e8f0ec');
+                    px(x+8,y+9,'#3ec98a'); px(x+9,y+11,'#3ec98a'); break;
+    case 'coupon':  r(x+2,y+5,14,9,'#f0e2a8'); r(x+2,y+5,14,1,'#d8c880');
+                    r(x+4,y+7,6,1,'#8a7040'); r(x+4,y+9,9,1,'#8a7040');
+                    r(x+11,y+5,1,9,'#d8c880'); break;
+    case 'fortune': r(x+3,y+4,13,11,'#f5e6d3'); r(x+3,y+4,13,1,'#d8c4a8');
+                    r(x+5,y+7,9,1,'#5b2a8a'); r(x+5,y+9,7,1,'#5b2a8a');
+                    r(x+5,y+11,8,1,'#5b2a8a'); px(x+14,y+6,P.hot); break;
+    case 'sign':    r(x+2,y+3,14,9,P.gold); r(x+3,y+4,12,7,P.hot);
+                    r(x+8,y+12,2,5,'#7a5230'); break;
+    case 'churro':  r(x+3,y+8,13,4,'#c8862a'); r(x+3,y+8,13,1,'#e8a850');
+                    for(let i=0;i<4;i++) px(x+5+i*3, y+9, '#8a5a18'); break;
+    default:        r(x+4,y+4,10,10,P.dim);
+  }
+}
+
+/* ---- messages ---- */
+function say(pages, opts){
+  opts = opts||{};
+  const arr = Array.isArray(pages) ? pages : [pages];
+  GS.msg = { pages:arr, i:0, sub:0, speaker:opts.speaker||null, look:opts.look||null,
+             choices:opts.choices||null, then:opts.then||null, hover:-1 };
+  GS.invOpen = false;
+}
+function narrate(t, opts){ say(t, opts||{}); }
+function advanceMsg(){
+  const m = GS.msg; if(!m) return;
+  if(dlgHasMore(m)){ m.sub = (m.sub||0)+1; Audio_.sfx('click'); return; }
+  if(m.i < m.pages.length-1){ m.i++; m.sub = 0; Audio_.sfx('click'); return; }
+  if(m.choices) return;                      // choices wait for a pick
+  GS.msg = null;
+  if(m.then) m.then();
+}
+function chooseOption(idx){
+  const m = GS.msg; if(!m || !m.choices) return;
+  if(dlgHasMore(m) || m.i < m.pages.length-1) return;   // choices belong to the last view
+  const c = m.choices[idx]; if(!c) return;
+  if(c.enabled === false){ Audio_.sfx('deny'); return; }
+  Audio_.sfx('click'); GS.msg = null;
+  if(c.fn) c.fn();
+}
+
+/* ---- stat helpers: the build gates everything (§3) ---- */
+const S = () => GS.stats;
+const leanName = () => { const s=S();
+  if(s.money>=s.fight && s.money>=s.charm) return 'money';
+  if(s.fight>=s.charm) return 'fight'; return 'charm'; };
+function statCheck(stat, need){ return S()[stat] >= need; }
+
+/* ---- player movement ---- */
+function walkTo(x, y, then){
+  const p = GS.player, rm = ROOMS[GS.room];
+  p.tx = clamp(x, rm.walk.x0, rm.walk.x1);
+  p.ty = clamp(y, rm.walk.y0, rm.walk.y1);
+  p.walking = true; p.then = then||null;
+}
+function updatePlayer(dt){
+  const p = GS.player;
+  if(!p.walking) { p.phase = 0; return; }
+  const dx = p.tx-p.x, dy = p.ty-p.y, d = Math.hypot(dx,dy);
+  const spd = 80 * dt;
+  if(d <= spd){
+    p.x = p.tx; p.y = p.ty; p.walking = false; p.phase = 0;
+    const f = p.then; p.then = null; if(f) f();
+  } else {
+    p.x += dx/d*spd; p.y += dy/d*spd;
+    p.phase += dt*11;
+    if(Math.floor(p.phase/2.4) !== Math.floor((p.phase-dt*11)/2.4)) Audio_.sfx('walk');
+  }
+}
+function playerDepth(){                       // a little depth scaling
+  const rm = ROOMS[GS.room], t = (GS.player.y - rm.walk.y0)/Math.max(1,(rm.walk.y1-rm.walk.y0));
+  return Math.round(t*5) - 2;
+}
+
+/* ---------- 4b. INTERFACE ------------------------------------------------ */
+const VERBS = [ {id:'look',label:'LOOK'}, {id:'talk',label:'TALK'},
+                {id:'use', label:'USE' }, {id:'take',label:'TAKE'} ];
+const BAR_Y = 172, SLOT0 = 196, SLOTW = 20;
+const mouse = { x:160, y:100, down:false };
+
+function verbRect(i){ return { x:4+i*46, y:BAR_Y+4, w:44, h:12 }; }
+function slotRect(i){ return { x:SLOT0+i*SLOTW, y:BAR_Y+3, w:19, h:19 }; }
+function inRect(p, q){ return p.x>=q.x && p.x<q.x+q.w && p.y>=q.y && p.y<q.y+q.h; }
+
+function drawStatusBar(){
+  g.globalAlpha = .72; r(0,0,W,11,P.ink); g.globalAlpha = 1;
+  r(0,11,W,1,'rgba(255,46,136,.45)');
+  text('ACT 1, LEVEL 1 — SMALL CHANGE', 5, 2, P.dim, FONT.sm);
+  const m = money();
+  text(m, W-5-textW(m,FONT.sm), 2, P.gold, FONT.sm);
+}
+function drawVerbBar(hoverName){
+  r(0, BAR_Y, W, 200-BAR_Y, P.ink);
+  r(0, BAR_Y, W, 1, P.hot);
+  g.globalAlpha=.5; r(0, BAR_Y+1, W, 1, '#5a2a52'); g.globalAlpha=1;
+  for(let i=0;i<VERBS.length;i++){
+    const q = verbRect(i), on = GS.verb===VERBS[i].id, hov = inRect(mouse,q);
+    r(q.x, q.y, q.w, q.h, on ? P.hot : (hov ? '#3d1f52' : '#241134'));
+    r(q.x, q.y, q.w, 1, on ? '#ff7ab5' : '#3d2255');
+    textC(VERBS[i].label, q.x+q.w/2, q.y+2, on ? P.ink : (hov?P.bone:P.dim), FONT.sm);
+  }
+  // inventory strip
+  r(SLOT0-4, BAR_Y+2, W-SLOT0+4, 21, '#1a0f28');
+  for(let i=0;i<6;i++){
+    const q = slotRect(i), id = GS.inv[i];
+    r(q.x, q.y, q.w, q.h, '#241134');
+    r(q.x, q.y, q.w, 1, '#3d2255'); r(q.x, q.y, 1, q.h, '#3d2255');
+    if(id){
+      drawItemIcon(id, q.x+1, q.y+1);
+      if(GS.sel===id){ r(q.x,q.y,q.w,1,P.surf); r(q.x,q.y+q.h-1,q.w,1,P.surf);
+                       r(q.x,q.y,1,q.h,P.surf); r(q.x+q.w-1,q.y,1,q.h,P.surf); }
+      else if(inRect(mouse,q)){ r(q.x,q.y,q.w,1,P.gold); r(q.x,q.y+q.h-1,q.w,1,P.gold); }
+    }
+  }
+  // hint line
+  let hint = '';
+  if(GS.sel && GS.verb==='use') hint = 'Use ' + ITEMS[GS.sel].name + (hoverName? ' on ' + hoverName : ' on…');
+  else if(hoverName) hint = VERBS.find(v=>v.id===GS.verb).label.charAt(0) +
+        VERBS.find(v=>v.id===GS.verb).label.slice(1).toLowerCase() + ' ' + hoverName;
+  else hint = GS.name ? '' : '';
+  text(hint, 6, BAR_Y+17, hoverName?P.bone:P.dim, FONT.sm);
+}
+
+const DLG_MAX = 6;                        // lines per view before it flows on
+
+function dlgLayout(m){
+  const hasPort = !!m.look;
+  const tx = hasPort ? 48 : 12, tw = hasPort ? 258 : 296;
+  const nameH = m.speaker ? 10 : 0;
+  const sub = m.sub || 0;
+  const all = wrap(m.pages[m.i], FONT.dlg, tw);
+  const onLast = m.i === m.pages.length-1;
+
+  // choice rows wrap too, and each knows its own height
+  let rows = null, chH = 0;
+  if(m.choices && onLast){
+    rows = m.choices.map(c => {
+      const pre = c.tag ? c.tag + ' \u00b7 ' : '';
+      const ls = wrap(pre + c.text, FONT.dlg, tw - 14);
+      return { c, pre, lines:ls, h: ls.length*13 + 3 };
+    });
+    chH = rows.reduce((a,q)=>a+q.h, 0) + 6;
+  }
+
+  // shrink the body view until the box fits between the status bar and the verb bar
+  let maxL = DLG_MAX, lines, more, h;
+  for(;;){
+    lines = all.slice(sub*maxL, sub*maxL + maxL);
+    more  = (sub+1)*maxL < all.length;
+    h = Math.max(46, 10 + nameH + lines.length*13 + (more ? 0 : chH) + 8);
+    if(h <= 150 || maxL <= 2) break;
+    maxL--;
+  }
+  const last = !more && onLast;
+  const choices = (rows && !more) ? m.choices : null;
+  const y = Math.max(14, 166 - h);
+  return { hasPort, tx, tw, lines, more, last, nameH, choices,
+           rows: (rows && !more) ? rows : null, chH, h, y,
+           x:6, bw:308, chY: y + 6 + nameH + lines.length*13 + 4 };
+}
+function dlgHasMore(m){ const L = dlgLayout(m); return L.more; }
+
+function drawDialogue(){
+  const m = GS.msg; if(!m) return;
+  const L = dlgLayout(m);
+
+  g.globalAlpha = .93; r(L.x, L.y, L.bw, L.h, '#180d26'); g.globalAlpha = 1;
+  r(L.x, L.y, L.bw, 1, P.hot); r(L.x, L.y+L.h-1, L.bw, 1, P.hot);
+  r(L.x, L.y, 1, L.h, P.hot); r(L.x+L.bw-1, L.y, 1, L.h, P.hot);
+  g.globalAlpha = .35; r(L.x+1, L.y+1, L.bw-2, 1, '#ff9ac8'); g.globalAlpha = 1;
+
+  if(L.hasPort) drawPortrait(L.x+5, L.y+5, m.look, clock);
+  let ty = L.y+6;
+  if(m.speaker){ text(m.speaker.toUpperCase(), L.tx, ty, P.gold, FONT.sm); ty += L.nameH; }
+  for(const ln of L.lines){ text(ln, L.tx, ty, P.bone, FONT.dlg); ty += 13; }
+
+  if(L.rows){
+    let cy = L.chY;
+    for(const row of L.rows){
+      const q = { x:L.tx-4, y:cy, w:L.tw+6, h:row.h };
+      const hov = inRect(mouse,q) && row.c.enabled !== false;
+      if(hov) r(q.x, q.y, q.w, q.h, 'rgba(255,46,136,.22)');
+      const col = row.c.enabled===false ? '#6b4d8a' : (hov ? P.hot : P.surf);
+      text(hov ? '\u25b8' : ' ', q.x+2, q.y+1, P.hot, FONT.dlg);
+      for(let j=0;j<row.lines.length;j++)
+        text(row.lines[j], q.x+11, q.y+1+j*13, col, FONT.dlg);
+      if(row.pre) text(row.pre, q.x+11, q.y+1, P.gold, FONT.dlg);   // pick the gate out
+      cy += row.h;
+    }
+  } else if(!L.last){
+    if(Math.floor(clock/450)%2===0) text('\u25bc', L.x+L.bw-14, L.y+L.h-13, P.hot, FONT.dlg);
+  } else {
+    if(Math.floor(clock/600)%2===0) text('\u25a0', L.x+L.bw-13, L.y+L.h-12, P.dim, FONT.sm);
+  }
+}
+
+/* ---- cursor ---- */
+function drawCursor(){
+  const x = mouse.x|0, y = mouse.y|0;
+  const c = GS.verb==='talk' ? P.surf : GS.verb==='take' ? P.gold :
+            GS.verb==='use' ? '#4de0a0' : P.bone;
+  r(x-4, y, 3, 1, c); r(x+2, y, 3, 1, c);
+  r(x, y-4, 1, 3, c); r(x, y+2, 1, 3, c);
+  px(x, y, P.hot);
+}
+
+/* ---------- 4c. ROOM RENDER ---------------------------------------------- */
+let clock = 0;
+function hotspotsOf(room){ return ROOMS[room].hotspots.filter(h => !h.hidden || !h.hidden()); }
+function hotspotAt(p){
+  let best = null, bestArea = Infinity, bestPri = -1;
+  for(const h of hotspotsOf(GS.room)){
+    if(p.x>=h.x && p.x<h.x+h.w && p.y>=h.y && p.y<h.y+h.h){
+      const pri = h.pri||0, a = h.w*h.h;       // a person beats the building behind them
+      if(pri > bestPri || (pri === bestPri && a < bestArea)){ best = h; bestPri = pri; bestArea = a; }
+    }
+  }
+  return best;
+}
+function drawRoom(t){
+  g.drawImage(bakedRoom(GS.room), 0, 0);
+  ROOMART[GS.room].live(t);
+  const rm = ROOMS[GS.room];
+
+  // entities sorted back-to-front
+  const ents = [];
+  for(const n of rm.npcs) if(!n.hidden || !n.hidden())
+    ents.push({ y:n.y, draw:()=>{ if(n.behind) n.behind(t);
+      drawPerson(n.x, n.y, n.look, t, 0); if(n.extra) n.extra(t); } });
+  ents.push({ y:GS.player.y, draw:()=>{
+    const o = Object.assign({}, GS.look, { size:playerDepth() });
+    drawPerson(GS.player.x, GS.player.y, o, t, GS.player.walking?GS.player.phase:0); } });
+  ents.sort((a,b)=>a.y-b.y);
+  for(const e of ents) e.draw();
+
+  if(rm.overlay) rm.overlay(t);
+
+  // hover outline
+  const hs = GS.msg ? null : hotspotAt(mouse);
+  if(hs && mouse.y < BAR_Y){
+    g.globalAlpha = .55 + (REDUCED?0:Math.sin(t/220)*.2);
+    const c = P.gold;
+    r(hs.x, hs.y, hs.w, 1, c); r(hs.x, hs.y+hs.h-1, hs.w, 1, c);
+    r(hs.x, hs.y, 1, hs.h, c); r(hs.x+hs.w-1, hs.y, 1, hs.h, c);
+    g.globalAlpha = 1;
+  }
+  drawStatusBar();
+  drawDialogue();
+  drawVerbBar(hs ? hs.name : null);
+}
+
+/* ---------- 4d. ACTION DISPATCH ------------------------------------------ */
+const SHRUG = {
+  look:['Nothing there worth the eye strain.','You look. Vanity Shores looks back, unimpressed.',
+        'It is exactly as tacky up close.'],
+  talk:['It says nothing. You respect that.','You are not yet desperate enough to talk to that.',
+        'Talking to that is a Level 6 problem.'],
+  use:['That does not work that way. Almost nothing here does.','You try. It does not take.',
+       'No. But points for the attempt.'],
+  take:['It is not yours. Yet.','You cannot carry that, and it would not suit you.',
+        'Too big, too bolted down, or too watched.']
+};
+function shrug(verb){ const a=SHRUG[verb]||SHRUG.look; return a[(Math.random()*a.length)|0]; }
+
+function doAction(hs, verb){
+  if(hs.exit){
+    if(verb==='look' && hs.desc){ narrate(hs.desc, { then:hs.go }); return; }
+    if(verb==='talk'){ narrate('You do not need to ask its permission.', { then:hs.go }); return; }
+    hs.go(); return;
+  }
+  const fn = hs[verb];
+  if(GS.sel && verb==='use'){
+    const item = GS.sel;
+    if(hs.useItem){ const done = hs.useItem(item); GS.sel = null; if(done !== false) return; }
+    GS.sel = null;
+    narrate('You wave ' + ITEMS[item].name + ' at ' + hs.name + '. Nothing in the universe responds.');
+    Audio_.sfx('deny'); return;
+  }
+  if(typeof fn === 'function'){ fn(); return; }
+  if(typeof fn === 'string'){ narrate(fn); return; }
+  Audio_.sfx('deny'); narrate(shrug(verb));
+}
+function clickScene(p){
+  if(GS.msg){                                   // dialogue owns the click
+    const L = dlgLayout(GS.msg);
+    if(L.rows){
+      let cy = L.chY;
+      for(let i=0;i<L.rows.length;i++){
+        if(inRect(p, { x:L.tx-4, y:cy, w:L.tw+6, h:L.rows[i].h })){ chooseOption(i); return; }
+        cy += L.rows[i].h;
+      }
+      return;
+    }
+    advanceMsg(); return;
+  }
+  const hs = hotspotAt(p);
+  if(hs){
+    const ap = hs.approach;
+    if(ap) walkTo(ap[0], ap[1], () => doAction(hs, GS.verb));
+    else doAction(hs, GS.verb);
+    return;
+  }
+  const rm = ROOMS[GS.room];
+  if(p.y >= rm.walk.y0-14 && p.y <= BAR_Y){
+    if(rm.danger && rm.danger(p)) return;
+    walkTo(p.x, p.y);
+  } else if(p.y < rm.walk.y0-14){
+    if(rm.danger && rm.danger(p)) return;
+    narrate('You cannot get there from here. Not in these shoes.');
+  }
+}
+
+/* ---------- 5. CONTENT: the cast ----------------------------------------- */
+const CAST = {
+  chip:{ name:'Chip Winthrop', skin:'tan', hair:'pomp', hairC:'#d8b45a', hairC2:'#f2dc9a',
+         shirtStyle:'polo', shirt:'#6fd8c0', shirtD:'#3ba892', inner:'#ffffff',
+         pants:'#efe6d4', pantsD:'#cfc4ae', shoes:'#8a5a3a', acc:'shades',
+         eyes:'#4a7ab0', size:2, still:false },
+  gil:{  name:'Gil Furnace', skin:'burn', hair:'cap', hairC:'#e8e4d8', hairC2:'#c4c0b4',
+         shirtStyle:'hawaii', shirt:'#2fa8a0', shirtD:'#1d7a74',
+         pants:'#d8cfa8', pantsD:'#b0a882', shoes:'#f0ece0', build:1, eyes:'#5a7a4a' },
+  brenda:{ name:'Brenda Tang', skin:'tan', hair:'bun', hairC:'#231a26', hairC2:'#4a3a4e',
+         shirtStyle:'blazer', shirt:'#2a3f5e', shirtD:'#1b2a42', inner:'#f5e6d3',
+         skirt:'#2a3f5e', shoes:'#241134', lips:'#d8365e', acc:'none',
+         eyes:'#3a2a2a', build:-1 },
+  zsazsa:{ name:'Madame LaRue', skin:'deep', hair:'turban', hairC:'#7a3aad', hairC2:'#a35fd8',
+         shirtStyle:'', shirt:'#5b2a8a', shirtD:'#3d1a5e', skirt:'#5b2a8a',
+         shoes:'#241134', lips:'#c41d68', acc:'hoops', eyes:'#2a1a1a', size:-1 },
+  dickie:{ name:'Dickie Vermouth', skin:'pale', hair:'pomp', hairC:'#7a7488', hairC2:'#a8a2b4',
+         shirtStyle:'sequin', shirt:'#8e2a4e', shirtD:'#5e1a32', inner:'#f5e6d3',
+         pants:'#2a2438', pantsD:'#1a1626', shoes:'#e8e4d8', stubble:true,
+         mustache:true, eyes:'#4a4a5a', size:-2 },
+  monte:{ name:'Monte', skin:'tan', hair:'ponytail', hairC:'#2a1c14', hairC2:'#4a3424',
+         shirtStyle:'tank', shirt:'#e8e4d8', shirtD:'#c4c0b4',
+         pants:'#3a3448', pantsD:'#241f30', shoes:'#241134', acc:'chain',
+         stubble:true, build:1, eyes:'#3a2a1a' },
+  rube1:{ name:'a tourist', skin:'fair', hair:'perm', hairC:'#b4703a', hairC2:'#d8965a',
+          shirtStyle:'tank', shirt:'#f0a8c0', pants:'#e8e0d0', size:-1, still:true },
+  rube2:{ name:'a tourist', skin:'deep', hair:'cap', hairC:'#c41d68', hairC2:'#8e1148',
+          shirtStyle:'hawaii', shirt:'#f0c23d', pants:'#3a4a6a', build:1, still:true }
+};
+const sayAs = (who, pages, opts) => say(pages, Object.assign({ speaker:CAST[who].name, look:CAST[who] }, opts||{}));
+
+/* ---------- 5b. transitions & deaths ------------------------------------- */
+let fade = 0, fadeDir = 0, fadeThen = null;
+function transition(fn){ fadeDir = 1; fadeThen = fn; }
+function gotoRoom(id, x, y){
+  transition(() => {
+    GS.room = id; GS.player.x = x; GS.player.y = y;
+    GS.player.tx = x; GS.player.ty = y; GS.player.walking = false;
+    GS.msg = null; GS.sel = null;
+    Audio_.ambience(id==='underpier' ? 'deep' : id==='pier' ? 'surf' : 'boardwalk');
+    saveGame();
+    const rm = ROOMS[id]; if(rm.onEnter) rm.onEnter();
+  });
+}
+const DEATHS = {
+  road:{ head:'FLATTENED', body:'You step into the road to admire the sunset. A pink convertible '+
+        'the size of a small country removes you from the timeline. The driver does not slow down.',
+        sting:'Right of way belongs to whoever owns more of the road.' },
+  surf:{ head:'DROWNED', body:'You wade out to rinse the boardwalk off your ankles. The riptide has '+
+        'other plans, and the riptide has seniority.',
+        sting:'Nobody on that beach looked up. Their tans were at a critical stage.' },
+  oil:{ head:'DECEASED, TROPICALLY', body:'It said TROPICAL. It said COCONUT. It said, in letters '+
+        'you chose not to read, DO NOT DRINK.',
+        sting:'You die golden, glistening, and evenly bronzed on the inside.' },
+  rail:{ head:'DASHED UPON THE PILINGS', body:'You climb the pier railing because it looked like '+
+        'something a man with a future does. The railing is ninety years old.',
+        sting:'The pilings below are barnacled, immovable, and well attended by crabs.' }
+};
+function die(kind){
+  GS.deaths++; GS.msg = null; GS.scene = 'death'; GS.deathKind = kind;
+  Audio_.sfx('death'); Audio_.scene('tense'); saveGame();
+}
+function reviveFromDeath(){
+  GS.scene = 'play'; Audio_.scene('play');
+  const rm = ROOMS[GS.room];
+  GS.player.x = rm.spawn[0]; GS.player.y = rm.spawn[1];
+  GS.player.tx = GS.player.x; GS.player.ty = GS.player.y; GS.player.walking = false;
+}
+
+/* ---------- 5c. ROOMS ---------------------------------------------------- */
+const ROOMS = {
+
+/* ============================ ARRIVAL ==================================== */
+arrival:{
+  walk:{ x0:16, x1:304, y0:134, y1:168 }, spawn:[40,150],
+  npcs:[ { id:'chip', x:210, y:136, look:CAST.chip,
+           hidden:()=>GS.flags.chipGone } ],
+  danger(p){ if(p.y>=92 && p.y<126){ walkTo(p.x, 136, ()=>die('road')); return true; } },
+  onEnter(){ if(!GS.flags.arrived){ GS.flags.arrived = true;
+      narrate(['The bus pulls away with the sound of a large animal giving up. '+
+               'You are standing at the top of the strip in Vanity Shores with '+ money() +
+               ' and a plan you have not written down yet.',
+               'The air smells like coconut oil, hot asphalt, and other people\'s money. '+
+               'Somewhere below, a casino is taking a percentage of everything.',
+               'First you get the money. You are fairly sure of the order.'],
+              { then:()=>saveGame() }); } },
+  hotspots:[
+    { id:'chip', pri:2, name:'Chip Winthrop', x:194, y:100, w:34, h:44, approach:[190,146],
+      hidden:()=>GS.flags.chipGone,
+      look:()=>narrate('Boat shoes with no socks, a polo with the collar standing at attention, '+
+        'and the deep, even tan of a man who has never once been told no. He is leaning on the car '+
+        'the way other people lean on inherited wealth.'),
+      talk:()=>chipIntro(),
+      take:()=>narrate('You would need a much larger bag and a much better lawyer.'),
+      use:()=>narrate('He is not a tool. He is a warning.') },
+
+    { id:'car', name:'the pink convertible', x:194, y:108, w:66, h:20, approach:[210,140],
+      look:()=>narrate('A convertible in a pink that does not occur in nature, with a vanity plate '+
+        'reading CHIP. The upholstery is white. Nobody who has ever worried about money owns white '+
+        'upholstery.'),
+      take:()=>{ Audio_.sfx('deny'); narrate('You reach for the door handle. Somewhere a car alarm '+
+        'clears its throat and you reconsider your entire life.'); },
+      use:()=>narrate('The car does not need you. That is rather the point of the car.') },
+
+    { id:'sign', name:'the welcome sign', x:104, y:28, w:130, h:24,
+      look:()=>narrate('"WELCOME TO VANITY SHORES." Underneath, in smaller neon: "YOU LOOK '+
+        'FANTASTIC." The sign says this to everyone. The sign has never once been wrong about '+
+        'anyone who mattered.') },
+
+    { id:'shelter', name:'the bus shelter', x:12, y:90, w:56, h:44, approach:[52,142],
+      look:()=>narrate('A bench, a roof, and an advertisement for a tanning salon called SEAR. '+
+        'Someone has scratched "I CAME HERE BROKE TOO" into the glass. It is not comforting. '+
+        'It is a statistic.'),
+      take:()=>narrate('The bench is bolted down. In this town everything not bolted down '+
+        'has already been taken.') },
+
+    { id:'quarter', pri:3, name:'a quarter', x:176, y:150, w:14, h:12, approach:[178,156],
+      hidden:()=>!GS.flags.quarterOnGround || has('quarter'),
+      look:()=>narrate('Twenty-five cents, lying in the grit where he flicked it. It is the '+
+        'single most humiliating coin in the state of Florida. It is also money.'),
+      take:()=>{ give('quarter'); GS.flags.quarterOnGround = false;
+        narrate('You pick it up. You do not brush it off. Brushing it off would mean it mattered, '+
+          'and you would like the record to show it did not matter.'); },
+      use:()=>narrate('Pick it up first. Even in this town you have to hold a thing to spend it.') },
+
+    { id:'road', name:'the road', x:0, y:92, w:320, h:20,
+      look:()=>narrate('Four lanes of convertibles moving at the speed of unearned confidence. '+
+        'Crossing on foot is what the newspaper would call "an incident."'),
+      talk:()=>narrate('You do not talk to traffic. Not on day one.'),
+      take:()=>narrate('You cannot take a road. You can only get taken by one.'),
+      use:()=>{ walkTo(mouse.x, 136, ()=>die('road')); } },
+
+    { id:'east', name:'the boardwalk', x:296, y:120, w:24, h:52, approach:[292,152],
+      exit:true, desc:'Down the steps, the boardwalk runs south along the water: bodies, noise, '+
+        'fried sugar, and the casino tower standing over all of it like a tax collector.',
+      go:()=>gotoRoom('boardwalk', 20, 150) }
+  ],
+  overlay(t){
+    if(!GS.flags.chipGone) return;
+    if(Math.floor(t/700)%2===0) return;
+  }
+},
+
+/* ============================ BOARDWALK ================================== */
+boardwalk:{
+  walk:{ x0:14, x1:306, y0:126, y1:168 }, spawn:[40,150],
+  npcs:[ { id:'gil', x:62, y:152, look:CAST.gil },
+         { id:'brenda', x:272, y:158, look:CAST.brenda,
+           extra:()=>{ r(262,140,7,9,P.bone); r(263,141,5,7,'#8a9ab0'); } } ],
+  onEnter(){
+    if(GS.flags.stake && !GS.flags.finale){ GS.flags.finale = true; setTimeout(chipFinale, 500); return; }
+    if(!GS.flags.sawStrip){ GS.flags.sawStrip = true;
+      narrate(['The boardwalk. Two hundred yards of oiled shoulders, frozen drinks in souvenir cups, '+
+               'and a casino tower at the far end throwing a shadow across all of it.',
+               'Everybody here is selling something. The ones who look like they are not selling '+
+               'anything are selling the hardest.']); } },
+  hotspots:[
+    { id:'gil', pri:2, name:'the sunburnt man', x:50, y:112, w:28, h:46, approach:[74,152],
+      look:()=>narrate('A man the colour of a stop sign, radiating heat like a parked car. His '+
+        'Hawaiian shirt is unbuttoned to a depth that is a cry for help. He is holding himself very '+
+        'still, the way you hold yourself when moving is a decision you have to make each time.'),
+      talk:()=>gilTalk(),
+      take:()=>narrate('He is too hot to touch. Literally. You can feel it from here.'),
+      useItem:(it)=>{
+        if(it==='aloe'){ gilPayoff(); return true; }
+        if(it==='spf'){ sayAs('gil', 'SPF two? SPF TWO? Buddy, that\'s not lotion, that\'s BASTING. '+
+          'Get away from me.'); Audio_.sfx('deny'); return true; }
+        if(it==='churro'){ sayAs('gil', 'I can\'t eat. Chewing moves my FACE.'); return true; }
+        return false; } },
+
+    { id:'bench', name:'the bench', x:42, y:130, w:44, h:24, approach:[66,158],
+      look:()=>narrate('A public bench, slatted, warm, and currently supporting one of the worst '+
+        'afternoons in Florida history.') },
+
+    { id:'brenda', pri:2, name:'the woman with the clipboard', x:258, y:118, w:28, h:46, approach:[248,160],
+      look:()=>narrate('Navy blazer in ninety-degree heat, a lanyard, and a smile with the '+
+        'structural integrity of a bank vault. She has already decided how this conversation goes. '+
+        'She has decided that about everyone on this boardwalk.'),
+      talk:()=>brendaTalk(),
+      useItem:(it)=>{ if(it==='coupon'){ sayAs('brenda','That coupon is redeemable at any '+
+        'participating Shoreline property. There are no participating Shoreline properties. That is '+
+        'not a lie, it is a *structure*.'); return true; } return false; } },
+
+    { id:'booth', name:'the timeshare booth', x:240, y:100, w:62, h:56, approach:[228,158],
+      look:()=>narrate('"SHORELINE RESIDENCES — OWN THE SUNSET." The brochures show a building that '+
+        'does not exist, photographed from an angle that would be impossible if it did.') },
+
+    { id:'freesign', pri:3, name:'the FREE GIFT sign', x:230, y:116, w:30, h:38, approach:[224,156],
+      hidden:()=>GS.flags.signTaken,
+      look:()=>narrate('Hot pink, laminated, two feet tall. It says FREE GIFT. It does not say what '+
+        'the gift is. That is the entire trick and it has never once failed.'),
+      take:()=>takeSign() },
+
+    { id:'cart', name:'the churro cart', x:172, y:106, w:40, h:36, approach:[166,142],
+      look:()=>narrate('A churro cart with a hand-lettered card taped to the glass: "BACK IN 5 MIN." '+
+        'The tape has gone yellow. The card has gone soft. Nobody has been back in some time.'),
+      take:()=>{ if(has('churro')){ narrate('One stolen churro is a snack. Two is a personality.'); return; }
+        give('churro'); narrate(['You take a churro from an unattended cart. It is still warm, which '+
+          'raises questions you decide not to pursue.',
+          'This is your first crime in Vanity Shores. It will not make the top forty.']); },
+      talk:()=>narrate('"Back in five minutes," you tell the cart. The cart does not believe you either.') },
+
+    { id:'rail', name:'the railing', x:0, y:96, w:320, h:14, approach:[160,132],
+      look:()=>narrate('Past the railing: a strip of sand, then the water, then the curve of the '+
+        'earth. The sunset is doing something obscene with the colour orange.'),
+      take:()=>narrate('The railing stays. You have already been thrown out of one place this year.') },
+
+    { id:'tower', name:'the casino tower', x:224, y:16, w:32, h:62,
+      look:()=>narrate('The Winthrop. Forty floors of poured concrete and better lighting, standing '+
+        'over the boardwalk with its hands in everyone\'s pockets. From here you can see the '+
+        'penthouse. From the penthouse, you are a smudge.') },
+
+    { id:'stairs', name:'the steps down to the beach', x:107, y:130, w:46, h:34, approach:[132,144],
+      exit:true, desc:'Wooden steps down under the pier, into the shade. Whatever happens down '+
+        'there happens where the boardwalk cannot see it.',
+      go:()=>gotoRoom('underpier', 60, 150) },
+
+    { id:'west', name:'the top of the strip', x:0, y:118, w:16, h:54, approach:[22,152],
+      exit:true, desc:'Back up the strip toward the bus stop, the road, and the man leaning on '+
+        'the pink car.',
+      go:()=>gotoRoom('arrival', 288, 152) },
+
+    { id:'east', name:'the pier', x:306, y:112, w:14, h:60, approach:[298,152],
+      exit:true, desc:'The boardwalk narrows and runs out over the water: a bandshell, a fortune '+
+        'teller\'s tent, and a great deal of nothing beyond.',
+      go:()=>gotoRoom('pier', 16, 152) }
+  ]
+},
+
+/* ============================== PIER ===================================== */
+pier:{
+  walk:{ x0:14, x1:306, y0:132, y1:168 }, spawn:[40,150],
+  npcs:[ { id:'dickie', x:52, y:130, look:CAST.dickie,
+           extra:(t)=>{ r(58,110,1,8,'#5a5a68'); r(56,106,4,4,'#2a2a34');   // the microphone
+             if(GS.flags.crowdDrawn && !REDUCED && Math.floor(t/240)%2===0)
+               text('♪', 66, 100+((t/300)|0)%3, P.gold, FONT.dlg); } },
+         { id:'zsazsa', x:266, y:154, look:CAST.zsazsa },
+         { id:'r1', x:96, y:158, look:CAST.rube1, hidden:()=>!GS.flags.crowdDrawn },
+         { id:'r2', x:124, y:162, look:CAST.rube2, hidden:()=>!GS.flags.crowdDrawn } ],
+  onEnter(){ if(!GS.flags.sawPier){ GS.flags.sawPier = true;
+      narrate('The pier. Out here the music from the strip arrives late and slightly wrong, like '+
+              'news from a country you used to live in.'); } },
+  hotspots:[
+    { id:'dickie', pri:2, name:'the lounge singer', x:40, y:96, w:26, h:42, approach:[74,146],
+      look:()=>narrate('A burgundy sequin dinner jacket in the year of our Lord whenever this is, '+
+        'worn by a man singing to eleven empty feet of pier. He has the posture of somebody who was '+
+        'on television once and has been paying for it ever since.'),
+      talk:()=>dickieTalk(),
+      useItem:(it)=>{ if(it==='sign'){ plantSign(); return true; }
+        if(it==='churro'){ sayAs('dickie','Not while I\'m ON, kid. Sugar on the vowels.'); return true; }
+        return false; } },
+
+    { id:'stage', name:'the bandshell', x:6, y:70, w:98, h:62, approach:[100,148],
+      look:()=>narrate('A municipal bandshell, purple, shell-shaped, and acoustically perfect for '+
+        'carrying the sound of one man\'s decline out over open water.'),
+      useItem:(it)=>{ if(it==='sign'){ plantSign(); return true; } return false; } },
+
+    { id:'zsazsa', pri:2, name:'the fortune teller', x:254, y:120, w:26, h:44, approach:[248,158],
+      look:()=>narrate('Rings on every finger, a turban with a costume-jewellery brooch, and eyes '+
+        'that go over you like a customs officer. She is reading you right now. She has not asked '+
+        'permission and she is not going to.'),
+      talk:()=>zsaTalk(),
+      useItem:(it)=>{ if(it==='quarter'){ zsaReading(); return true; }
+        if(it==='fortune'){ sayAs('zsazsa','I know what it says, sugar. I wrote it.'); return true; }
+        return false; } },
+
+    { id:'tent', name:'the fortune tent', x:222, y:74, w:92, h:62, approach:[236,158],
+      look:()=>narrate('"PALMS READ — $.25." Hand-painted, and the twenty-five has been painted over '+
+        'something larger. Business is not what it was.') },
+
+    { id:'crate', name:'the crate', x:118, y:118, w:44, h:12, approach:[140,144],
+      look:()=>narrate('An empty crate stencilled SHORELINE RESIDENCES. Whatever was in it is now '+
+        'somebody\'s equity.'),
+      take:()=>narrate('It is empty, splintered, and heavier than it looks. Like most things '+
+        'stencilled with a developer\'s name.') },
+
+    { id:'railp', name:'the pier railing', x:0, y:112, w:320, h:10, approach:[160,140],
+      look:()=>narrate('Ninety years of salt air have been working on this railing the whole time. '+
+        'It is still standing. That is not the same as safe.'),
+      take:()=>{ walkTo(mouse.x, 138, ()=>die('rail')); },
+      use:()=>{ walkTo(mouse.x, 138, ()=>die('rail')); } },
+
+    { id:'westp', name:'the boardwalk', x:0, y:118, w:14, h:54, approach:[22,152],
+      exit:true, desc:'Back down the pier toward the noise, the sugar, and the money.',
+      go:()=>gotoRoom('boardwalk', 298, 152) }
+  ]
+},
+
+/* ========================== UNDER THE PIER =============================== */
+underpier:{
+  walk:{ x0:16, x1:298, y0:118, y1:168 }, spawn:[60,150],
+  npcs:[ { id:'monte', x:206, y:144, look:CAST.monte },
+         { id:'u1', x:150, y:160, look:CAST.rube1 },
+         { id:'u2', x:262, y:164, look:CAST.rube2 } ],
+  danger(p){ if(p.y>=86 && p.y<108){ walkTo(p.x, 120, ()=>die('surf')); return true; } },
+  onEnter(){ if(!GS.flags.sawUnder){ GS.flags.sawUnder = true;
+      narrate(['Under the pier the light comes down in stripes and everything smells like wet rope. '+
+               'The temperature drops eight degrees and the rules drop with it.',
+               'A folding table. Three shells. Two men watching who are not customers.']); } },
+  hotspots:[
+    { id:'monte', pri:2, name:'the man with the shells', x:192, y:110, w:28, h:44, approach:[196,158],
+      look:()=>narrate('Tank top, gold rope chain, forearms like mooring line. He is not big the way '+
+        'a bouncer is big. He is big the way a problem is big. His hands never stop moving and they '+
+        'never move fast.'),
+      talk:()=>monteTalk(),
+      useItem:(it)=>{ if(it==='fortune'){ sayAs('monte','You want me to read your palm? Wrong tent, '+
+        'wrong end of the pier.'); return true; }
+        if(it==='churro'){ sayAs('monte','I\'m working.'); return true; } return false; } },
+
+    { id:'table', name:'the folding table', x:174, y:144, w:60, h:16, approach:[190,162],
+      look:()=>narrate('Green felt gone bald in three places. Three walnut shells and a pea that has '+
+        'never, in the entire history of this table, been under any of them.'),
+      take:()=>{ Audio_.sfx('deny');
+        narrate('Two men who are not customers shift their weight at exactly the same moment. '+
+          'You put your hand back in your pocket.'); } },
+
+    { id:'rubes', pri:1, name:'the two onlookers', x:140, y:136, w:34, h:36, approach:[152,166],
+      look:()=>narrate('They lose, they groan, they bet again. They have been doing this since before '+
+        'you arrived and their money never actually leaves the table. Work it out.'),
+      talk:()=>narrate('"Great game," says one, without moving his eyes. "Real fair game."') },
+
+    { id:'water', name:'the water', x:0, y:86, w:320, h:14,
+      look:()=>narrate('The tide is coming in over the sandbar, brown and busy. There is a rip out '+
+        'past the third piling that has taken four tourists this season. The city has not put up a '+
+        'sign. A sign would look negative.'),
+      use:()=>{ walkTo(mouse.x, 120, ()=>die('surf')); },
+      take:()=>narrate('You cannot take the ocean. Several men in this town have tried.') },
+
+    { id:'drift', name:'the driftwood', x:36, y:152, w:30, h:12, approach:[52,164],
+      look:()=>narrate('A grey plank worn smooth, and a single red sandal. Somewhere in Vanity Shores '+
+        'a man is walking around at exactly fifty percent.') },
+
+    { id:'upstairs', name:'the way back up', x:280, y:96, w:38, h:56, approach:[276,150],
+      exit:true, desc:'Wooden steps back up into the noise and the light.',
+      go:()=>gotoRoom('boardwalk', 130, 152) }
+  ]
+}
+};
+
+/* ---------- 5d. SCRIPTED SCENES ------------------------------------------ */
+/* Every beat offers a build-specific route and a route anyone can take. The
+   build never locks you out of Level 1 — it changes what the win looks like. */
+const GATE = 38;
+const you = () => GS.name || 'you';
+
+function chipIntro(){
+  if(GS.flags.metChip){
+    const lines = { money:'Still counting it? There\'s less of it than there was a minute ago.',
+                    fight:'You\'ve got the shoulders for this town and the shoes for a different one.',
+                    charm:'You\'re still handsome. In a rental sort of way.' }[leanName()];
+    sayAs('chip', [lines, 'Go on. The boardwalk\'s that way. Everything down there is priced '+
+      'for people like you, which is how we know what you\'re worth.']); return;
+  }
+  const opts = [];
+  if(S().charm >= GATE) opts.push({ text:'"You\'ve been staring since the bus."',
+    tag:'CHARM', fn:()=>chipBeat('charm') });
+  if(S().fight >= GATE) opts.push({ text:'"Move the car."', tag:'FIGHTING', fn:()=>chipBeat('fight') });
+  if(S().money >= GATE) opts.push({ text:'"What rate did they get you? Eleven? Ouch."',
+    tag:'MONEY', fn:()=>chipBeat('money') });
+  opts.push({ text:'"Hi. I, uh — I just got in."', fn:()=>chipBeat('none') });
+
+  sayAs('chip', ['Oh, good. Another one.',
+    'Let me guess. Bus ticket, one bag, and a philosophy. You people always have a philosophy. '+
+    'It\'s the only thing you can afford to bring.',
+    'Chip Winthrop. My family built the tower you\'ve been staring at since you got off. '+
+    'You\'ll be staring at it for a while.'], { choices:opts });
+}
+function chipBeat(kind){
+  GS.flags.metChip = true;
+  const beat = {
+    charm:['Chip takes off the sunglasses. That is not nothing. That is a man buying time.',
+      '"...Cute," he says, in the voice of somebody making a note. "That works down here, you know. '+
+      'For about a season. Then everybody\'s seen it."'],
+    fight:['He does not move the car. But he checks — fast, and hoping you missed it — where his '+
+      'hands are.','"Muscle," he says, pleased with himself for landing on a category. "There\'s '+
+      'work for muscle in this town. It\'s all somebody else\'s work, but there\'s work."'],
+    money:['The smile stays exactly where it is. Something behind it does not.',
+      '"Nine and a quarter," he says, too quickly. "It\'s nine and a quarter." Then, recovering: '+
+      '"You know what rates are. That\'s adorable. That\'s like a dog knowing what a Tuesday is."'],
+    none:['You hear yourself say it. It lands on the pavement between you and stays there.',
+      '"You just got in," Chip repeats, savouring it like a good oyster. "You just got in. God, '+
+      'that\'s wonderful. Say it again for my friends sometime."']
+  }[kind];
+  say(beat, { speaker:CAST.chip.name, look:CAST.chip, then:()=>{
+    GS.flags.quarterOnGround = true; Audio_.sfx('coin');
+    narrate(['He flicks a coin at your feet. It lands, spins, and settles heads up, which somehow '+
+      'makes it worse.',
+      '"Buy yourself a personality," Chip says. "Ask for the small."',
+      'He goes back to leaning on the car. As far as Chip Winthrop is concerned, this conversation '+
+      'has already stopped having happened.'], { then:saveGame }); } });
+}
+
+/* ---- Gil Furnace: the sunburnt tourist --------------------------------- */
+function gilTalk(){
+  if(GS.flags.gilPaid){ sayAs('gil', ['I can move my ARMS. Do you understand what you\'ve done '+
+    'for me?','I\'m going to go stand in the ocean now. Slowly. Like a gentleman.']); return; }
+  if(has('aloe')){ sayAs('gil', ['Is that — is that ALOE? Is that aloe in your hand right now?',
+    'Twenty dollars. Twenty American dollars, right now, into your hand.'],
+    { choices:[ { text:'Hand him the aloe.', fn:gilPayoff },
+                { text:'"Let me think about it." (Keep it.)',
+                  fn:()=>sayAs('gil','THINK ABOUT IT? I\'m COOKING out here!') } ] }); return; }
+  sayAs('gil', ['Don\'t. Don\'t say it. I know how I look.',
+    'Four hours. Four hours on a rented lounger because the girl said "you\'re already so tan" and '+
+    'I believed her, because she was PAID to say that and I have a MASTER\'S DEGREE.',
+    'Anything cold. Aloe, ice, a wet towel, a kind word delivered at low temperature. Twenty dollars '+
+    'to the first person who brings me something cold. I am not joking. I have never been less funny '+
+    'in my life.']);
+}
+function gilPayoff(){
+  drop('aloe'); GS.flags.gilPaid = true;
+  const opts = [{ text:'"Twenty. Pleasure doing business."', fn:()=>gilPay(2000,
+    ['He pays. He does not haggle. A man in that condition has no leverage and both of you know it.']) }];
+  if(S().charm >= GATE) opts.unshift({ text:'"Twenty? Gil. Look at me. This is medical."', tag:'CHARM',
+    fn:()=>gilPay(3000, ['You hold the tube just out of reach and say his name like you have known '+
+      'him for years. He hears a friend. He is paying a stranger thirty dollars.']) });
+  if(S().money >= GATE) opts.unshift({ text:'"Twenty-five, and the shade of that awning."',
+    tag:'MONEY', fn:()=>gilPay(2500, ['You bundle it: product, plus a service he was already getting '+
+      'for free. He accepts the bundle. Everyone accepts the bundle. That is why there is always '+
+      'a bundle.']) });
+  if(S().fight >= GATE) opts.unshift({ text:'"Twenty." (Hold out your hand. Wait.)',
+    tag:'FIGHTING', fn:()=>gilPay(2000, ['You say the number once and then say nothing at all, which '+
+      'is a thing you are apparently good at. He finds the twenty very quickly. He finds another five '+
+      'and puts it away again while watching your face.']) });
+  say('The tube changes hands. Gil makes a noise that should not be made in public.', { choices:opts });
+}
+function gilPay(cents, lines){
+  pay(cents);
+  say(lines.concat(['You are ' + money() + ' into Vanity Shores. It is not power. It is the thing '+
+    'you buy power with.']), { speaker:CAST.gil.name, look:CAST.gil });
+}
+
+/* ---- Brenda Tang: the timeshare shark ---------------------------------- */
+function brendaTalk(){
+  if(GS.flags.pitchDone && GS.flags.gotPremium){
+    sayAs('brenda','You already got the gift, sweetheart. The gift is a one-time offer. '+
+      'Everything is a one-time offer. That\'s what makes it an offer.'); return; }
+  const opts = [];
+  if(S().charm >= GATE) opts.push({ text:'"Do you close this hard on everyone?"',
+    tag:'CHARM', fn:()=>brendaOut('charm') });
+  if(S().money >= GATE) opts.push({ text:'"What\'s your points-to-maintenance ratio?"',
+    tag:'MONEY', fn:()=>brendaOut('money') });
+  if(S().fight >= GATE) opts.push({ text:'(Say nothing. Keep standing there.)',
+    tag:'FIGHTING', fn:()=>brendaOut('fight') });
+  opts.push({ text:'"Sure. Hit me with the pitch."', fn:()=>brendaOut('sit') });
+  opts.push({ text:'"No thanks."', fn:()=>sayAs('brenda','Nobody says no. They say "not today," and '+
+    'then they say "let me talk to my wife," and THEN they say yes. You\'re just early.') });
+
+  sayAs('brenda', GS.flags.pitchDone ?
+    ['You\'re back. They always come back. What is it this time?'] :
+    ['Ninety seconds. That\'s all I want. Ninety seconds and a FREE GIFT, no obligation, no purchase, '+
+     'you keep the gift either way.',
+     'Shoreline Residences. Fractional ownership. You\'re not buying a condo, you\'re buying *access '+
+     'to a lifestyle* — and the beautiful thing, the really beautiful thing, is you only pay for the '+
+     'weeks you use.',
+     'Also the weeks you don\'t use. But those are cheaper.'], { choices:opts });
+}
+function brendaOut(kind){
+  GS.flags.pitchDone = true;
+  if(kind==='charm'){
+    GS.flags.gotPremium = true; give('aloe'); give('coupon'); pay(500);
+    sayAs('brenda', ['...Huh.','She looks at you properly for the first time — the quick top-to-bottom '+
+      'appraisal of somebody who prices things for a living.',
+      '"You\'re going to do well here," she says, "and I\'m going to hate reading about it." She '+
+      'reaches under the table and hands you the good bag. Aloe, drink coupon, and a five-dollar gift '+
+      'card she was supposed to log.']); return;
+  }
+  if(kind==='money'){
+    GS.flags.gotPremium = true; give('aloe'); give('coupon'); pay(500);
+    sayAs('brenda', ['Her whole face changes. Not warmer — *lighter*. The relief of not having to '+
+      'do the voice.','"Oh, thank God, you\'re in the business. Twelve to one, and they moved '+
+      'maintenance off the disclosure page in March, which should be illegal and is instead '+
+      'a *strategy*."',
+      'Colleagues get the good bag. She hands it over without breaking eye contact: aloe, a drink '+
+      'coupon, and a gift card she is definitely not logging.']); return;
+  }
+  if(kind==='fight'){
+    give('aloe');
+    sayAs('brenda', ['You do not say anything. You just stay exactly where you are, at exactly the '+
+      'distance where a person has to decide what you are.',
+      'Twenty seconds of that and her pitch dies in the middle of a sentence about *equity*.',
+      '"Take the aloe," she says flatly, "and go stand somewhere else. You\'re costing me the '+
+      'four-thirty crowd."'], { then:()=>{ GS.flags.brendaWary = true; saveGame(); } }); return;
+  }
+  // anyone can simply sit through it — twice, if that is what it takes
+  GS.flags.pitchCount = (GS.flags.pitchCount||0) + 1;
+  if(GS.flags.pitchCount === 1){
+    give('tote'); give('spf'); give('coupon');
+    sayAs('brenda', ['Ninety seconds becomes eleven minutes. You learn about *deeded weeks*. You '+
+      'learn about the *sunset premium*. You learn that the building in the photograph is '+
+      '"substantially similar" to a building that will exist.',
+      'You nod at all of it, and at the end she hands you the free gift with the air of a woman '+
+      'settling a debt: a canvas tote, a bottle of Coco Blast SPF 2, and a drink coupon.',
+      '"Come back if you want to hear about financing," she says, already looking past you.']);
+  } else {
+    give('aloe');
+    sayAs('brenda', ['You sit through it again. On purpose. Voluntarily.',
+      'Somewhere around minute six she stops selling and just looks at you, and something in her '+
+      'goes quiet, and you understand that she has met her own kind.',
+      '"Okay," she says. "Okay. Whatever you\'re actually doing out here — take this and do it '+
+      'somewhere I can\'t be blamed." Under the table: the aloe. The real gift. The one they keep '+
+      'for the people who won\'t leave.']);
+  }
+}
+function takeSign(){
+  if(!GS.flags.pitchDone){
+    Audio_.sfx('deny');
+    sayAs('brenda','Hand. Off. The sign, sweetheart. The sign is *the whole business*.'); return; }
+  GS.flags.signTaken = true; give('sign');
+  narrate(['She has turned to work a family of four with the dead-eyed patience of a heron.',
+    'You lift the FREE GIFT sign off its stake and walk away with it under your arm. Nobody stops '+
+    'you. Nobody ever stops a person carrying something confidently.',
+    'You are now in possession of two feet of laminated hot pink that promises something for '+
+    'nothing. In this town that is not a sign. That is a crowd, folded up.'], { then:saveGame });
+}
+
+/* ---- Madame LaRue: the boardwalk psychic ------------------------------- */
+function zsaTalk(){
+  if(has('fortune') || GS.flags.readingDone){
+    sayAs('zsazsa','I told you what I saw. Twenty-five cents doesn\'t buy a second opinion.'); return; }
+  if(has('quarter')){
+    sayAs('zsazsa', ['Palms read. Two bits. Same price since the Carter administration, and before '+
+      'you ask — no, I don\'t do futures on credit. Futures on credit is how I ended up on a pier.'],
+      { choices:[ { text:'Put the quarter in her hand.', fn:zsaReading },
+                  { text:'"Maybe later."', fn:()=>sayAs('zsazsa','Mm. Later.') } ] }); return; }
+  sayAs('zsazsa', ['Twenty-five cents, sugar.','I know. I know. You don\'t have it. I can see that '+
+    'from here and I didn\'t need the cards.','Find a quarter. This town is *littered* with men who '+
+    'throw them.']);
+}
+function zsaReading(){
+  drop('quarter'); GS.flags.readingDone = true; give('fortune'); Audio_.sfx('charm');
+  const lean = leanName();
+  const personal = {
+    money:'"Money hand," she says. "You count in your sleep. That\'s not an insult, it\'s a *warning* '+
+      '— the ones who count get invited upstairs, and upstairs is where the counting stops being '+
+      'yours."',
+    fight:'"Oh, that\'s a *loud* hand," she says. "You solve things with it. It works. It keeps '+
+      'working right up until the night it works too well, and then it\'s the only tool you own."',
+    charm:'"Mm. That hand." She holds it a second longer than the reading requires. "You\'re going to '+
+      'be loved in this town, sugar, and about half of it is going to be a business decision. Yours '+
+      'or theirs, I can\'t tell yet."'
+  }[lean];
+  sayAs('zsazsa', ['She takes the quarter without looking at it and turns your hand over like she is '+
+    'checking fruit.', personal,
+    '"Three of them are coming for you. A man who laughs before he does it. A woman you\'ll tell '+
+    'things to. And one more I can\'t see, because they haven\'t decided to hate you yet."',
+    'Then she lets go, writes something on a card, and presses it into your palm.',
+    '"That one\'s free, and it\'s worth more than the reading. There\'s a table under the pier. Read '+
+    'it before you sit down at it."'], { then:saveGame });
+}
+
+/* ---- Dickie Vermouth: the has-been ------------------------------------- */
+function dickieTalk(){
+  if(GS.flags.crowdDrawn){
+    sayAs('dickie', ['Kid. KID. Did you see that? Fourteen people. I counted during the key change.',
+      'You want another set? Say the word. Crowd\'s thinner now but a room is a room.'],
+      { choices:[ { text:'"Do another set." (Split it again.)', fn:dickieEncore },
+                  { text:'"Later, Dickie."', fn:()=>sayAs('dickie','Later. Sure. I\'ll be here. '+
+                    'That\'s the one thing I\'m still great at.') } ] }); return; }
+  sayAs('dickie', ['Ladies and gentlemen — and I use the term in the plural out of *habit* —',
+    'Dickie Vermouth. Four seasons at the Sapphire Room. Opened for a man whose name you know. '+
+    'Closed for a man whose name you don\'t.',
+    'Here\'s the arithmetic, kid. I got the pipes, I got the jacket, I got a bandshell the city '+
+    'isn\'t using. What I don\'t got is *people*. You can\'t tip a man you never stopped for.',
+    'Get me a crowd and I\'ll split what lands in the jar. Straight down the middle, and I\'ll cry '+
+    'about it later in private like a professional.']);
+}
+function plantSign(){
+  if(!has('sign')){ narrate('You would need something that makes people stop.'); return; }
+  drop('sign'); GS.flags.crowdDrawn = true;
+  const opts = [{ text:'Stand back and let it happen.', fn:()=>dickiePay(2500,
+    ['You lean on the railing and watch a crowd assemble itself out of nothing but the word FREE.',
+     'Dickie sings. Dickie is, it turns out, genuinely good — which makes the whole thing sadder and '+
+     'the tips larger.']) }];
+  if(S().charm >= GATE) opts.unshift({ text:'Work the crowd yourself between numbers.', tag:'CHARM',
+    fn:()=>dickiePay(4500, ['You move through them during the second number telling everyone the '+
+      'same thing: that they got here early, that this never happens, that they should not tell '+
+      'anybody.',
+      'People will pay almost anything to have been somewhere first.']) });
+  if(S().money >= GATE) opts.unshift({ text:'Call the tip jar a cover charge.',
+    tag:'MONEY', fn:()=>dickiePay(4000, ['You move the tip jar to the mouth of the bandshell and '+
+      'stand behind it, and just like that it stops being a jar and starts being a door.',
+      'Fewer people come in. All of them pay. You have invented the velvet rope from first '+
+      'principles.']) });
+  if(S().fight >= GATE) opts.unshift({ text:'Make sure nobody wanders off mid-song.', tag:'FIGHTING',
+    fn:()=>dickiePay(3000, ['You position yourself at the open end of the bandshell with your arms '+
+      'folded, and it is remarkable how many people discover they had nowhere else to be.',
+      'The crowd stays. The crowd is also, you notice, standing very close together.']) });
+  narrate(['You plant the FREE GIFT sign at the mouth of the bandshell.',
+    'It takes ninety seconds. A family stops. Then a couple. Then eleven people who cannot see the '+
+    'sign but can see a crowd, which is the same thing and always has been.',
+    'Dickie Vermouth steps to the microphone with the expression of a man who has been kept in a '+
+    'garage for nine years.'], { choices:opts });
+}
+function dickiePay(cents, lines){
+  pay(cents); GS.flags.dickiePaid = true; Audio_.sfx('fanfare');
+  say(lines.concat(['He counts the jar out on the stage lip, halves it without being asked, and '+
+    'presses your share into your hand with both of his.',
+    '"Don\'t say thank you," he says. "Say *when*."',
+    'You are carrying ' + money() + '.']), { speaker:CAST.dickie.name, look:CAST.dickie, then:saveGame });
+}
+function dickieEncore(){
+  const take = 1500 + (S().charm >= GATE ? 500 : 0);
+  pay(take); Audio_.sfx('cash');
+  sayAs('dickie', ['He does it again. It is thinner the second time — the crowd is smaller, the '+
+    'jokes land a half-beat late, and he knows it, and he does it anyway.',
+    'Your half comes to ' + '$' + (take/100).toFixed(2) + '. You are carrying ' + money() + '.',
+    '"That\'s the business, kid," he says, not looking at you. "First set\'s the miracle. Every set '+
+    'after is the *job*."'], { then:saveGame });
+}
+
+/* ---- Monte: the shell game, and the point of the whole level ------------ */
+function monteTalk(){
+  if(GS.flags.monteWon){
+    sayAs('monte', ['Table\'s closed.','It\'s closed for you specifically. Everybody else, table\'s '+
+      'wide open.']); return; }
+  if(GS.cash < 5000){
+    sayAs('monte', ['Fifty to sit.','That\'s not me being tough, that\'s the whole business. Under '+
+      'fifty you\'re not a player, you\'re *weather*.',
+      'Come back when you\'re holding.']); return; }
+  const opts = [];
+  if(has('fortune')){
+    if(S().charm >= GATE) opts.push({ text:'Play — but sell the crowd on you first.', tag:'CHARM',
+      fn:()=>monteWin('charm') });
+    if(S().money >= GATE) opts.push({ text:'Play — and bet like you already know.', tag:'MONEY',
+      fn:()=>monteWin('money') });
+    if(S().fight >= GATE) opts.push({ text:'Play — then take hold of his left wrist.', tag:'FIGHTING',
+      fn:()=>monteWin('fight') });
+  }
+  opts.push({ text:'Put fifty down. Follow the shells.', fn:monteLose });
+  opts.push({ text:'Walk away.', fn:()=>narrate('You walk away from the table, which is the single '+
+    'most profitable decision anyone has made under this pier all year.') });
+
+  sayAs('monte', ['Fifty to sit, pays three to one, one pea, three shells, and the pea is right '+
+    'there where you can see it. I\'m not hiding anything. Look at my hands.',
+    'Everybody looks at my hands. That\'s free too.'], { choices:opts });
+}
+function monteLose(){
+  pay(-5000, false); Audio_.sfx('shell'); GS.hustleTries++;
+  say(['You put fifty on the felt and you watch the shells. You watch them *hard*. You do not blink.',
+    'You are extremely confident about the middle one.',
+    'It is not the middle one. It was never any of them, and somewhere in the last four seconds your '+
+    'fifty dollars became his fifty dollars with your full cooperation.',
+    GS.hustleTries===1 ? '"Tough," says Monte, already resetting. "Real tough. Go again?"' :
+      '"You\'re a good customer," Monte says, and he means it the way a farmer means it about a field.'],
+    { speaker:CAST.monte.name, look:CAST.monte, then:()=>{ Audio_.sfx('fail');
+      narrate('You are down to ' + money() + '. Dickie Vermouth would do another set. Dickie '+
+        'Vermouth would do another set at gunpoint, and there is no gun.', { then:saveGame }); } });
+}
+function monteWin(kind){
+  pay(-5000, false); Audio_.sfx('shell');
+  const beats = {
+    charm:{ take:17500, lines:[
+      'You put fifty down. Then you turn your back on the table entirely and start talking to the '+
+      'two onlookers, who are not onlookers, about how sorry you feel for the next mark.',
+      'By the third shuffle they are betting against you to save face, and the small crowd that '+
+      'gathers to watch is betting with you, because you are the one who has been *talking to them*.',
+      'You never do watch the shells. You watch his left hand, exactly like the card said, and you '+
+      'call it out loud with a showman\'s certainty about four seconds before it is true.',
+      'The side bets alone come to more than the pot. Monte pays because a crowd is watching him '+
+      'pay, and that is the one thing his business cannot survive refusing.'] },
+    money:{ take:15000, lines:[
+      'You put fifty down and you do not follow the shells at all. You follow the *money* — where he '+
+      'lets it sit, what he covers first, which loss he can afford.',
+      'His left hand palms the pea before the first shell moves. The card said so. You knew before '+
+      'you sat down, which means the only real question was how much to make it worth.',
+      'You lose the first two on purpose, small, and let him raise you. Then you take the third at '+
+      'three to one and stand up while he is still working out when it started.'] },
+    fight:{ take:12000, lines:[
+      'You put fifty down, let him run one clean shuffle, and then you reach across the felt and '+
+      'take hold of his left wrist.',
+      'You do not squeeze. You just hold it up where the two onlookers and the four tourists behind '+
+      'them can see the pea sitting in the web of his thumb, exactly where the card said it would be.',
+      'Under the pier it gets very quiet. Monte looks at your hand on his wrist and does the '+
+      'arithmetic that everybody in this town eventually does about you.',
+      '"Take it," he says, "and don\'t come back down here." He counts it out one-handed. He is '+
+      'good at that. He has clearly done it before.'] }
+  }[kind];
+  pay(beats.take);
+  GS.flags.monteWon = true;
+  if(kind==='fight') GS.flags.monteEnemy = true;
+  Audio_.sfx('fanfare'); Audio_.scene('win');
+  say(beats.lines.concat([
+    'You come out from under the pier holding ' + money() + '.',
+    'It is not a fortune. It is a *stake*, which is the only kind of money that matters, because it '+
+    'is the kind you can put back down on a table.']),
+    { speaker:CAST.monte.name, look:CAST.monte,
+      then:()=>{ Audio_.scene('play'); saveGame();
+        narrate('Up the steps. Into the light. Somebody should really see you like this.',
+          { then:saveGame }); } });
+}
+
+/* ---- the Level 1 curtain: Chip, again, and a crack in the sneer --------- */
+function chipFinale(){
+  GS.flags.chipGone = true;
+  Audio_.scene('tense');
+  const lean = leanName();
+  const jab = { money:'"You *counted* it," he says, delighted. "You counted it in front of me."',
+                fight:'"Somebody down there is holding an ice pack right now, aren\'t they."',
+                charm:'"Who\'d you have to be nice to? No — don\'t. Let me keep guessing."' }[lean];
+  say(['The pink convertible is at the kerb at the top of the steps, engine running, doing that thing '+
+       'expensive cars do where they idle like they are bored of you.'],
+      { then:()=>sayAs('chip', [
+    'There he is. The philosophy.',
+    jab,
+    'You know what you\'ve got in your hand? You\'ve got a hundred dollars. That\'s not a *win*, '+
+    'that\'s a *Tuesday*. My family loses more than that in the fountain. There is a man whose entire '+
+    'job is the fountain.'],
+    { choices:[
+      { text:'"Then why drive down here to look at it?"', fn:()=>chipCrack(true) },
+      { text:'Say nothing. Just let him look at it.', fn:()=>chipCrack(false) } ] }) });
+}
+function chipCrack(spoke){
+  say(spoke ?
+    ['Chip Winthrop opens his mouth.','Nothing comes out of it.',
+     'It lasts less than a second — a hairline crack across ninety years of family money — and then '+
+     'the sunglasses go back on and the smile comes back up like a garage door.'] :
+    ['You do not say anything. You just hold it, loosely, the way people hold money they expect to '+
+     'have more of.','Chip looks at it for exactly one second longer than he means to.',
+     'Then the sunglasses go back on and the smile comes back up like a garage door.'],
+    { speaker:CAST.chip.name, look:CAST.chip, then:()=>sayAs('chip', [
+      '"Enjoy your hundred dollars," he says. "It\'s a very nice hundred dollars."',
+      '"There\'s a hustle on the strip Thursday. Everybody who\'s nobody is going to be there." '+
+      'He puts the car in gear.',
+      '"Come. Genuinely. I want to watch it happen to you in front of people."'],
+      { then:()=>{ GS.flags.levelDone = true; saveGame(); Audio_.sfx('fanfare');
+                   GS.scene = 'complete'; GS.completeAt = clock; } }) });
+}
+
+/* ---- looking at what you are carrying ---------------------------------- */
+function lookItem(id){
+  if(id === 'spf'){
+    say(['Coco Blast SPF 2. "TROPICAL COCONUT." The bottle is warm and it sloshes and it smells, '+
+         'frankly, incredible.','On the back, in letters too small to be a real warning: DO NOT DRINK.'],
+      { choices:[
+        { text:'Put it away.', fn:()=>narrate('Sensible. Disappointing, but sensible.') },
+        { text:'Smell it again.', fn:()=>narrate('Coconut. Pineapple. A note of something chemical '+
+          'and expensive. You could genuinely drink this.') },
+        { text:'Drink it.', fn:()=>die('oil') } ] }); return;
+  }
+  narrate(ITEMS[id].desc);
+}
+
+/* ---------- 5e. FRONT-OF-HOUSE SCENES ------------------------------------ */
+/* Title, character creation, the vector-mode arrival, and the cards. */
+
+const TRAITS = {
+  hair:   ['blowout','spikes','perm','ponytail','pomp','bun'],
+  hairN:  ['FEATHERED','SPIKED','PERMED','SLICKED','POMPADOUR','TOPKNOT'],
+  hairC:  [['#3b2416','#6b4426'],['#1e1420','#4a3a4e'],['#d8b45a','#f2dc9a'],
+           ['#b4703a','#d8965a'],['#8e2a4e','#c4406a'],['#7a7488','#a8a2b4']],
+  outfit: ['blazer','tank','hawaii','polo','sequin'],
+  outfitN:['BLAZER','TANK TOP','HAWAIIAN','POLO','SEQUINS'],
+  shirtC: [['#e94f6a','#b8324a'],['#2fa8a0','#1d7a74'],['#f0c23d','#c99a1a'],
+           ['#7a5fd8','#5a3fa8'],['#f5e6d3','#c4bca8'],['#2a3f5e','#1b2a42']],
+  skin:   ['fair','tan','deep','pale'],
+  skinN:  ['FAIR','TAN','DEEP','PALE'],
+  acc:    ['none','shades','chain','fanny','band','visor','hoops'],
+  accN:   ['NONE','AVIATORS','GOLD ROPE','FANNYPACK','HEADBAND','VISOR','HOOPS']
+};
+const CC = { i:{ hair:0, hairC:0, outfit:0, shirtC:0, skin:1, acc:1 },
+             stats:{ money:10, fight:10, charm:10 }, hot:null };
+const CC_ROWS = [
+  { key:'hair',   label:'HAIR',    pool:'hair',   names:'hairN' },
+  { key:'hairC',  label:'COLOUR',  pool:'hairC',  swatch:true },
+  { key:'outfit', label:'OUTFIT',  pool:'outfit', names:'outfitN' },
+  { key:'shirtC', label:'SHADE',   pool:'shirtC', swatch:true },
+  { key:'skin',   label:'SKIN',    pool:'skin',   names:'skinN' },
+  { key:'acc',    label:'EXTRA',   pool:'acc',    names:'accN' }
+];
+const STAT_ROWS = [
+  { key:'money', label:'MONEY',    col:P.gold, blurb:'capital, odds' },
+  { key:'fight', label:'FIGHTING', col:P.hot,  blurb:'talk failed' },
+  { key:'charm', label:'CHARM',    col:P.surf, blurb:'be believed' }
+];
+function ccLook(){
+  const i = CC.i;
+  return { skin:TRAITS.skin[i.skin], hair:TRAITS.hair[i.hair],
+           hairC:TRAITS.hairC[i.hairC][0], hairC2:TRAITS.hairC[i.hairC][1],
+           shirtStyle:TRAITS.outfit[i.outfit],
+           shirt:TRAITS.shirtC[i.shirtC][0], shirtD:TRAITS.shirtC[i.shirtC][1],
+           inner:'#f5e6d3', pants:'#2f3a6b', pantsD:'#1e2648', shoes:'#e9e4d8',
+           acc:TRAITS.acc[i.acc], eyes:'#3a5a8c', still:false };
+}
+const ccTotal = () => CC.stats.money + CC.stats.fight + CC.stats.charm;
+
+/* ---- the Outrun grid: the deliberate mode switch (§7) ---- */
+function vectorGrid(t, horizon, speed){
+  const gr = g.createLinearGradient(0,horizon,0,SCENE_H+26);
+  gr.addColorStop(0,'#2a0f4a'); gr.addColorStop(1,'#0a0416');
+  g.fillStyle = gr; g.fillRect(0,horizon,W,200-horizon);
+  g.strokeStyle = 'rgba(255,46,136,.75)'; g.lineWidth = 1;
+  const off = REDUCED ? 0 : (t/1000*speed) % 1;
+  for(let i=0;i<16;i++){                                  // receding rungs
+    const k = (i + off)/16, yy = horizon + Math.pow(k,2.4)*(200-horizon);
+    if(yy > 200) continue;
+    g.globalAlpha = .22 + k*.65;
+    g.beginPath(); g.moveTo(0,yy|0); g.lineTo(W,yy|0); g.stroke();
+  }
+  g.globalAlpha = .55;
+  for(let i=-9;i<=9;i++){                                 // rails to the vanishing point
+    g.beginPath(); g.moveTo(160 + i*3.2, horizon); g.lineTo(160 + i*46, 200); g.stroke();
+  }
+  g.globalAlpha = 1;
+}
+function vectorSun(cx, cy, rad, t){
+  const gr = g.createLinearGradient(0,cy-rad,0,cy+rad);
+  gr.addColorStop(0,'#fff0b0'); gr.addColorStop(.4,P.gold);
+  gr.addColorStop(.72,'#ff5f6d'); gr.addColorStop(1,'#c41d68');
+  g.fillStyle = gr; g.beginPath(); g.arc(cx,cy,rad,0,Math.PI*2); g.fill();
+  for(let i=0;i<8;i++){
+    const yy = cy - rad*0.15 + i*i*0.55 + i*2.2;
+    if(yy > cy+rad) break;
+    r(cx-rad, yy, rad*2, 1+(i>>1), '#2a0f4a');
+  }
+}
+function vectorPalm(x, baseY, h, col){
+  g.fillStyle = col;
+  g.beginPath(); g.moveTo(x-1.5, baseY); g.lineTo(x+1.5, baseY);
+  g.lineTo(x+3, baseY-h); g.lineTo(x, baseY-h); g.closePath(); g.fill();
+  for(let f=0;f<6;f++){
+    const a = -Math.PI*0.9 + f*(Math.PI*1.8/5), L = h*0.42;
+    g.beginPath(); g.moveTo(x+1, baseY-h);
+    g.quadraticCurveTo(x+1+Math.cos(a)*L*0.7, baseY-h+Math.sin(a)*L*0.7 - 3,
+                       x+1+Math.cos(a)*L,     baseY-h+Math.sin(a)*L + L*0.35);
+    g.quadraticCurveTo(x+1+Math.cos(a)*L*0.6, baseY-h+Math.sin(a)*L*0.6 + 1, x+1, baseY-h);
+    g.fill();
+  }
+}
+
+/* ---- TITLE ---- */
+function drawTitle(t){
+  const gr = g.createLinearGradient(0,0,0,120);
+  gr.addColorStop(0,'#160b2a'); gr.addColorStop(.55,'#5b2170'); gr.addColorStop(1,'#c43a72');
+  g.fillStyle = gr; g.fillRect(0,0,W,120);
+  const q = rnd32(8);
+  for(let i=0;i<40;i++){ g.globalAlpha=.1+q()*.4; px((q()*W)|0,(q()*54)|0,P.bone); } g.globalAlpha=1;
+  vectorSun(160, 124, 34, t);
+  for(const [x,h] of [[16,44],[42,30],[286,46],[262,28],[300,34]])
+    vectorPalm(x, 122, h, '#1c0b30');
+  r(0,120,W,2,'#ff8ac0');
+  vectorGrid(t, 122, 1.1);
+  g.globalAlpha=.30; r(0,0,W,200,'#2a0f4a'); g.globalAlpha=1;
+
+  // the placeholder nameplate — the title is deliberately not written yet (§11)
+  const px0 = 44, py0 = 30, pw = 232, ph = 44;
+  const pg = g.createLinearGradient(0,py0,0,py0+ph);
+  pg.addColorStop(0,'#e8e4f2'); pg.addColorStop(.45,'#8f89a8');
+  pg.addColorStop(.5,'#4a4460'); pg.addColorStop(1,'#c8c2dc');
+  g.fillStyle = pg; g.fillRect(px0,py0,pw,ph);
+  r(px0,py0,pw,1,'#fff'); r(px0,py0+ph-1,pw,1,'#2a2438');
+  r(px0,py0,1,ph,'#fff'); r(px0+pw-1,py0,1,ph,'#2a2438');
+  textC('TITLE', 160, py0+5, '#241134', '20px Monoton, fantasy');
+  textC('PENDING', 160, py0+24, '#241134', '20px Monoton, fantasy');
+  r(46, 78, 228, 13, '#1c0c30');
+  r(46, 78, 228, 1, 'rgba(255,46,136,.45)');
+  textC('A  V A N I T Y   S H O R E S   S T O R Y', 160, 80, P.gold, FONT.sm);
+
+  const blink = REDUCED || Math.floor(t/620)%2===0;
+  const hasSave = !!localStorage.getItem(SAVE_KEY);
+  if(blink){
+    g.globalAlpha=.28; r(122,136,76,19,P.hot); g.globalAlpha=1;
+    textC('START', 160, 140, '#ff8ac0', FONT.bg);
+  }
+  if(hasSave) textC('CONTINUE', 160, 160, P.surf, FONT.sm);
+  textC('ACT 1  ·  LEVEL 1  ·  FREE DEMO', 160, 176, '#a08cb4', FONT.sm);
+  textC('CLICK TO BEGIN', 160, 188, '#6b4d8a', FONT.sm);
+}
+
+/* ---- CHARACTER CREATION ---- */
+function drawCreate(t){
+  const gr = g.createLinearGradient(0,0,0,200);
+  gr.addColorStop(0,'#1a0d2c'); gr.addColorStop(1,'#2e1148');
+  g.fillStyle = gr; g.fillRect(0,0,W,200);
+  vectorGrid(t, 150, .5);
+  g.globalAlpha=.5; r(0,150,W,50,'#1a0d2c'); g.globalAlpha=1;
+
+  textC('WHO WASHES UP IN VANITY SHORES', 160, 4, P.gold, FONT.bg);
+  r(48,25,224,1,'rgba(255,46,136,.5)');
+
+  text('NAME', 8, 30, P.dim, FONT.sm);
+  r(8, 40, 108, 13, '#120a1e'); r(8,40,108,1,'#5a2a72');
+  if(!GS.name) text('click here', 12, 42, '#5a4470', FONT.dlg);
+
+  // trait rows
+  for(let i=0;i<CC_ROWS.length;i++){
+    const row = CC_ROWS[i], y = 60 + i*16;
+    text(row.label, 8, y+2, P.dim, FONT.sm);
+    const lq={x:46,y:y,w:11,h:12}, rq={x:101,y:y,w:11,h:12};
+    for(const [q,ch] of [[lq,'\u25c0'],[rq,'\u25b6']]){
+      const hv = inRect(mouse,q);
+      r(q.x,q.y,q.w,q.h, hv?'#5a2a72':'#2a1140');
+      textC(ch, q.x+q.w/2, q.y+1, hv?P.bone:P.dim, FONT.sm);
+    }
+    if(row.swatch){
+      const cols = TRAITS[row.pool][CC.i[row.key]];
+      r(62, y+1, 36, 10, cols[0]); r(62, y+1, 36, 1, cols[1]); r(62, y+1, 1, 10, cols[1]);
+    } else {
+      textC(TRAITS[row.names][CC.i[row.key]], 80, y+2, P.bone, FONT.sm);
+    }
+  }
+
+  // preview — the sprite, doubled
+  const pv = offscreen(46, 62);
+  withTarget(pv.getContext('2d'), () => drawPerson(23, 58, ccLook(), t, 0));
+  r(126, 36, 52, 124, '#120a1e');
+  r(126,36,52,1,'#5a2a72'); r(126,159,52,1,'#5a2a72');
+  r(126,36,1,124,'#5a2a72'); r(177,36,1,124,'#5a2a72');
+  const shine = g.createLinearGradient(0,36,0,160);
+  shine.addColorStop(0,'rgba(255,46,136,.16)'); shine.addColorStop(1,'rgba(33,224,214,.08)');
+  g.fillStyle = shine; g.fillRect(127,37,50,122);
+  g.drawImage(pv, 0,0,46,62, 106,36, 92,124);
+
+  // stat allocation
+  const left = 100 - ccTotal();
+  text('POINTS LEFT ' + left, 190, 30, left===0?P.surf:P.gold, FONT.sm);
+  for(let i=0;i<3;i++){
+    const st = STAT_ROWS[i], y = 46 + i*36, v = CC.stats[st.key];
+    text(st.label, 190, y, st.col, FONT.sm);
+    const vs = String(v);
+    text(vs, 306-textW(vs,FONT.sm), y, P.bone, FONT.sm);
+    r(190, y+10, 116, 7, '#120a1e');
+    r(190, y+10, Math.round(116*v/90), 7, st.col);
+    r(190, y+10, 116, 1, '#3d2255');
+    const mq={x:190,y:y+19,w:13,h:11}, pq={x:206,y:y+19,w:13,h:11};
+    for(const [q,ch,ok] of [[mq,'\u2212',v>5],[pq,'+',left>0]]){
+      const hv = inRect(mouse,q) && ok;
+      r(q.x,q.y,q.w,q.h, hv?'#5a2a72':(ok?'#2a1140':'#1a0f28'));
+      textC(ch, q.x+q.w/2, q.y+1, ok?(hv?P.bone:P.dim):'#3d2255', FONT.sm);
+    }
+    text(st.blurb, 224, y+21, '#7a5f96', FONT.sm);
+  }
+
+  const ready = left===0 && GS.name.trim().length>0;
+  const bq = {x:104,y:164,w:112,h:17};
+  const hv = inRect(mouse,bq) && ready;
+  r(bq.x,bq.y,bq.w,bq.h, ready?(hv?P.hot:'#8e1148'):'#241134');
+  r(bq.x,bq.y,bq.w,1, ready?'#ff9ac8':'#3d2255');
+  textC(ready?'STEP OFF THE BUS':'NAME AND 100 POINTS', 160, bq.y+5,
+        ready?P.bone:'#6b4d8a', FONT.sm);
+  textC('THIS SPLIT IS LOCKED FOR THE WHOLE PLAYTHROUGH', 160, 185, '#6b4d8a', FONT.sm);
+}
+
+/* ---- ARRIVAL INTERLUDE: full vector/synthwave mode ---- */
+let driveT = 0;
+function drawDrive(t){
+  const k = driveT/1000;
+  const gr = g.createLinearGradient(0,0,0,118);
+  gr.addColorStop(0,'#120826'); gr.addColorStop(.5,'#6b2470'); gr.addColorStop(1,'#e8557f');
+  g.fillStyle = gr; g.fillRect(0,0,W,118);
+  vectorSun(160, 112, 40 + Math.sin(k/2)*2, t);
+  r(0,116,W,2,'#ffb0d0');
+  vectorGrid(t, 118, 2.6);
+  const pass = (k*1.15) % 1;
+  for(let i=0;i<5;i++){
+    const kk = ((i/5) + pass) % 1, sc = Math.pow(kk, 2.2);
+    const x = 160 + (kk<.5?-1:1) * (16 + sc*300), y = 118 + sc*74, h = 8 + sc*80;
+    if(y < 200) vectorPalm(x, y, h, 'rgba(20,8,40,'+(0.45+sc*0.5)+')');
+  }
+  // the bus, receding
+  const bs = 1 - Math.min(1, k/11);
+  const bw = 34 + bs*22, bh = 20 + bs*12, bx = 160 - bw/2, by = 150 - bs*14;
+  r(bx, by, bw, bh, '#241134');
+  r(bx, by, bw, 2, '#5a2a72');
+  r(bx+3, by+3, bw-6, bh*0.42, 'rgba(120,220,230,.45)');
+  r(bx+2, by+bh, bw-4, 2, '#120826');
+  r(bx-2, by+bh-4, 3, 3, '#ff5f6d'); r(bx+bw-1, by+bh-4, 3, 3, '#ff5f6d');
+  g.globalAlpha=.5; r(bx-4, by+bh+2, bw+8, 1, '#ff2e88'); g.globalAlpha=1;
+
+  const lines = [
+    ['THREE HUNDRED MILES OF NOTHING,', 'AND THEN ALL OF THIS AT ONCE.'],
+    ['VANITY SHORES — POP. 41,000.', 'VISITORS: EVERYBODY ELSE.'],
+    ['YOU HAVE ' + money() + ', ONE BAG,', 'AND AN ORDER OF OPERATIONS.'],
+    ['FIRST YOU GET THE MONEY.', 'YOU ARE FAIRLY SURE OF THE ORDER.']
+  ];
+  const idx = Math.min(lines.length-1, Math.floor(k/2.7));
+  const fadeIn = Math.min(1, (k - idx*2.7)/0.5), out = Math.min(1, Math.max(0,(idx*2.7+2.4 - k)/0.4));
+  g.globalAlpha = Math.min(fadeIn, out);
+  textC(lines[idx][0], 160, 22, P.bone, FONT.sm);
+  textC(lines[idx][1], 160, 34, P.gold, FONT.sm);
+  g.globalAlpha = 1;
+  if(Math.floor(t/700)%2===0) textC('CLICK TO SKIP', 160, 190, '#7a5f96', FONT.sm);
+  if(k > 11.2) startLevelCard();
+}
+
+/* ---- LEVEL CARD ---- */
+let cardT = 0;
+function startLevelCard(){ GS.scene = 'levelcard'; cardT = 0; Audio_.scene('play');
+  Audio_.ambience('boardwalk'); }
+function drawCard(t){
+  r(0,0,W,200,'#0d0518');
+  const k = Math.min(1, cardT/700);
+  g.globalAlpha = k;
+  textC('ACT 1,  LEVEL 1', 160, 74, P.dim, FONT.sm);
+  r(96, 88, 128, 1, 'rgba(255,46,136,.6)');
+  textC('SMALL CHANGE', 160, 96, P.gold, FONT.big);
+  g.globalAlpha = Math.max(0, Math.min(1,(cardT-900)/600));
+  textC('the boardwalk · the pier · whatever is under it', 160, 126, '#7a5f96', FONT.sm);
+  g.globalAlpha = 1;
+  if(cardT > 1800 && Math.floor(t/600)%2===0)
+    textC('CLICK TO CONTINUE', 160, 172, '#5a4470', FONT.sm);
+  if(cardT > 4200) enterPlay();
+}
+function enterPlay(){
+  GS.scene = 'play';
+  const rm = ROOMS[GS.room];
+  GS.player.x = rm.spawn[0]; GS.player.y = rm.spawn[1];
+  GS.player.tx = GS.player.x; GS.player.ty = GS.player.y;
+  Audio_.scene('play');
+  Audio_.ambience(GS.room==='underpier'?'deep':GS.room==='pier'?'surf':'boardwalk');
+  if(rm.onEnter) rm.onEnter();
+  saveGame();
+}
+
+/* ---- LEVEL COMPLETE ---- */
+function routeNotes(){
+  const n = [];
+  if(GS.flags.gotPremium)  n.push('Talked the shark out of the good bag.');
+  else if(GS.flags.brendaWary) n.push('Stood there until the shark gave in.');
+  else n.push('Sat through the pitch. Possibly twice.');
+  if(GS.flags.dickiePaid)  n.push('Drew Dickie a crowd and split the jar.');
+  if(GS.flags.readingDone) n.push('Paid LaRue two bits for the tell.');
+  if(GS.flags.monteEnemy)  n.push('Took Monte by the wrist. He will remember it.');
+  else if(GS.flags.monteWon) n.push('Beat the shells without watching the shells.');
+  if(GS.deaths) n.push('Died ' + GS.deaths + (GS.deaths===1?' time. It happens.':' times. Enthusiastically.'));
+  return n;
+}
+function drawComplete(t){
+  const el = t - GS.completeAt;
+  r(0,0,W,200,'#0d0518');
+  vectorGrid(t, 150, .6);
+  g.globalAlpha=.6; r(0,150,W,50,'#0d0518'); g.globalAlpha=1;
+  g.globalAlpha = Math.min(1, el/500);
+  textC('LEVEL COMPLETE', 160, 10, P.surf, FONT.bg);
+  r(60,26,200,1,'rgba(255,46,136,.5)');
+  textC('ACT 1, LEVEL 1 — SMALL CHANGE', 160, 32, P.dim, FONT.sm);
+
+  const nm = (GS.name||'THE NEWCOMER').toUpperCase();
+  textC(nm + '  ·  ' + money(), 160, 48, P.gold, FONT.bg);
+  const s = S();
+  textC('MONEY ' + s.money + '   FIGHTING ' + s.fight + '   CHARM ' + s.charm, 160, 66, '#a08cb4', FONT.sm);
+
+  const notes = routeNotes();
+  let ny = 82;
+  for(let i=0;i<notes.length && ny < 146;i++){
+    g.globalAlpha = Math.min(1, Math.max(0,(el - 600 - i*260)/400));
+    const ls = wrap(notes[i], FONT.sm, 244);
+    text('\u00b7', 40, ny+1, P.hot, FONT.sm);
+    for(let j=0;j<ls.length;j++) text(ls[j], 50, ny+j*10, P.bone, FONT.sm);
+    ny += ls.length*10 + 3;
+  }
+  g.globalAlpha = Math.min(1, Math.max(0,(el-1800)/600));
+  r(30, 150, 260, 1, 'rgba(255,46,136,.35)');
+  textC('NEXT — LEVEL 2: OTHER PEOPLE\'S MONEY', 160, 156, P.gold, FONT.sm);
+  textC('Chip stops mocking you and starts competing.', 160, 168, '#7a5f96', FONT.sm);
+  g.globalAlpha = 1;
+
+  const bq = {x:106,y:180,w:108,h:15}, hv = inRect(mouse,bq);
+  r(bq.x,bq.y,bq.w,bq.h, hv?P.hot:'#2a1140'); r(bq.x,bq.y,bq.w,1, hv?'#ff9ac8':'#5a2a72');
+  textC('PLAY AGAIN', 160, bq.y+4, hv?P.bone:P.dim, FONT.sm);
+}
+
+/* ---- DEATH ---- */
+function drawDeath(t){
+  drawRoom(t);
+  g.globalAlpha = .82; r(0,0,W,200,'#12040c'); g.globalAlpha = 1;
+  const d = DEATHS[GS.deathKind] || DEATHS.road;
+  const x=20, bw=280;
+  const lines = wrap(d.body, FONT.dlg, bw-24);
+  const stg   = wrap(d.sting, FONT.dlg, bw-24);
+  const lh = (lines.length + stg.length) > 9 ? 11 : 13;
+  const bh = 28 + lines.length*lh + 8 + stg.length*lh + 24;
+  const y  = clamp(Math.round((200-bh)/2), 4, 40);
+  r(x,y,bw,bh,'#1a0610');
+  r(x,y,bw,2,'#e02a4a'); r(x,y+bh-2,bw,2,'#e02a4a');
+  r(x,y,2,bh,'#e02a4a'); r(x+bw-2,y,2,bh,'#e02a4a');
+  textC(d.head, 160, y+6, '#ff5f6d', FONT.bg);
+  r(x+40, y+22, bw-80, 1, 'rgba(224,42,74,.5)');
+  let ty = y+28;
+  for(const ln of lines){ text(ln, x+12, ty, P.bone, FONT.dlg); ty += lh; }
+  ty += 8;
+  for(const ln of stg){ text(ln, x+12, ty, '#c49ab0', FONT.dlg); ty += lh; }
+  const bq = {x:110,y:y+bh-19,w:100,h:14}, hv = inRect(mouse,bq);
+  r(bq.x,bq.y,bq.w,bq.h, hv?'#e02a4a':'#3a0c18');
+  textC('TRY AGAIN', 160, bq.y+3, hv?P.bone:'#ff8a9a', FONT.sm);
+}
+
+/* ---------- 6. INPUT, LOOP, BOOT ----------------------------------------- */
+const nameBox = document.getElementById('namebox');
+function toCanvas(e){
+  const b = cvs.getBoundingClientRect();
+  return { x:(e.clientX-b.left)/b.width*W, y:(e.clientY-b.top)/b.height*200 };
+}
+cvs.addEventListener('pointermove', e => { const p = toCanvas(e); mouse.x=p.x; mouse.y=p.y; });
+cvs.addEventListener('pointerdown', e => { e.preventDefault(); const p = toCanvas(e);
+  mouse.x=p.x; mouse.y=p.y; handleClick(p); });
+
+function handleClick(p){
+  Audio_.start();
+  switch(GS.scene){
+    case 'title': {
+      const fresh = !localStorage.getItem(SAVE_KEY);
+      if(!fresh && p.y>=154 && p.y<=170){ if(loadGame()){ Audio_.sfx('click');
+        if(GS.flags.levelDone){ GS.scene='complete'; GS.completeAt=clock; } else enterPlay(); return; } }
+      Audio_.sfx('click'); wipeSave(); GS.scene='create'; showNameBox(true); return; }
+    case 'create': return createClick(p);
+    case 'drive':  Audio_.sfx('click'); startLevelCard(); return;
+    case 'levelcard': if(cardT>700){ Audio_.sfx('click'); enterPlay(); } return;
+    case 'death': Audio_.sfx('click'); reviveFromDeath(); return;
+    case 'complete': {
+      const bq = {x:106,y:180,w:108,h:15};
+      if(inRect(p,bq)){ Audio_.sfx('click'); wipeSave(); location.reload(); } return; }
+    case 'play': return playClick(p);
+  }
+}
+function playClick(p){
+  if(p.y >= BAR_Y){
+    for(let i=0;i<VERBS.length;i++) if(inRect(p, verbRect(i))){
+      GS.verb = VERBS[i].id; if(GS.verb!=='use') GS.sel=null; Audio_.sfx('click'); return; }
+    for(let i=0;i<6;i++){ const id = GS.inv[i];
+      if(id && inRect(p, slotRect(i))){
+        Audio_.sfx('click');
+        if(GS.verb==='look'){ lookItem(id); }
+        else { GS.sel = (GS.sel===id ? null : id); GS.verb='use'; }
+        return; } }
+    return;
+  }
+  clickScene(p);
+}
+function createClick(p){
+  for(let i=0;i<CC_ROWS.length;i++){
+    const row = CC_ROWS[i], y = 60 + i*16, n = TRAITS[row.pool].length;
+    if(inRect(p,{x:46,y:y,w:11,h:12})){ CC.i[row.key] = (CC.i[row.key]+n-1)%n; Audio_.sfx('click'); return; }
+    if(inRect(p,{x:101,y:y,w:11,h:12})){ CC.i[row.key] = (CC.i[row.key]+1)%n; Audio_.sfx('click'); return; }
+  }
+  for(let i=0;i<3;i++){
+    const st = STAT_ROWS[i], y = 46 + i*36, left = 100 - ccTotal();
+    if(inRect(p,{x:190,y:y+19,w:13,h:11}) && CC.stats[st.key]>5){ CC.stats[st.key]--; Audio_.sfx('click'); return; }
+    if(inRect(p,{x:206,y:y+19,w:13,h:11}) && left>0){ CC.stats[st.key]++; Audio_.sfx('coin'); return; }
+    if(inRect(p,{x:190,y:y+10,w:116,h:7})){
+      const want = clamp(Math.round((p.x-190)/116*90), 5, 90);
+      const others = ccTotal() - CC.stats[st.key];
+      CC.stats[st.key] = clamp(want, 5, 100-others); Audio_.sfx('click'); return; }
+  }
+  if(inRect(p,{x:8,y:40,w:108,h:13})){ nameBox.focus(); return; }
+  if(100-ccTotal()===0 && GS.name.trim() && inRect(p,{x:104,y:164,w:112,h:17})){
+    GS.look = ccLook(); GS.stats = { money:CC.stats.money, fight:CC.stats.fight, charm:CC.stats.charm };
+    GS.cash = GS.stats.money * 10;               // you start with what you brought
+    Audio_.lean(GS.stats.money, GS.stats.fight, GS.stats.charm);
+    Audio_.sfx('fanfare'); showNameBox(false);
+    GS.scene = 'drive'; driveT = 0; Audio_.scene('play'); saveGame();
+  }
+}
+function showNameBox(on){
+  nameBox.style.display = on ? 'block' : 'none';
+  if(on){ nameBox.value = GS.name; positionNameBox(); setTimeout(()=>nameBox.focus(), 60); }
+}
+function positionNameBox(){
+  const b = cvs.getBoundingClientRect(), wrapB = document.getElementById('bezelwrap').getBoundingClientRect();
+  const sx = b.width/W, sy = b.height/200;
+  nameBox.style.left   = (b.left - wrapB.left + 8*sx) + 'px';
+  nameBox.style.top    = (b.top  - wrapB.top  + 40*sy) + 'px';
+  nameBox.style.width  = (108*sx) + 'px';
+  nameBox.style.height = (13*sy) + 'px';
+  nameBox.style.fontSize = Math.max(10, Math.round(11*sy)) + 'px';
+}
+nameBox.addEventListener('input', () => { GS.name = nameBox.value.replace(/[<>]/g,''); });
+nameBox.addEventListener('keydown', e => { if(e.key==='Enter'){ e.preventDefault(); nameBox.blur(); } });
+
+addEventListener('keydown', e => {
+  if(GS.scene==='play' && document.activeElement!==nameBox){
+    const k = e.key.toLowerCase();
+    if(k==='1'){ GS.verb='look'; GS.sel=null; }
+    if(k==='2'){ GS.verb='talk'; GS.sel=null; }
+    if(k==='3'){ GS.verb='use'; }
+    if(k==='4'){ GS.verb='take'; GS.sel=null; }
+    if(k===' '||k==='enter'){ if(GS.msg && !GS.msg.choices) advanceMsg(); e.preventDefault(); }
+    if(k==='escape'){ GS.sel=null; }
+  } else if(e.key===' ' && GS.scene!=='create'){ handleClick(mouse); e.preventDefault(); }
+});
+
+/* ---- presentation scaling ---- */
+let scaleMode = 'auto';
+function fitScreen(){
+  const availW = innerWidth - 32, availH = innerHeight - 118;
+  let s = Math.min(Math.floor(availW/W), Math.floor(availH/200));
+  s = Math.max(1, Math.min(4, s));
+  if(scaleMode !== 'auto') s = Math.min(scaleMode, Math.max(1, Math.floor(availW/W)));
+  cvs.style.width  = (W*s) + 'px';
+  cvs.style.height = (200*s) + 'px';
+  positionNameBox();
+}
+addEventListener('resize', fitScreen);
+
+/* ---- status strip under the cabinet ---- */
+const strip = document.getElementById('strip');
+function updateStrip(){
+  if(GS.scene==='title' || GS.scene==='create'){
+    strip.innerHTML = '<span>A Sierra-style hustle on a boardwalk that deserves it</span>'; return; }
+  const s = S();
+  strip.innerHTML =
+    '<span><b>' + (GS.name||'—').replace(/[<>&]/g,'') + '</b></span>' +
+    '<span class="sep">|</span>' +
+    '<span class="m">MONEY ' + s.money + '</span>' +
+    '<span class="f">FIGHTING ' + s.fight + '</span>' +
+    '<span class="c">CHARM ' + s.charm + '</span>' +
+    '<span class="sep">|</span>' +
+    '<span>PURSE <b class="m">' + money() + '</b></span>';
+}
+
+document.getElementById('btnSound').onclick = e => {
+  Audio_.start(); const m = Audio_.toggle();
+  e.target.textContent = 'Sound: ' + (m ? 'Off' : 'On'); };
+document.getElementById('btnScale').onclick = () => {
+  scaleMode = scaleMode==='auto' ? 1 : scaleMode>=4 ? 'auto' : scaleMode+1; fitScreen(); };
+document.getElementById('btnWipe').onclick = () => {
+  wipeSave(); location.reload(); };
+
+/* ---- main loop ---- */
+let last = performance.now();
+function frame(now){
+  const dt = Math.min(0.05, (now-last)/1000); last = now; clock = now;
+  if(GS.scene==='play'){ updatePlayer(dt); }
+  if(GS.scene==='levelcard') cardT += dt*1000;
+  if(GS.scene==='drive')     driveT += dt*1000;
+
+  switch(GS.scene){
+    case 'title':     drawTitle(now); break;
+    case 'create':    drawCreate(now); break;
+    case 'drive':     drawDrive(now); break;
+    case 'levelcard': drawCard(now); break;
+    case 'complete':  drawComplete(now); break;
+    case 'death':     drawDeath(now); break;
+    default:          drawRoom(now);
+  }
+  if(fadeDir){                                    // room-to-room wipe
+    fade += fadeDir * dt * 3.4;
+    if(fade >= 1){ fade = 1; fadeDir = -1; const f = fadeThen; fadeThen = null; if(f) f(); }
+    else if(fade <= 0){ fade = 0; fadeDir = 0; }
+    g.globalAlpha = clamp(fade,0,1); r(0,0,W,200,'#0d0518'); g.globalAlpha = 1;
+  }
+  if(GS.scene!=='create') drawCursor();
+  updateStrip();
+  requestAnimationFrame(frame);
+}
+
+/* ---- boot ---- */
+function boot(){
+  fitScreen();
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(() => _tcache.clear());
+  Audio_.lean(GS.stats.money, GS.stats.fight, GS.stats.charm);
+  requestAnimationFrame(frame);
+}
+boot();
+</script>
