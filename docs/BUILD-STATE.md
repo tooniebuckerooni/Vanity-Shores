@@ -48,6 +48,20 @@ offscreen bakes, which is why painted signs inside the scenery stay lo-fi pixel 
 and only the interface gets the sharp treatment. `textW` returns **logical** width.
 If you change `SC`, clear `_tcache` — the baked glyphs are resolution-specific.
 
+**Portraits are where a character gets to look like somebody.** A 40px world
+sprite has no room for a face, so the portraits carry the casting. They are
+drawn into a 44x52 buffer at 1:1 using real curves — `ell()` and `ring()`, which
+rectangles cannot fake — then every edge is hardened to full alpha and every
+colour is snapped to a fixed palette by `quantize()`. Smooth tools,
+limited-palette pixel-art output, cached per expression so the per-frame cost is
+one blit. `BESPOKE` maps a `portrait:` key on a cast entry to a hand-drawn
+painter (Madame LaRue is the first); everyone else falls through to
+`paintGeneric`, which builds a face from the same look parameters the sprite
+uses. Adding a hand-drawn portrait is one function plus a palette — no engine
+change. Two things to watch when drawing one: the fringe ellipse must clear the
+brows (they sit at y=17), and the hair has to stay light enough to separate from
+the backing plate, which is dark.
+
 **Sprites are composited, not drawn straight to screen.** `drawPerson` renders into
 a scratch buffer, derives a dark keyline from the buffer's alpha (`source-in` fill,
 stamped at four offsets), then draws the sprite over it. That outline is what stops
@@ -56,7 +70,12 @@ a figure reading as a stack of boxes against a busy backdrop, and it is why
 change the silhouette the keyline follows. The ground shadow is drawn *outside* the
 buffer on purpose, so the outline doesn't trace it. `o.pose` ('crossed', 'hold',
 'pocket', 'stiff') changes the arms and is most of what distinguishes one
-character from another at this size.
+character from another at this size. `o.figure` ('straight', 'curved', 'broad')
+changes the silhouette — `curved` nips the waist with `clearRect`, flares the
+hip and adds a chest line. Outfits run masculine through feminine (blazer, tank,
+hawaiian, polo, sequins, bikini, lingerie, slip, corset, halter); the last five
+set `skirt` in `ccLook()` so the hip reads, and mark themselves bare-shouldered
+in `paintGeneric` so the portrait agrees with the sprite.
 
 **Rooms are two layers.** `ROOMART[id].bake()` draws everything static, once, into
 an offscreen canvas cached in `_baked`. `ROOMART[id].live(t)` draws per frame —
@@ -84,6 +103,16 @@ reader has reached the final view of the final page, matching what's drawn.
 **Money is in cents.** `GS.cash` is an integer; `money()` formats it. `pay()` also
 sets `flags.stake` the moment the purse crosses the win line, however the player
 got there.
+
+**The grind path is capped by refusal, not by exhaustion.** Dickie's encore
+halves each time (`encoreDecay`) and floors at `encoreFloor`, and he refuses to
+sing at all once the purse holds the shell-game stake. Those two rules together
+mean no build can reach the win line without sitting at Monte's table — verified
+in the bible's balance table, where "before the table" doubles as the ceiling —
+while the floor keeps a lost stake recoverable, so there is still no dead end. A
+Monte loss resets the encore count, because hours pass and the pier gets a new
+crowd. If you change any of this, re-check both properties: **no route to the
+win line that skips Monte**, and **no state the player cannot climb out of**.
 
 **The economy is a table, not prose.** Every figure the level can move lives in
 `ECONOMY` — opening purse, win line, the shell-game stake, and a payout row per

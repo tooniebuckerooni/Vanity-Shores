@@ -257,8 +257,18 @@ function drawPersonRaw(x, y, o, t, walkPhase){
 
   /* torso */
   const sc = o.shirt||'#e94f6a', scD = o.shirtD||'#b8324a';
+  const fig = o.figure || 'straight';
   r(cx-tw/2, torT, tw, torH, sc);
   if(bd>0) r(cx-tw/2-1, torT+torH-6, tw+2, 6, sc);        // a fuller middle
+  if(fig === 'broad') r(cx-tw/2-1, torT, tw+2, 4, sc);    // shoulders carry it
+  if(fig === 'curved'){
+    r(cx-tw/2+1, torT+3, tw-2, 2, shade(sc,.13));         // chest
+    r(cx-tw/2+1, torT+5, tw-2, 1, shade(sc,-.14));
+    g.clearRect(cx-tw/2,   torT+torH-8, 1, 4);            // waist nips in
+    g.clearRect(cx+tw/2-1, torT+torH-8, 1, 4);
+    r(cx-tw/2-1, torT+torH-4, tw+2, 4, o.skirt || sc);    // and the hips out
+    r(cx-tw/2-1, torT+torH-4, tw+2, 1, shade(o.skirt||sc, .12));
+  }
   r(cx-tw/2, torT, tw, 1, o.shirtL||scD);
   r(cx-tw/2, torT, 1, torH, shade(sc,.16));               // lit edge
   r(cx+tw/2-1, torT, 1, torH, shade(sc,-.20));            // shadow edge
@@ -282,6 +292,47 @@ function drawPersonRaw(x, y, o, t, walkPhase){
     const q=rnd32(19+((t/260)|0)%5);
     for(let i=0;i<14;i++) px(cx-tw/2+((q()*tw)|0), torT+((q()*torH)|0), P.gold);
     r(cx-1, torT+1, 2, torH-1, o.inner||P.bone);
+  } else if(o.shirtStyle==='bikini'){
+    r(cx-tw/2, torT, tw, torH, sk.s);                     // skin
+    r(cx+tw/2-2, torT, 2, torH, sk.d);
+    r(cx-tw/2, torT+3, tw, 3, sc);                        // band
+    r(cx-tw/2, torT+3, tw, 1, shade(sc,.18));
+    px(cx, torT+4, shade(sc,-.25));
+    r(cx-tw/2, torT+torH-3, tw, 3, sc);                   // briefs
+    r(cx-tw/2, torT+torH-3, tw, 1, shade(sc,.14));
+    r(cx-1, torT-1, 2, 4, sc);                            // halter tie
+  } else if(o.shirtStyle==='lingerie'){
+    r(cx-tw/2, torT, tw, torH, sk.s);
+    r(cx+tw/2-2, torT, 2, torH, sk.d);
+    r(cx-tw/2, torT+2, tw, 4, sc);
+    r(cx-tw/2, torT+2, tw, 1, o.inner||'#f0dce6');        // lace trim
+    r(cx-tw/2, torT+6, tw, 1, o.inner||'#f0dce6');
+    for(let i=0;i<tw;i+=2) px(cx-tw/2+i, torT+6, sc);
+    r(cx-tw/2, torT+torH-4, tw, 3, sc);
+    r(cx-tw/2, torT+torH-2, tw, 1, o.inner||'#f0dce6');
+    r(cx-tw/2-1, torT+torH-1, 2, 1, o.inner||'#f0dce6');  // strap over the hip
+    r(cx+tw/2-1, torT+torH-1, 2, 1, o.inner||'#f0dce6');
+  } else if(o.shirtStyle==='slip'){
+    r(cx-tw/2, torT, tw, 2, sk.s);                        // bare shoulders
+    r(cx-tw/2+1, torT-1, 1, 3, sc); r(cx+tw/2-2, torT-1, 1, 3, sc);   // straps
+    r(cx-tw/2, torT+2, tw, torH-2, sc);
+    r(cx-tw/2, torT+2, tw, 1, shade(sc,.20));
+    r(cx+tw/2-1, torT+2, 1, torH-2, shade(sc,-.20));
+    px(cx-1, torT+4, shade(sc,.14));
+  } else if(o.shirtStyle==='corset'){
+    r(cx-tw/2, torT, tw, torH, sc);
+    r(cx-tw/2, torT, tw, 2, sk.s);                        // above the line
+    r(cx-tw/2, torT+2, tw, 1, shade(sc,.22));
+    for(let y=torT+4; y<torT+torH-1; y+=2){               // lacing
+      px(cx-1, y, o.inner||P.bone); px(cx+1, y+1, o.inner||P.bone);
+    }
+    r(cx-tw/2, torT+torH-1, tw, 1, shade(sc,-.28));
+  } else if(o.shirtStyle==='halter'){
+    r(cx-tw/2, torT, tw, torH, sk.s);
+    r(cx+tw/2-2, torT, 2, torH, sk.d);
+    r(cx-tw/2, torT+2, tw, 5, sc);
+    r(cx-tw/2, torT+2, tw, 1, shade(sc,.16));
+    r(cx-1, torT-2, 2, 4, sc);                            // neck strap
   } else if(o.shirtStyle==='polo'){
     r(cx-2, torT, 4, 4, o.inner||P.white);
     r(cx-3, torT-1, 2, 3, o.inner||P.white); r(cx+1, torT-1, 2, 3, shade(o.inner||P.white,-.12));
@@ -361,81 +412,320 @@ function drawPersonRaw(x, y, o, t, walkPhase){
   return { headTop: hdT, headX: hx, headW: hdW, torsoTop: torT };
 }
 
-/* Dialogue portrait: same person, drawn large and close. 34x36 box. */
-function drawPortrait(bx, by, o, t){
-  const sk = SKIN[o.skin||'tan'];
-  const BW=34, BH=36;
-  // backing plate
-  r(bx,by,BW,BH,P.ink2);
-  const grd=g.createLinearGradient(bx,by,bx,by+BH);
-  grd.addColorStop(0,'rgba(255,46,136,.30)'); grd.addColorStop(1,'rgba(33,224,214,.10)');
-  g.fillStyle=grd; g.fillRect(bx,by,BW,BH);
+/* ---------------------------------------------------------------------------
+   PORTRAITS.
+   The world sprites are ~40px tall and there is no room in them for a face.
+   Portraits are where a character actually gets to look like somebody, so they
+   are drawn bigger and, for the cast who earn it, by hand.
 
-  const cx = bx+17, top = by+5;
-  // shoulders
-  const sc=o.shirt||'#e94f6a';
-  r(cx-13, by+28, 26, 8, sc); r(cx-13, by+28, 26, 1, o.shirtD||sc);
-  if(o.shirtStyle==='tank'){ r(cx-13,by+28,5,8,sk.s); r(cx+8,by+28,5,8,sk.s); }
-  if(o.shirtStyle==='sequin'){ const q=rnd32(31+((t/240)|0)%4);
-    for(let i=0;i<10;i++) px(cx-13+((q()*26)|0), by+28+((q()*8)|0), P.gold); }
-  r(cx-4, by+25, 8, 4, sk.d);                        // neck
+   The technique: draw into a 44x52 buffer at 1:1 using real curves — ellipses
+   and arcs, which rects cannot fake — then harden every edge to full alpha and
+   snap every colour to a fixed palette. Smooth tools, limited-palette pixel-art
+   output. The result is cached per expression, so the per-frame cost is a blit.
+   --------------------------------------------------------------------------- */
+const PW = 44, PH = 52;
 
-  // head 18x22
-  const hw=18, hh=21, hx=cx-9;
-  r(hx, top, hw, hh, sk.s);
-  r(hx, top, hw, 2, sk.l);
-  r(hx, top+hh-2, hw, 2, sk.d);
-  r(hx-1, top+6, 1, 8, sk.d); r(hx+hw, top+6, 1, 8, sk.d);   // ears
-  if(o.skin==='burn'){ const q=rnd32(11);
-    for(let i=0;i<9;i++) px(hx+2+((q()*14)|0), top+4+((q()*14)|0), P.bone); }
-
-  // brows, eyes, nose, mouth
-  const eyY = top+8;
-  r(hx+3, eyY-3, 5, 1, o.hairC||'#3b2416'); r(hx+10, eyY-3, 5, 1, o.hairC||'#3b2416');
-  r(hx+3, eyY, 5, 3, P.bone); r(hx+10, eyY, 5, 3, P.bone);
-  const look = REDUCED?0:(Math.floor(t/1900)%3===0?1:0);
-  r(hx+5+look, eyY+1, 2, 2, o.eyes||'#3a5a8c');
-  r(hx+12+look, eyY+1, 2, 2, o.eyes||'#3a5a8c');
-  const blink = !REDUCED && Math.floor(t/3100)%6===0 && Math.floor(t/150)%2===0;
-  if(blink){ r(hx+3,eyY,5,3,sk.s); r(hx+10,eyY,5,3,sk.s); }
-  r(hx+8, eyY+4, 2, 3, sk.d);                        // nose
-  r(hx+6, top+16, 6, 1, o.lips||sk.d);
-  if(o.lips){ r(hx+6, top+15, 6, 1, o.lips); r(hx+7, top+17, 4, 1, o.lips); }
-  if(o.stubble) r(hx+2, top+14, hw-4, 5, 'rgba(40,25,60,.30)');
-  if(o.mustache) r(hx+5, top+14, 8, 2, o.hairC||'#3b2416');
-
-  // hair (portrait scale)
-  const hc=o.hairC||'#3b2416', hc2=o.hairC2||'#6b4426';
-  switch(o.hair){
-    case 'blowout': r(hx-4,top-7,hw+8,9,hc); r(hx-5,top-2,3,13,hc); r(hx+hw+2,top-2,3,13,hc);
-                    r(hx-3,top-8,7,3,hc2); r(hx+hw-4,top-8,7,3,hc2); break;
-    case 'spikes':  for(let i=0;i<7;i++) r(hx-1+i*3, top-6-(i%2?3:0), 3, 8+(i%2?3:0), hc);
-                    r(hx-2,top-2,hw+4,4,hc); break;
-    case 'perm':    r(hx-6,top-7,hw+12,11,hc); r(hx-7,top-1,3,14,hc); r(hx+hw+4,top-1,3,14,hc);
-                    r(hx-2,top-9,hw+4,3,hc); r(hx+1,top-6,5,3,hc2); break;
-    case 'ponytail':r(hx-2,top-4,hw+4,6,hc); r(hx-2,top-4,hw+4,2,hc2);
-                    r(hx+hw+2,top+2,4,12,hc); r(hx+hw+3,top+11,4,6,hc); break;
-    case 'pomp':    r(hx-2,top-7,hw+4,9,hc); r(hx,top-11,hw-4,5,hc); r(hx+2,top-10,5,3,hc2); break;
-    case 'bun':     r(hx-2,top-4,hw+4,6,hc); r(hx+hw-2,top-9,7,7,hc); break;
-    case 'turban':  r(hx-3,top-9,hw+6,12,hc); r(hx-3,top-5,hw+6,2,hc2);
-                    r(hx+hw,top-13,5,5,P.gold); r(hx+hw+1,top-12,2,2,P.white); break;
-    case 'cap':     r(hx-2,top-6,hw+4,8,hc); r(hx-8,top-1,8,3,hc2); break;
-    case 'bald':    r(hx,top,hw,3,sk.l); break;
-    default:        r(hx-2,top-6,hw+4,8,hc);
+function quantize(ctx, palette){
+  const id = ctx.getImageData(0, 0, PW, PH), d = id.data;
+  for(let i = 0; i < d.length; i += 4){
+    if(d[i+3] < 110){ d[i+3] = 0; continue; }
+    d[i+3] = 255;
+    let best = palette[0], bd = 1e9;
+    for(const c of palette){
+      const dr = d[i]-c[0], dg = d[i+1]-c[1], db = d[i+2]-c[2];
+      const dist = dr*dr + dg*dg + db*db;
+      if(dist < bd){ bd = dist; best = c; }
+    }
+    d[i] = best[0]; d[i+1] = best[1]; d[i+2] = best[2];
   }
-  if(o.hat==='fedora'){ r(hx-6,top-3,hw+12,3,o.hatC||'#e8dcc4'); r(hx-2,top-9,hw+4,6,o.hatC||'#e8dcc4');
-                        r(hx-2,top-5,hw+4,2,'#6b4426'); }
+  ctx.putImageData(id, 0, 0);
+}
+const rgb = h => [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)];
+function ell(c, x, y, rx, ry, col){
+  c.fillStyle = col; c.beginPath(); c.ellipse(x, y, rx, ry, 0, 0, Math.PI*2); c.fill();
+}
+function ring(c, x, y, r, w, col){
+  c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.arc(x, y, r, 0, Math.PI*2); c.stroke();
+}
+
+/* ---- Madame LaRue -------------------------------------------------------
+   Storm of black curls, gold at every opportunity, and a look that is already
+   pricing you. Red with a white neckline, coins at the brow and the throat. */
+const LARUE_PAL = ['#170e28','#2c1e4e','#3d2c66','#5a4184','#7a5aa8',
+                   '#5e3520','#8a5433','#a97048','#c68a5c','#e0ab7e',
+                   '#f2e4d4','#241a14','#7a1f3a','#c02a4e','#e8547a',
+                   '#ffc23d','#c98a1a','#8e1e33','#c4304a','#f5e6d3'].map(rgb);
+
+function paintLaRue(c, blink){
+  c.clearRect(0, 0, PW, PH);
+  const CX = 22;
+  const SKN = '#8a5433', LIT = '#a97048', SHD = '#5e3520', HI = '#c68a5c';
+
+  /* hair: a storm of it, but framing the face rather than swallowing it */
+  ell(c, CX, 20, 21, 20, '#2c1e4e');
+  ell(c, 6, 30, 8, 13, '#2c1e4e');   ell(c, 38, 30, 8, 13, '#2c1e4e');
+  ell(c, 8, 42, 6, 7,  '#2c1e4e');   ell(c, 36, 42, 6, 7,  '#2c1e4e');
+  for(const [x,y] of [[13,13],[31,13],[6,20],[38,20],[22,6],[6,34],[38,34],[16,41],[28,41]])
+    ell(c, x, y, 3.6, 3.6, '#170e28');                   // shadow between the curls
+  for(const [x,y,r] of [[4,16,4],[8,8,4.5],[15,4,4.5],[29,4,4.5],[36,8,4.5],[40,16,4],
+                        [3,27,3.5],[41,27,3.5],[5,37,3.5],[39,37,3.5],[10,45,3.5],[34,45,3.5]])
+    ell(c, x, y, r, r, '#3d2c66');                       // ringlets catch the edge
+  for(const [x,y,r] of [[7,11,2.2],[16,3,2.4],[28,3,2.2],[37,11,2.2],[3,22,1.8],[41,22,1.8],
+                        [6,38,1.8],[38,38,1.8]])
+    ell(c, x, y, r, r, '#5a4184');
+  ell(c, 12, 6, 1.6, 1.1, '#7a5aa8');  ell(c, 32, 6, 1.4, 1.1, '#7a5aa8');
+
+  /* face — big enough to have features */
+  ell(c, CX, 23, 10, 12, SKN);
+  ell(c, CX, 26, 9, 9, SKN);
+  ell(c, CX-3.5, 19, 5, 5.5, LIT);
+  ell(c, CX-4.5, 17, 2.8, 2.4, HI);
+  ell(c, CX+6.5, 23, 3, 6.5, SHD);
+  ell(c, CX, 33.5, 4, 1.6, SHD);
+  ell(c, 12.5, 24, 1.6, 2.2, SHD);  ell(c, 31.5, 24, 1.6, 2.2, SHD);   // ears
+  c.fillStyle = '#ffc23d'; c.fillRect(12, 24, 1, 1); c.fillRect(31, 24, 1, 1);
+
+  /* neck and shoulders */
+  c.fillStyle = SHD; c.fillRect(18, 34, 8, 7);
+  c.fillStyle = SKN;  c.fillRect(18, 35, 5, 6);
+  ell(c, CX, 40, 6, 3, SKN);
+  ell(c, CX, 34.5, 4.5, 1.2, '#4a2818');          // the line under the jaw
+  ell(c, 11, 47, 10, 7, SKN);  ell(c, 33, 47, 10, 7, SKN);
+  ell(c, 12, 45, 6, 3, LIT);
+
+  /* the front of the hair: a crown and two curls at the temples, no more */
+  ell(c, CX, 8, 12, 6, '#2c1e4e');
+  ell(c, 9.5, 19, 4, 9, '#2c1e4e');     ell(c, 34.5, 19, 4, 9, '#2c1e4e');
+  ell(c, 10.5, 28, 3, 4.5, '#2c1e4e');  ell(c, 33.5, 28, 3, 4.5, '#2c1e4e');
+  ell(c, CX-5, 5.5, 4, 2.2, '#3d2c66'); ell(c, CX+4, 5, 3.4, 2, '#3d2c66');
+  ell(c, CX-6, 4.5, 2, 1.2, '#5a4184');
+  ell(c, 10, 14, 2, 2.6, '#170e28');    ell(c, 34, 14, 2, 2.6, '#170e28');
+
+  /* brows, eyes, nose, mouth */
+  c.fillStyle = '#140a1e';
+  c.fillRect(15, 17, 6, 1); c.fillRect(14, 18, 2, 1);
+  c.fillRect(23, 17, 6, 1); c.fillRect(28, 18, 2, 1);
+  if(blink){
+    c.fillStyle = SHD; c.fillRect(15, 21, 6, 1); c.fillRect(23, 21, 6, 1);
+    c.fillStyle = '#140a1e'; c.fillRect(14, 20, 8, 1); c.fillRect(22, 20, 8, 1);
+  } else {
+    ell(c, 17.8, 21.5, 3, 2.2, '#f2e4d4');  ell(c, 26.2, 21.5, 3, 2.2, '#f2e4d4');
+    ell(c, 18.2, 21.7, 1.8, 1.8, '#241a14'); ell(c, 26.6, 21.7, 1.8, 1.8, '#241a14');
+    c.fillStyle = '#f5e6d3'; c.fillRect(17, 20, 1, 1); c.fillRect(25, 20, 1, 1);
+    c.fillStyle = '#140a1e';
+    c.fillRect(14, 19, 8, 1); c.fillRect(23, 19, 8, 1);   // kohl
+    c.fillRect(13, 20, 1, 1); c.fillRect(31, 20, 1, 1);   // and the flick
+  }
+  ell(c, CX+0.5, 25.5, 1.5, 2.2, SHD);
+  c.fillStyle = HI; c.fillRect(20, 24, 1, 2);
+  ell(c, CX, 30, 3.2, 1.6, '#c02a4e');
+  ell(c, CX-0.5, 29.3, 2.2, 0.8, '#e8547a');
+  c.fillStyle = '#7a1f3a'; c.fillRect(19, 30.5, 6, 1);
+
+  /* gold, everywhere it can be got away with */
+  c.fillStyle = '#ffc23d';
+  for(let x = 14; x <= 30; x += 2) c.fillRect(x, 12, 1, 1);      // a chain, not a bar
+  for(const x of [15, 22, 29]) ell(c, x, 12.5, 1.3, 1.3, '#ffc23d');
+  ell(c, CX, 14.5, 1.1, 1.1, '#ffc23d');
+  ring(c, 9, 27, 3.6, 1.5, '#ffc23d');  ring(c, 35, 27, 3.6, 1.5, '#ffc23d');
+  ring(c, 9, 27, 3.6, 0.5, '#c98a1a');  ring(c, 35, 27, 3.6, 0.5, '#c98a1a');
+  c.strokeStyle = '#ffc23d'; c.lineWidth = 1;
+  c.beginPath(); c.arc(CX, 34, 7, 0.2*Math.PI, 0.8*Math.PI); c.stroke();
+  for(const [x,y] of [[17,39],[22,40.5],[27,39]]){
+    ell(c, x, y, 1.5, 1.5, '#ffc23d'); ell(c, x+0.4, y+0.4, 0.6, 0.6, '#c98a1a');
+  }
+
+  /* red, with the white neckline */
+  c.fillStyle = '#c4304a';
+  c.beginPath(); c.moveTo(0, PH); c.lineTo(2, 45); c.lineTo(13, 42.5);
+  c.lineTo(CX, 47); c.lineTo(31, 42.5); c.lineTo(42, 45); c.lineTo(PW, PH); c.closePath(); c.fill();
+  c.fillStyle = '#8e1e33';
+  c.beginPath(); c.moveTo(31, 42.5); c.lineTo(42, 45); c.lineTo(PW, PH);
+  c.lineTo(35, PH); c.closePath(); c.fill();
+  c.strokeStyle = '#f5e6d3'; c.lineWidth = 2;
+  c.beginPath(); c.moveTo(12, 42); c.lineTo(CX, 46.5); c.lineTo(32, 42); c.stroke();
+  c.fillStyle = '#f5e6d3'; c.fillRect(0, 44, 4, 2); c.fillRect(40, 44, 4, 2);
+}
+
+const _portCache = new Map();
+function larueBuffer(blink){
+  const key = 'larue' + (blink ? 1 : 0);
+  let b = _portCache.get(key);
+  if(b) return b;
+  b = offscreen(PW, PH);
+  const c = b.getContext('2d');
+  paintLaRue(c, blink);
+  quantize(c, LARUE_PAL);
+  _portCache.set(key, b);
+  return b;
+}
+const BESPOKE = { larue: larueBuffer };
+
+/* ---- everyone else, from their look parameters, same technique ---------- */
+function paintGeneric(c, o, blink){
+  c.clearRect(0, 0, PW, PH);
+  const sk = SKIN[o.skin||'tan'], CX = 22;
+  const hc = o.hairC || '#3b2416', hc2 = o.hairC2 || '#6b4426';
+  const hcD = shade(hc, -0.35), hcL = shade(hc2, 0.18);
+  const style = o.hair || 'blowout';
+
+  /* hair behind the head */
+  switch(style){
+    case 'perm':    ell(c, CX, 21, 20, 18, hc);
+                    for(const [x,y,r] of [[6,18,5],[10,9,5],[34,9,5],[38,18,5],[5,29,4],[39,29,4]])
+                      ell(c, x, y, r, r, hc2);
+                    break;
+    case 'blowout': ell(c, CX, 18, 18, 15, hc);
+                    ell(c, 7, 25, 6, 10, hc); ell(c, 37, 25, 6, 10, hc);
+                    ell(c, 11, 10, 5, 4, hc2); ell(c, 33, 10, 5, 4, hc2); break;
+    case 'spikes':  ell(c, CX, 15, 14, 9, hc);
+                    for(let i = 0; i < 7; i++){
+                      const x = 9 + i*4.5, h = i % 2 ? 11 : 7;
+                      c.fillStyle = hc; c.beginPath(); c.moveTo(x-2.6, 12);
+                      c.lineTo(x, 12-h); c.lineTo(x+2.6, 12); c.closePath(); c.fill();
+                    } break;
+    case 'ponytail':ell(c, CX, 15, 13, 9, hc);
+                    ell(c, 36, 26, 5, 9, hc); ell(c, 37, 35, 4, 5, hc); break;
+    case 'bun':     ell(c, CX, 15, 13, 9, hc); ell(c, 35, 12, 6, 6, hc);
+                    ell(c, 34, 11, 2.4, 2.4, hc2); break;
+    case 'pomp':    ell(c, CX, 14, 13, 9, hc); ell(c, CX, 6.5, 9, 5.5, hc);
+                    ell(c, CX-3, 5, 4, 2.4, hc2); break;
+    case 'turban':  ell(c, CX, 13, 15, 10, hc); break;
+    case 'cap':     ell(c, CX, 13, 14, 10, hc); break;
+    case 'bald':    break;
+    default:        ell(c, CX, 16, 14, 11, hc);
+  }
+
+  /* face */
+  ell(c, CX, 24, 8.6, 10.4, sk.s);
+  ell(c, CX, 28, 7.2, 8.2, sk.s);
+  ell(c, CX-3, 20, 4.6, 5.2, sk.l);
+  ell(c, CX+5.5, 25, 3.2, 6, sk.d);
+  ell(c, CX, 33.5, 4.6, 2.6, sk.d);
+  if(o.skin === 'burn'){
+    const q = rnd32(11);
+    c.fillStyle = P.bone;
+    for(let i = 0; i < 14; i++) c.fillRect(15 + ((q()*15)|0), 18 + ((q()*14)|0), 1, 1);
+  }
+
+  /* neck, shoulders, clothes */
+  c.fillStyle = sk.d; c.fillRect(18, 32, 8, 8);
+  ell(c, CX, 40, 5, 3, sk.s);
+  const sc = o.shirt || '#e94f6a';
+  const bare = ['tank','bikini','lingerie','slip','halter'].indexOf(o.shirtStyle) >= 0;
+  ell(c, 11, 47, 10, 7, bare ? sk.s : sc);
+  ell(c, 33, 47, 10, 7, bare ? sk.s : shade(bare ? sk.s : sc, -0.16));
+  c.fillStyle = sc;
+  c.beginPath(); c.moveTo(0, PH); c.lineTo(4, 46); c.lineTo(14, 43.5);
+  c.lineTo(CX, 47); c.lineTo(30, 43.5); c.lineTo(40, 46); c.lineTo(PW, PH);
+  c.closePath(); c.fill();
+  if(bare){                                       // straps instead of a shoulder line
+    c.fillStyle = sc; c.fillRect(14, 43, 2, 9); c.fillRect(28, 43, 2, 9);
+    c.fillStyle = sk.s;
+    c.beginPath(); c.moveTo(0, PH); c.lineTo(4, 46); c.lineTo(13, 44);
+    c.lineTo(13, PH); c.closePath(); c.fill();
+    c.beginPath(); c.moveTo(PW, PH); c.lineTo(40, 46); c.lineTo(31, 44);
+    c.lineTo(31, PH); c.closePath(); c.fill();
+  }
+  if(o.shirtStyle === 'blazer'){
+    c.fillStyle = o.inner || P.bone; c.fillRect(19, 44, 6, 8);
+    c.fillStyle = shade(sc, -0.2);
+    c.beginPath(); c.moveTo(14, 43.5); c.lineTo(CX, 47); c.lineTo(19, 52); c.lineTo(12, 46); c.closePath(); c.fill();
+  }
+  if(o.shirtStyle === 'sequin'){
+    const q = rnd32(31); c.fillStyle = P.gold;
+    for(let i = 0; i < 22; i++) c.fillRect(4 + ((q()*36)|0), 44 + ((q()*8)|0), 1, 1);
+  }
+  if(o.shirtStyle === 'polo'){
+    c.fillStyle = o.inner || '#ffffff';
+    c.beginPath(); c.moveTo(15, 43); c.lineTo(CX, 48); c.lineTo(29, 43);
+    c.lineTo(29, 46); c.lineTo(CX, 50); c.lineTo(15, 46); c.closePath(); c.fill();
+  }
+
+  /* hair over the brow */
+  if(style !== 'bald' && style !== 'turban' && style !== 'cap'){
+    ell(c, CX, 10.5, 12.5, 6.5, hc);
+    ell(c, CX-5, 8, 4, 2.4, hc2);
+    if(style === 'blowout' || style === 'perm'){
+      ell(c, 12, 20, 4.8, 8, hc); ell(c, 32, 20, 4.8, 8, hc);
+    }
+  }
+  if(style === 'turban'){
+    ell(c, CX, 10, 14, 7, hc); c.fillStyle = hc2; c.fillRect(8, 13, 28, 2);
+    ell(c, 35, 6, 3, 3, P.gold);
+  }
+  if(style === 'cap'){
+    ell(c, CX, 10, 13, 6.5, hc);
+    c.fillStyle = hc2; c.fillRect(3, 14, 15, 3);
+  }
+
+  /* features */
+  c.fillStyle = shade(hc, -0.15);
+  c.fillRect(16, 19, 5, 1); c.fillRect(23, 19, 5, 1);
+  if(blink){
+    c.fillStyle = sk.d; c.fillRect(16, 23, 5, 1); c.fillRect(23, 23, 5, 1);
+  } else {
+    ell(c, 18.4, 23, 2.6, 1.9, '#f2e4d4'); ell(c, 25.6, 23, 2.6, 1.9, '#f2e4d4');
+    ell(c, 18.6, 23.2, 1.5, 1.5, o.eyes || '#3a5a8c');
+    ell(c, 25.8, 23.2, 1.5, 1.5, o.eyes || '#3a5a8c');
+    c.fillStyle = P.bone; c.fillRect(18, 22, 1, 1); c.fillRect(25, 22, 1, 1);
+  }
+  ell(c, CX+0.5, 27, 1.4, 2, sk.d);
+  if(o.lips){ ell(c, CX, 31, 3.2, 1.8, o.lips); ell(c, CX-0.6, 30.4, 2, 0.8, shade(o.lips, .25)); }
+  else { c.fillStyle = sk.d; c.fillRect(19, 31, 6, 1); }
+  if(o.stubble){ c.fillStyle = 'rgba(40,25,60,.30)'; c.fillRect(15, 30, 14, 5); }
+  if(o.mustache){ c.fillStyle = shade(hc, -0.1); c.fillRect(18, 28.5, 8, 2); }
+
   switch(o.acc){
-    case 'shades': r(hx+2,eyY-1,6,5,P.ink); r(hx+10,eyY-1,6,5,P.ink); r(hx+8,eyY,2,2,P.ink);
-                   px(hx+3,eyY,P.surf); px(hx+11,eyY,P.surf); break;
-    case 'hoops':  r(hx-2,top+9,2,5,P.gold); r(hx+hw,top+9,2,5,P.gold); break;
-    case 'band':   r(hx-2,top-1,hw+4,3,P.hot); break;
-    case 'visor':  r(hx-4,top+1,hw+8,3,P.hot); break;
-    case 'chain':  r(cx-5,by+29,10,1,P.gold); r(cx-1,by+30,2,2,P.gold); break;
+    case 'shades': c.fillStyle = '#140a1e';
+                   c.fillRect(13, 20, 8, 6); c.fillRect(23, 20, 8, 6); c.fillRect(21, 22, 2, 2);
+                   c.fillStyle = '#5f93ad'; c.fillRect(14, 21, 2, 1); c.fillRect(24, 21, 2, 1); break;
+    case 'hoops':  ring(c, 12, 27, 4, 1.6, P.gold); ring(c, 32, 27, 4, 1.6, P.gold); break;
+    case 'band':   c.fillStyle = P.hot; c.fillRect(8, 14, 28, 3); break;
+    case 'visor':  c.fillStyle = P.hot; c.fillRect(5, 17, 34, 3); break;
+    case 'chain':  ell(c, CX, 43, 2, 1.4, P.gold); break;
   }
-  // frame
-  r(bx,by,BW,1,P.hot); r(bx,by+BH-1,BW,1,P.hot);
-  r(bx,by,1,BH,P.hot); r(bx+BW-1,by,1,BH,P.hot);
+  if(o.hat === 'fedora'){
+    c.fillStyle = o.hatC || '#e8dcc4';
+    c.fillRect(4, 15, 36, 3); ell(c, CX, 11, 11, 6, o.hatC || '#e8dcc4');
+    c.fillStyle = '#6b4426'; c.fillRect(11, 13, 22, 2);
+  }
+}
+function genericPalette(o){
+  const sk = SKIN[o.skin||'tan'], hc = o.hairC||'#3b2416', hc2 = o.hairC2||'#6b4426';
+  const sc = o.shirt||'#e94f6a';
+  return [sk.s, sk.l, sk.d, shade(sk.s,.18), shade(sk.d,-.25),
+          hc, hc2, shade(hc,-.35), shade(hc2,.18),
+          sc, shade(sc,-.2), shade(sc,.15), o.inner||P.bone,
+          o.eyes||'#3a5a8c', o.lips||sk.d, '#f2e4d4', '#140a1e',
+          P.gold, P.hot, P.bone].map(rgb);
+}
+
+function portraitBuffer(o, blink){
+  if(o.portrait && BESPOKE[o.portrait]) return BESPOKE[o.portrait](blink);
+  const key = (o.name||'you') + '|' + [o.skin,o.hair,o.hairC,o.shirt,o.shirtStyle,
+              o.acc,o.figure,o.lips].join(',') + '|' + (blink?1:0);
+  let b = _portCache.get(key);
+  if(b) return b;
+  b = offscreen(PW, PH);
+  const c = b.getContext('2d');
+  paintGeneric(c, o, blink);
+  quantize(c, genericPalette(o));
+  if(_portCache.size > 80) _portCache.clear();
+  _portCache.set(key, b);
+  return b;
+}
+
+/* Dialogue portrait: backing plate, the face, and a frame. */
+function drawPortrait(bx, by, o, t){
+  r(bx, by, PW, PH, P.ink2);
+  const grd = g.createLinearGradient(bx, by, bx, by+PH);
+  grd.addColorStop(0, 'rgba(255,46,136,.30)'); grd.addColorStop(1, 'rgba(33,224,214,.10)');
+  g.fillStyle = grd; g.fillRect(bx, by, PW, PH);
+  const blink = !REDUCED && Math.floor(t/3100)%6 === 0 && Math.floor(t/150)%2 === 0;
+  g.drawImage(portraitBuffer(o, blink), bx|0, by|0);
+  r(bx, by, PW, 1, P.hot); r(bx, by+PH-1, PW, 1, P.hot);
+  r(bx, by, 1, PH, P.hot); r(bx+PW-1, by, 1, PH, P.hot);
 }
 
 /* ---------- 1b. TEXT: real fonts, thresholded to 1-bit pixel text --------- */
@@ -1160,7 +1450,7 @@ const SAVE_KEY = 'vanityshores.act1.l1';
 
 const GS = {
   scene:'title',
-  name:'', look:{ skin:'tan', hair:'blowout', hairC:'#3b2416', hairC2:'#6b4426',
+  name:'', look:{ skin:'tan', hair:'blowout', hairC:'#3b2416', hairC2:'#6b4426', figure:'straight',
                   shirtStyle:'blazer', shirt:'#e94f6a', shirtD:'#b8324a', inner:'#f5e6d3',
                   pants:'#2f3a6b', pantsD:'#1e2648', acc:'none', eyes:'#3a5a8c' },
   stats:{ money:34, fight:33, charm:33 },
@@ -1365,7 +1655,7 @@ const DLG_MAX = 6;                        // lines per view before it flows on
 
 function dlgLayout(m){
   const hasPort = !!m.look;
-  const tx = hasPort ? 48 : 12, tw = hasPort ? 258 : 296;
+  const tx = hasPort ? PW + 14 : 12, tw = hasPort ? 294 - PW : 296;
   const nameH = m.speaker ? 10 : 0;
   const sub = m.sub || 0;
   const all = wrap(m.pages[m.i], FONT.dlg, tw);
@@ -1387,7 +1677,7 @@ function dlgLayout(m){
   for(;;){
     lines = all.slice(sub*maxL, sub*maxL + maxL);
     more  = (sub+1)*maxL < all.length;
-    h = Math.max(46, 10 + nameH + lines.length*13 + (more ? 0 : chH) + 8);
+    h = Math.max(hasPort ? PH + 12 : 46, 10 + nameH + lines.length*13 + (more ? 0 : chH) + 8);
     if(h <= 150 || maxL <= 2) break;
     maxL--;
   }
@@ -1409,7 +1699,7 @@ function drawDialogue(){
   r(L.x, L.y, 1, L.h, P.hot); r(L.x+L.bw-1, L.y, 1, L.h, P.hot);
   g.globalAlpha = .35; r(L.x+1, L.y+1, L.bw-2, 1, '#ff9ac8'); g.globalAlpha = 1;
 
-  if(L.hasPort) drawPortrait(L.x+5, L.y+5, m.look, clock);
+  if(L.hasPort) drawPortrait(L.x+5, L.y+6, m.look, clock);
   let ty = L.y+6;
   if(m.speaker){ text(m.speaker.toUpperCase(), L.tx, ty, P.gold, FONT.sm); ty += L.nameH; }
   for(const ln of L.lines){ text(ln, L.tx, ty, P.bone, FONT.dlg); ty += 13; }
@@ -1559,13 +1849,15 @@ const CAST = {
   gil:{ pose:'stiff', name:'Gil Furnace', skin:'burn', hair:'cap', hairC:'#e8e4d8', hairC2:'#c4c0b4',
          shirtStyle:'hawaii', shirt:'#2fa8a0', shirtD:'#1d7a74',
          pants:'#d8cfa8', pantsD:'#b0a882', shoes:'#f0ece0', build:1, eyes:'#5a7a4a' },
-  brenda:{ pose:'hold', name:'Brenda Tang', skin:'tan', hair:'bun', hairC:'#231a26', hairC2:'#4a3a4e',
+  brenda:{ pose:'hold', name:'Brenda Tang', skin:'tan', hair:'bun', hairC:'#231a26', hairC2:'#4a3a4e', figure:'curved',
          shirtStyle:'blazer', shirt:'#2a3f5e', shirtD:'#1b2a42', inner:'#f5e6d3',
          skirt:'#2a3f5e', shoes:'#241134', lips:'#d8365e', acc:'none',
          eyes:'#3a2a2a', build:-1 },
-  zsazsa:{ name:'Madame LaRue', skin:'deep', hair:'turban', hairC:'#7a3aad', hairC2:'#a35fd8',
-         shirtStyle:'', shirt:'#5b2a8a', shirtD:'#3d1a5e', skirt:'#5b2a8a',
-         shoes:'#241134', lips:'#c41d68', acc:'hoops', eyes:'#2a1a1a', size:-1 },
+  zsazsa:{ portrait:'larue', name:'Madame LaRue', skin:'deep', hair:'perm',
+         hairC:'#1c1030', hairC2:'#3a2352', figure:'curved',
+         shirtStyle:'halter', shirt:'#c4304a', shirtD:'#8e1e33', inner:'#f5e6d3',
+         skirt:'#c4304a', shoes:'#241134', lips:'#c02a4e', acc:'hoops',
+         eyes:'#2a1a1a', size:-1 },
   dickie:{ pose:'hold', name:'Dickie Vermouth', skin:'pale', hair:'pomp', hairC:'#7a7488', hairC2:'#a8a2b4',
          shirtStyle:'sequin', shirt:'#8e2a4e', shirtD:'#5e1a32', inner:'#f5e6d3',
          pants:'#2a2438', pantsD:'#1a1626', shoes:'#e8e4d8', stubble:true,
@@ -1574,7 +1866,7 @@ const CAST = {
          shirtStyle:'tank', shirt:'#e8e4d8', shirtD:'#c4c0b4',
          pants:'#3a3448', pantsD:'#241f30', shoes:'#241134', acc:'chain',
          stubble:true, build:1, eyes:'#3a2a1a' },
-  rube1:{ name:'a tourist', skin:'fair', hair:'perm', hairC:'#b4703a', hairC2:'#d8965a',
+  rube1:{ name:'a tourist', skin:'fair', hair:'perm', hairC:'#b4703a', hairC2:'#d8965a', figure:'curved',
           shirtStyle:'tank', shirt:'#f0a8c0', pants:'#e8e0d0', size:-1, still:true },
   rube2:{ name:'a tourist', skin:'deep', hair:'cap', hairC:'#c41d68', hairC2:'#8e1148',
           shirtStyle:'hawaii', shirt:'#f0c23d', pants:'#3a4a6a', build:1, still:true }
@@ -1913,6 +2205,8 @@ const ECONOMY = {
   startPerMoneyPoint: 10,              // opening purse = Money stat x this
   winLine: 10000,                      // cross it and the level's curtain fires
   monteStake: 5000,                    // cost to sit at the shell game
+  encoreDecay: 0.5,                    // each encore plays to a thinner crowd
+  encoreFloor: 500,                    // ...but never for nothing
   earn: {
     brendaGift:   { base:0,     charm:500,   money:500,   fight:0     },
     gilAloe:      { base:2000,  charm:3000,  money:2500,  fight:2000  },
@@ -1928,7 +2222,7 @@ const GATES = {
   brendaPitch:  { stat:'any',   need:GATE, opens:'the good bag in one pass instead of two' },
   gilPrice:     { stat:'any',   need:GATE, opens:'a better price for the aloe' },
   dickieSplit:  { stat:'any',   need:GATE, opens:'a bigger cut of the tip jar' },
-  dickieEncore: { stat:'charm', need:GATE, opens:'+$5 on every encore' },
+  dickieEncore: { stat:'charm', need:GATE, opens:'a bigger first encore before the decay bites' },
   monteTable:   { stat:'any',   need:GATE, opens:'a bigger take at the shell game' }
 };
 const gateNeed = k => (GATES[k] ? GATES[k].need : GATE);
@@ -2229,8 +2523,18 @@ function zsaReading(){
 /* ---- Dickie Vermouth: the has-been ------------------------------------- */
 function dickieTalk(){
   if(GS.flags.crowdDrawn){
+    if(GS.cash >= ECONOMY.monteStake && !GS.flags.monteWon){
+      sayAs('dickie', ['Kid. You are standing there with table money in your pocket asking me to '+
+        'sing at you.',
+        'No. Go and do the thing you actually came down here to do.',
+        'I will still be here afterwards. That is the one part of this I am reliably good at.']);
+      return; }
+    const next = encoreTake();
     sayAs('dickie', ['Kid. KID. Did you see that? Fourteen people. I counted during the key change.',
-      'You want another set? Say the word. Crowd\'s thinner now but a room is a room.'],
+      (GS.flags.encores
+        ? 'Another one? Crowd is thinner every time, and half of it is the same crowd. Your share '+
+          'would be about ' + '$' + (next/100).toFixed(2) + '.'
+        : 'You want another set? Say the word. Crowd\'s thinner now but a room is a room.')],
       { choices:[ { text:'"Do another set." (Split it again.)', fn:dickieEncore },
                   { text:'"Later, Dickie."', fn:()=>sayAs('dickie','Later. Sure. I\'ll be here. '+
                     'That\'s the one thing I\'m still great at.') } ] }); return; }
@@ -2276,11 +2580,24 @@ function dickiePay(route, lines){
     '"Don\'t say thank you," he says. "Say *when*."',
     'You are carrying ' + money() + '.']), { speaker:CAST.dickie.name, look:CAST.dickie, then:saveGame });
 }
+/* Diminishing returns, and he will not play at all once you are holding table
+   money. Between them the encore can never carry anyone to the win line — the
+   level has to go through Monte — while the floor keeps it a real way back from
+   a lost stake, so there is still no dead end. */
+function encoreTake(){
+  const first = earn('dickieEncore', gated('dickieEncore','charm') ? 'charm' : 'base');
+  const raw = first * Math.pow(ECONOMY.encoreDecay, GS.flags.encores || 0);
+  return Math.max(ECONOMY.encoreFloor, Math.round(raw/25)*25);
+}
 function dickieEncore(){
-  const take = earn('dickieEncore', gated('dickieEncore','charm') ? 'charm' : 'base');
+  const take = encoreTake();
+  GS.flags.encores = (GS.flags.encores || 0) + 1;
   pay(take); Audio_.sfx('cash');
-  sayAs('dickie', ['He does it again. It is thinner the second time — the crowd is smaller, the '+
-    'jokes land a half-beat late, and he knows it, and he does it anyway.',
+  sayAs('dickie', [(GS.flags.encores > 2
+      ? 'He does it again. There are four people now, and two of them are waiting for somebody '+
+        'else. He sings to them exactly as hard.'
+      : 'He does it again. It is thinner the second time — the crowd is smaller, the jokes land '+
+        'a half-beat late, and he knows it, and he does it anyway.'),
     'Your half comes to ' + '$' + (take/100).toFixed(2) + '. You are carrying ' + money() + '.',
     '"That\'s the business, kid," he says, not looking at you. "First set\'s the miracle. Every set '+
     'after is the *job*."'], { then:saveGame });
@@ -2315,6 +2632,7 @@ function monteTalk(){
 }
 function monteLose(){
   pay(-ECONOMY.monteStake, false); Audio_.sfx('shell'); GS.hustleTries++;
+  GS.flags.encores = 0;              // hours pass; the pier gets a fresh crowd
   say(['You put fifty on the felt and you watch the shells. You watch them *hard*. You do not blink.',
     'You are extremely confident about the middle one.',
     'It is not the middle one. It was never any of them, and somewhere in the last four seconds your '+
@@ -2439,8 +2757,10 @@ const TRAITS = {
   hairN:  ['FEATHERED','SPIKED','PERMED','SLICKED','POMPADOUR','TOPKNOT'],
   hairC:  [['#3b2416','#6b4426'],['#1e1420','#4a3a4e'],['#d8b45a','#f2dc9a'],
            ['#b4703a','#d8965a'],['#8e2a4e','#c4406a'],['#7a7488','#a8a2b4']],
-  outfit: ['blazer','tank','hawaii','polo','sequin'],
-  outfitN:['BLAZER','TANK TOP','HAWAIIAN','POLO','SEQUINS'],
+  outfit: ['blazer','tank','hawaii','polo','sequin','bikini','lingerie','slip','corset','halter'],
+  outfitN:['BLAZER','TANK TOP','HAWAIIAN','POLO','SEQUINS','BIKINI','LINGERIE','SLIP','CORSET','HALTER'],
+  figure: ['straight','curved','broad'],
+  figureN:['STRAIGHT','CURVED','BROAD'],
   shirtC: [['#e94f6a','#b8324a'],['#2fa8a0','#1d7a74'],['#f0c23d','#c99a1a'],
            ['#7a5fd8','#5a3fa8'],['#f5e6d3','#c4bca8'],['#2a3f5e','#1b2a42']],
   skin:   ['fair','tan','deep','pale'],
@@ -2448,11 +2768,12 @@ const TRAITS = {
   acc:    ['none','shades','chain','fanny','band','visor','hoops'],
   accN:   ['NONE','AVIATORS','GOLD ROPE','FANNYPACK','HEADBAND','VISOR','HOOPS']
 };
-const CC = { i:{ hair:0, hairC:0, outfit:0, shirtC:0, skin:1, acc:1 },
+const CC = { i:{ hair:0, hairC:0, figure:0, outfit:0, shirtC:0, skin:1, acc:1 },
              stats:{ money:10, fight:10, charm:10 }, hot:null };
 const CC_ROWS = [
   { key:'hair',   label:'HAIR',    pool:'hair',   names:'hairN' },
   { key:'hairC',  label:'COLOUR',  pool:'hairC',  swatch:true },
+  { key:'figure', label:'FIGURE',  pool:'figure', names:'figureN' },
   { key:'outfit', label:'OUTFIT',  pool:'outfit', names:'outfitN' },
   { key:'shirtC', label:'SHADE',   pool:'shirtC', swatch:true },
   { key:'skin',   label:'SKIN',    pool:'skin',   names:'skinN' },
@@ -2467,7 +2788,10 @@ function ccLook(){
   const i = CC.i;
   return { skin:TRAITS.skin[i.skin], hair:TRAITS.hair[i.hair],
            hairC:TRAITS.hairC[i.hairC][0], hairC2:TRAITS.hairC[i.hairC][1],
+           figure:TRAITS.figure[i.figure],
            shirtStyle:TRAITS.outfit[i.outfit],
+           skirt:['bikini','lingerie','slip','corset','halter'].indexOf(TRAITS.outfit[i.outfit])>=0
+                 ? TRAITS.shirtC[i.shirtC][0] : null,
            shirt:TRAITS.shirtC[i.shirtC][0], shirtD:TRAITS.shirtC[i.shirtC][1],
            inner:'#f5e6d3', pants:'#2f3a6b', pantsD:'#1e2648', shoes:'#e9e4d8',
            acc:TRAITS.acc[i.acc], eyes:'#3a5a8c', still:false };
@@ -2562,8 +2886,8 @@ function drawCreate(t){
   const gr = g.createLinearGradient(0,0,0,200);
   gr.addColorStop(0,'#1a0d2c'); gr.addColorStop(1,'#2e1148');
   g.fillStyle = gr; g.fillRect(0,0,W,200);
-  vectorGrid(t, 150, .5);
-  g.globalAlpha=.5; r(0,150,W,50,'#1a0d2c'); g.globalAlpha=1;
+  vectorGrid(t, 162, .5);
+  g.globalAlpha=.5; r(0,162,W,38,'#1a0d2c'); g.globalAlpha=1;
 
   textC('WHO WASHES UP IN VANITY SHORES', 160, 4, P.gold, FONT.bg);
   r(48,25,224,1,'rgba(255,46,136,.5)');
@@ -2574,7 +2898,7 @@ function drawCreate(t){
 
   // trait rows
   for(let i=0;i<CC_ROWS.length;i++){
-    const row = CC_ROWS[i], y = 60 + i*16;
+    const row = CC_ROWS[i], y = 58 + i*15;
     text(row.label, 8, y+2, P.dim, FONT.sm);
     const lq={x:46,y:y,w:11,h:12}, rq={x:101,y:y,w:11,h:12};
     for(const [q,ch] of [[lq,'\u25c0'],[rq,'\u25b6']]){
@@ -2829,7 +3153,7 @@ function playClick(p){
 }
 function createClick(p){
   for(let i=0;i<CC_ROWS.length;i++){
-    const row = CC_ROWS[i], y = 60 + i*16, n = TRAITS[row.pool].length;
+    const row = CC_ROWS[i], y = 58 + i*15, n = TRAITS[row.pool].length;
     if(inRect(p,{x:46,y:y,w:11,h:12})){ CC.i[row.key] = (CC.i[row.key]+n-1)%n; Audio_.sfx('click'); return; }
     if(inRect(p,{x:101,y:y,w:11,h:12})){ CC.i[row.key] = (CC.i[row.key]+1)%n; Audio_.sfx('click'); return; }
   }

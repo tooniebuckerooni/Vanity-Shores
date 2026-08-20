@@ -140,10 +140,10 @@ this cannot drift from what actually plays. Regenerate with <code>node tools/bib
     <div class="stat"><b>6</b><span>speaking cast</span></div>
     <div class="stat"><b>31</b><span>hotspots</span></div>
     <div class="stat"><b>8</b><span>items</span></div>
-    <div class="stat"><b>3,637</b><span>words spoken</span></div>
+    <div class="stat"><b>3,730</b><span>words spoken</span></div>
     <div class="stat"><b>4</b><span>ways to die</span></div>
     <div class="stat"><b>$100.00</b><span>win line</span></div>
-    <div class="stat"><b>30,240</b><span>look combinations</span></div>
+    <div class="stat"><b>60,480</b><span>look combinations</span></div>
   </div>
   <ul class="plain">
     <li><b>The win condition is one number.</b> Cross $100.00 and walking onto
@@ -243,14 +243,14 @@ this cannot drift from what actually plays. Regenerate with <code>node tools/bib
       <dl class="facts">
         <div><dt>Found</dt><dd>Bandshell, pier</dd></div>
         <div><dt>Stance</dt><dd>hold</dd></div>
-        <div><dt>Dialogue</dt><dd>507 words across 4 scenes</dd></div>
+        <div><dt>Dialogue</dt><dd>600 words across 4 scenes</dd></div>
         <div><dt>Branches</dt><dd>6 choices, 3 behind a stat gate</dd></div>
-        <div><dt>Load</dt><dd>18 <span class="mute">(6 &times; 3 axes)</span></dd></div>
+        <div><dt>Load</dt><dd>24 <span class="mute">(6 &times; 4 axes)</span></dd></div>
       </dl>
-      <div class="meter" title="authoring load 18 of ~110">
-        <span style="width:22%" class="ok"></span>
+      <div class="meter" title="authoring load 24 of ~110">
+        <span style="width:28%" class="ok"></span>
       </div>
-      <p class="axes">Varies on: <code>build</code> <code>flags</code> <code>items</code>
+      <p class="axes">Varies on: <code>build</code> <code>flags</code> <code>items</code> <code>purse</code>
         &middot; <span class="mute">Well inside hand-authored territory.</span></p>
       <details><summary>What they pay</summary>
         <div class="scroll"><table class="pay"><thead><tr><th>flow</th><th>base</th>
@@ -550,34 +550,44 @@ this cannot drift from what actually plays. Regenerate with <code>node tools/bib
      <td class="num">$63.40</td>
      <td class="num">1</td>
      <td class="num">$113.40</td>
-     <td><span class="pill ok">clears</span></td></tr><tr class=""><th>Money 60</th>
+     <td><span class="pill ok">clears</span>
+         </td></tr><tr class=""><th>Money 60</th>
      <td class="num">60 / 20 / 20</td>
      <td class="num">$76.00</td>
      <td class="num">0</td>
      <td class="num">$176.00</td>
-     <td><span class="pill ok">clears</span></td></tr><tr class=""><th>Fighting 60</th>
+     <td><span class="pill ok">clears</span>
+         </td></tr><tr class=""><th>Fighting 60</th>
      <td class="num">20 / 60 / 20</td>
      <td class="num">$52.00</td>
      <td class="num">0</td>
      <td class="num">$122.00</td>
-     <td><span class="pill ok">clears</span></td></tr><tr class=""><th>Charm 60</th>
+     <td><span class="pill ok">clears</span>
+         </td></tr><tr class=""><th>Charm 60</th>
      <td class="num">20 / 20 / 60</td>
      <td class="num">$82.00</td>
      <td class="num">0</td>
      <td class="num">$207.00</td>
-     <td><span class="pill ok">clears</span></td></tr><tr class=""><th>Money 45 / Charm 45</th>
+     <td><span class="pill ok">clears</span>
+         </td></tr><tr class=""><th>Money 45 / Charm 45</th>
      <td class="num">45 / 10 / 45</td>
      <td class="num">$84.50</td>
      <td class="num">0</td>
      <td class="num">$209.50</td>
-     <td><span class="pill ok">clears</span></td></tr><tr class=""><th>Minimum lean 38</th>
+     <td><span class="pill ok">clears</span>
+         </td></tr><tr class=""><th>Minimum lean 38</th>
      <td class="num">38 / 31 / 31</td>
      <td class="num">$73.80</td>
      <td class="num">0</td>
      <td class="num">$173.80</td>
-     <td><span class="pill ok">clears</span></td></tr></tbody></table></div>
-  <p class="lede" style="margin-top:12px">Dickie's encore is uncapped on purpose: it is the grind
-  path that guarantees no dead end. Re-run this whenever a payout changes.</p>
+     <td><span class="pill ok">clears</span>
+         </td></tr></tbody></table></div>
+  <p class="lede" style="margin-top:12px"><b style="color:var(--bone)">"Before the table" is also the
+  ceiling.</b> Dickie's take halves with every encore and he refuses to sing at all once you are
+  holding the stake, so that column is the most any build can carry without sitting down at the
+  shell game. Every figure in it is under $100.00, which is what makes Monte
+  mandatory rather than optional. The $5.00 floor is what stops a lost
+  stake becoming a dead end. Re-run this whenever a payout changes.</p>
 </section>
 
 <section id="gates">
@@ -591,7 +601,7 @@ this cannot drift from what actually plays. Regenerate with <code>node tools/bib
      <td>the good bag in one pass instead of two</td></tr><tr><th>gilPrice</th><td class="num">38</td><td>any</td>
      <td>a better price for the aloe</td></tr><tr><th>dickieSplit</th><td class="num">38</td><td>any</td>
      <td>a bigger cut of the tip jar</td></tr><tr><th>dickieEncore</th><td class="num">38</td><td>charm</td>
-     <td>+$5 on every encore</td></tr><tr><th>monteTable</th><td class="num">38</td><td>any</td>
+     <td>a bigger first encore before the decay bites</td></tr><tr><th>monteTable</th><td class="num">38</td><td>any</td>
      <td>a bigger take at the shell game</td></tr></tbody></table></div>
   <div class="stats" style="margin-top:18px">
     <div class="stat"><b>97.9%</b><span>builds clearing any gate</span></div>
@@ -637,7 +647,7 @@ this cannot drift from what actually plays. Regenerate with <code>node tools/bib
 </section>
 
 <section id="flags">
-  <h2>Flags <span>21</span></h2>
+  <h2>Flags <span>22</span></h2>
   <p class="lede">Level 1's entire persistent state. A flag with reads but no writes, or writes but
   no reads, is a bug worth chasing.</p>
   <div class="scroll"><table><thead><tr><th>flag</th><th>written</th><th>read</th></tr></thead>
@@ -646,14 +656,15 @@ this cannot drift from what actually plays. Regenerate with <code>node tools/bib
      <td class="num">2</td></tr><tr><th><code>chipGone</code></th><td class="num">1</td>
      <td class="num">4</td></tr><tr><th><code>crowdDrawn</code></th><td class="num">1</td>
      <td class="num">4</td></tr><tr><th><code>dickiePaid</code></th><td class="num">1</td>
-     <td class="num">1</td></tr><tr><th><code>finale</code></th><td class="num">1</td>
+     <td class="num">1</td></tr><tr><th><code>encores</code></th><td class="num">2</td>
+     <td class="num">4</td></tr><tr><th><code>finale</code></th><td class="num">1</td>
      <td class="num">1</td></tr><tr><th><code>gilPaid</code></th><td class="num">1</td>
      <td class="num">1</td></tr><tr><th><code>gotPremium</code></th><td class="num">2</td>
      <td class="num">2</td></tr><tr><th><code>levelDone</code></th><td class="num">1</td>
      <td class="num">1</td></tr><tr><th><code>metChip</code></th><td class="num">1</td>
      <td class="num">1</td></tr><tr><th><code>monteEnemy</code></th><td class="num">1</td>
      <td class="num">1</td></tr><tr><th><code>monteWon</code></th><td class="num">1</td>
-     <td class="num">2</td></tr><tr><th><code>pitchCount</code></th><td class="num">2</td>
+     <td class="num">3</td></tr><tr><th><code>pitchCount</code></th><td class="num">2</td>
      <td class="num">2</td></tr><tr><th><code>pitchDone</code></th><td class="num">1</td>
      <td class="num">2</td></tr><tr><th><code>quarterOnGround</code></th><td class="num">2</td>
      <td class="num">1</td></tr><tr><th><code>readingDone</code></th><td class="num">1</td>
@@ -708,15 +719,15 @@ quarter ──▶ LaRue's reading ──▶ <b>fortune card</b> ─────�
   </ul>
   <div class="scroll" style="margin-top:18px"><table><thead><tr><th>character</th><th>words</th>
   <th>branches</th><th>axes</th><th>load</th><th>read</th></tr></thead><tbody>
-  <tr><th>Monte</th><td class="num">735</td>
+  <tr><th>Dickie Vermouth</th><td class="num">600</td>
+    <td class="num">6</td>
+    <td class="num">4 <span class="mute">build flags items purse</span></td>
+    <td class="num">24</td>
+    <td><span class="pill ok">comfortable</span></td></tr><tr><th>Monte</th><td class="num">735</td>
     <td class="num">6</td>
     <td class="num">4 <span class="mute">build flags items purse</span></td>
     <td class="num">24</td>
     <td><span class="pill ok">comfortable</span></td></tr><tr><th>Gil Furnace</th><td class="num">314</td>
-    <td class="num">6</td>
-    <td class="num">3 <span class="mute">build flags items</span></td>
-    <td class="num">18</td>
-    <td><span class="pill ok">comfortable</span></td></tr><tr><th>Dickie Vermouth</th><td class="num">507</td>
     <td class="num">6</td>
     <td class="num">3 <span class="mute">build flags items</span></td>
     <td class="num">18</td>

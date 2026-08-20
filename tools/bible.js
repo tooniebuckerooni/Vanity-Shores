@@ -150,12 +150,19 @@ const AXES = [
       };
       let cash = m * E.startPerMoneyPoint;
       cash += best('brendaGift') + best('gilAloe') + best('dickieSplit');
+      /* Dickie's take halves each time and he refuses once you hold the stake,
+         so this loop is also the ceiling on a purse that never sits at the table. */
       let encores = 0;
-      while(cash < E.monteStake && encores < 20){ cash += best('dickieEncore'); encores++; }
+      while(cash < E.monteStake && encores < 200){
+        cash += Math.max(E.encoreFloor,
+                Math.round(best('dickieEncore') * Math.pow(E.encoreDecay, encores) / 25) * 25);
+        encores++;
+      }
       const before = cash;
       cash -= E.monteStake;
       cash += best('monteWin');
-      return { before, encores, final: cash, passes: cash >= E.winLine };
+      return { before, encores, final: cash, passes: cash >= E.winLine,
+               mustPlay: before < E.winLine };
     };
     const builds = { 'Even 34/33/33':[34,33,33], 'Money 60':[60,20,20],
                      'Fighting 60':[20,60,20], 'Charm 60':[20,20,60],
@@ -316,7 +323,8 @@ function render(D, load, flags){
      <td class="num">${cash(b.before)}</td>
      <td class="num">${b.encores}</td>
      <td class="num">${cash(b.final)}</td>
-     <td>${b.passes ? '<span class="pill ok">clears</span>' : '<span class="pill crit">stuck</span>'}</td></tr>`).join('');
+     <td>${b.passes ? '<span class="pill ok">clears</span>' : '<span class="pill crit">stuck</span>'}
+         ${b.mustPlay ? '' : '<span class="pill crit">skips Monte</span>'}</td></tr>`).join('');
 
   const gateRows = Object.entries(D.gates).map(([k,g]) =>
     `<tr><th>${esc(k)}</th><td class="num">${g.need}</td><td>${esc(g.stat)}</td>
@@ -532,8 +540,12 @@ this cannot drift from what actually plays. Regenerate with <code>node tools/bib
   <h3 style="font-family:var(--ui);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin:26px 0 8px">Balance check — every build, best available route</h3>
   <div class="scroll"><table><thead><tr><th>build</th><th>M / F / C</th><th>before the table</th>
   <th>encores needed</th><th>finishes</th><th></th></tr></thead><tbody>${balRows}</tbody></table></div>
-  <p class="lede" style="margin-top:12px">Dickie's encore is uncapped on purpose: it is the grind
-  path that guarantees no dead end. Re-run this whenever a payout changes.</p>
+  <p class="lede" style="margin-top:12px"><b style="color:var(--bone)">"Before the table" is also the
+  ceiling.</b> Dickie's take halves with every encore and he refuses to sing at all once you are
+  holding the stake, so that column is the most any build can carry without sitting down at the
+  shell game. Every figure in it is under ${cash(D.economy.winLine)}, which is what makes Monte
+  mandatory rather than optional. The ${cash(D.economy.encoreFloor)} floor is what stops a lost
+  stake becoming a dead end. Re-run this whenever a payout changes.</p>
 </section>
 
 <section id="gates">
