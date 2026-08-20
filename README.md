@@ -56,4 +56,5 @@ docs/BUILD-STATE.md     architecture notes + what to build next
 
 Click a verb (LOOK / TALK / USE / TAKE), then click the world. Click an inventory
 item to pick it up for USE, then click a target. Keys `1`–`4` switch verbs, space
-advances dialogue, `Esc` clears a held item.
+advances dialogue, `Esc` clears a held item, and `M` / `N` toggle music and sound
+effects (also the two icons at the top right of the status bar).

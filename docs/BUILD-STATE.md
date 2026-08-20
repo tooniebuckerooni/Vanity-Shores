@@ -36,6 +36,28 @@ the same file runs from a local `file://`, a static host, or an itch.io upload.
 every draw helper, which is how rooms bake to offscreen canvases. Don't turn `g`
 back into a `const`.
 
+**Art resolution and type resolution are deliberately different.** The world is
+authored in a 320x200 logical space — that is the pixel art, and it should stay
+that way. `SC` is how many real pixels each logical pixel gets on the main canvas
+(2-4, chosen by `fitScreen`); the frame loop sets `setTransform(SC,0,0,SC,0,0)` so
+every existing 320-space coordinate still works untouched. `TXSC` is the same
+factor applied to *text*: `textCanvas` bakes glyphs at `fontSize * TXSC` and
+`text()` draws them back down into logical space, so type carries SC times the
+detail while rects and sprites stay chunky. `withTarget` forces `TXSC = 1` during
+offscreen bakes, which is why painted signs inside the scenery stay lo-fi pixel art
+and only the interface gets the sharp treatment. `textW` returns **logical** width.
+If you change `SC`, clear `_tcache` — the baked glyphs are resolution-specific.
+
+**Sprites are composited, not drawn straight to screen.** `drawPerson` renders into
+a scratch buffer, derives a dark keyline from the buffer's alpha (`source-in` fill,
+stamped at four offsets), then draws the sprite over it. That outline is what stops
+a figure reading as a stack of boxes against a busy backdrop, and it is why
+`drawPersonRaw` can use `clearRect` to notch shoulders and jaw — cleared pixels
+change the silhouette the keyline follows. The ground shadow is drawn *outside* the
+buffer on purpose, so the outline doesn't trace it. `o.pose` ('crossed', 'hold',
+'pocket', 'stiff') changes the arms and is most of what distinguishes one
+character from another at this size.
+
 **Rooms are two layers.** `ROOMART[id].bake()` draws everything static, once, into
 an offscreen canvas cached in `_baked`. `ROOMART[id].live(t)` draws per frame —
 animation and anything state-dependent (the FREE GIFT sign is in `live` precisely
@@ -100,6 +122,14 @@ intended trade.
   later level.
 - **Adaptive score** responds to stat lean and scene. The blend-meter axis has no
   input yet because the blend meter unlocks at Level 4.
+
+The music runs an eight-bar progression (Am F C G / Am F Dm E) under a four-section
+cycle — statement, melody, breathe, push — that advances every time round the loop
+and re-mixes the stems. Arp patterns rotate from a table, the lead plays an actual
+eight-bar phrase rather than a stab, and bar 8 takes a drum fill. Music and sound
+effects sit on separate gain nodes (`musicGain`, `sfxGain`), toggled from the two
+icons at the top right of the status bar, the buttons under the cabinet, or the
+`M` / `N` keys.
 - **Love interests, blend meter, paywall, rivals Duke and Roxy** are Act 2+ and
   deliberately absent.
 
