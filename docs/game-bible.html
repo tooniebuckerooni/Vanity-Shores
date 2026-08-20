@@ -124,7 +124,7 @@ footer{border-top:1px solid var(--edge); padding-top:16px; color:var(--dim); fon
 <div class="wrap">
 <nav class="side">
   <div class="brand">Vanity Shores<b>Act 1 · Level 1</b></div>
-  <ol><li><a href="#glance">At a glance</a></li><li><a href="#cast">Characters</a></li><li><a href="#places">Locations</a></li><li><a href="#items">Items</a></li><li><a href="#economy">Economy</a></li><li><a href="#gates">Gates & odds</a></li><li><a href="#intrigue">Intrigue</a></li><li><a href="#deaths">Deaths</a></li><li><a href="#flags">Flags</a></li><li><a href="#chain">Progression</a></li><li><a href="#ai">When to reach for AI</a></li></ol>
+  <ol><li><a href="#glance">At a glance</a></li><li><a href="#cast">Characters</a></li><li><a href="#places">Locations</a></li><li><a href="#items">Items</a></li><li><a href="#economy">Economy</a></li><li><a href="#gates">Gates & odds</a></li><li><a href="#intrigue">Intrigue</a></li><li><a href="#secrets">Secrets</a></li><li><a href="#deaths">Deaths</a></li><li><a href="#flags">Flags</a></li><li><a href="#chain">Progression</a></li><li><a href="#ai">When to reach for AI</a></li></ol>
 </nav>
 
 <main>
@@ -138,7 +138,7 @@ this cannot drift from what actually plays. Regenerate with <code>node tools/bib
   <div class="stats">
     <div class="stat"><b>4</b><span>locations</span></div>
     <div class="stat"><b>6</b><span>speaking cast</span></div>
-    <div class="stat"><b>31</b><span>hotspots</span></div>
+    <div class="stat"><b>32</b><span>hotspots</span></div>
     <div class="stat"><b>8</b><span>items</span></div>
     <div class="stat"><b>3,730</b><span>words spoken</span></div>
     <div class="stat"><b>4</b><span>ways to die</span></div>
@@ -436,7 +436,7 @@ this cannot drift from what actually plays. Regenerate with <code>node tools/bib
         <div><dt>Walkable</dt><dd>x 14&ndash;306, y 132&ndash;168</dd></div>
         <div><dt>Entry</dt><dd>40, 150</dd></div>
         <div><dt>Standing here</dt><dd>dickie, zsazsa, r1, r2</dd></div>
-        <div><dt>Hotspots</dt><dd>7</dd></div>
+        <div><dt>Hotspots</dt><dd>8</dd></div>
       </dl>
       <details><summary>Every hotspot</summary>
         <div class="scroll"><table><thead><tr><th>what</th><th>verbs</th>
@@ -460,6 +460,11 @@ this cannot drift from what actually plays. Regenerate with <code>node tools/bib
         <td><span class="tag">look</span></td>
         <td class="num">222, 74, 92, 62</td>
         <td></td>
+      </tr><tr>
+        <th>the FREE GIFT sign</th>
+        <td><span class="tag">look</span> <span class="tag">use</span> <span class="tag">take</span></td>
+        <td class="num">96, 112, 20, 26</td>
+        <td>conditional &middot; pri 3</td>
       </tr><tr>
         <th>the crate</th>
         <td><span class="tag">look</span> <span class="tag">take</span></td>
@@ -630,8 +635,31 @@ this cannot drift from what actually plays. Regenerate with <code>node tools/bib
         <li><b>Brenda</b> — charm route +20, money route +12, sitting through the pitch twice +8,
           handing back the coupon +4.</li>
         <li><b>Fighting earns wariness, not heat.</b> That is a real build difference, not an
-          oversight.</li>
+          oversight — and it is what locks a muscle build out of the secret.</li>
+        <li><b>Heat gates content.</b> 18+ with Brenda, and no earlier intimidation,
+          opens what is behind the booth.</li>
       </ul></div>
+  </div>
+</section>
+
+<section id="secrets">
+  <h2>Secrets <span>1</span></h2>
+  <p class="lede">Nothing points at these. They are for the player who goes back to a place the
+  puzzle has finished with, carrying something nobody asked them to carry. Payoffs happen in a
+  <b style="color:var(--bone)">cutaway</b> — a framed vignette and a caption — because off-screen
+  is funnier, cheaper to animate, and keeps the game shippable anywhere.</p>
+  <div class="grid two">
+  
+    <article class="card"><header><h3>Behind the unit</h3>
+      <span class="pill warn">hidden</span></header>
+      <dl class="facts">
+        <div><dt>Where</dt><dd>the timeshare booth, boardwalk</dd></div>
+        <div><dt>Needs</dt><dd>Bring back the FREE GIFT sign after the bandshell show — Brenda has to like you already (heat 18+), and intimidating her earlier closes it for good.</dd></div>
+        <div><dt>Payoff</dt><dd>A cutaway, and the largest single heat swing in the level.</dd></div>
+      </dl>
+      <p class="axes"><span class="mute">A build that muscled its way through Act 1 cannot reach
+      this at all. That is the point of it.</span></p>
+    </article>
   </div>
 </section>
 
@@ -647,15 +675,15 @@ this cannot drift from what actually plays. Regenerate with <code>node tools/bib
 </section>
 
 <section id="flags">
-  <h2>Flags <span>22</span></h2>
+  <h2>Flags <span>23</span></h2>
   <p class="lede">Level 1's entire persistent state. A flag with reads but no writes, or writes but
   no reads, is a bug worth chasing.</p>
   <div class="scroll"><table><thead><tr><th>flag</th><th>written</th><th>read</th></tr></thead>
   <tbody><tr><th><code>arrived</code></th><td class="num">1</td>
      <td class="num">1</td></tr><tr><th><code>brendaWary</code></th><td class="num">1</td>
-     <td class="num">2</td></tr><tr><th><code>chipGone</code></th><td class="num">1</td>
+     <td class="num">3</td></tr><tr><th><code>chipGone</code></th><td class="num">1</td>
      <td class="num">4</td></tr><tr><th><code>crowdDrawn</code></th><td class="num">1</td>
-     <td class="num">4</td></tr><tr><th><code>dickiePaid</code></th><td class="num">1</td>
+     <td class="num">5</td></tr><tr><th><code>dickiePaid</code></th><td class="num">1</td>
      <td class="num">1</td></tr><tr><th><code>encores</code></th><td class="num">2</td>
      <td class="num">4</td></tr><tr><th><code>finale</code></th><td class="num">1</td>
      <td class="num">1</td></tr><tr><th><code>gilPaid</code></th><td class="num">1</td>
@@ -671,6 +699,7 @@ this cannot drift from what actually plays. Regenerate with <code>node tools/bib
      <td class="num">2</td></tr><tr><th><code>sawPier</code></th><td class="num">1</td>
      <td class="num">1</td></tr><tr><th><code>sawStrip</code></th><td class="num">1</td>
      <td class="num">1</td></tr><tr><th><code>sawUnder</code></th><td class="num">1</td>
+     <td class="num">1</td></tr><tr><th><code>signReturned</code></th><td class="num">3</td>
      <td class="num">1</td></tr><tr><th><code>signTaken</code></th><td class="num">1</td>
      <td class="num">2</td></tr><tr><th><code>stake</code></th><td class="num">1</td>
      <td class="num">2</td></tr></tbody></table></div>

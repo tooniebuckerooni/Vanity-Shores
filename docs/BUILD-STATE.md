@@ -131,6 +131,23 @@ optional repeat dialogue from a capped list so heat cannot be farmed by clicking
 the same person forever. Fighting routes deliberately earn wariness instead of
 heat — that is a real build difference, not an oversight.
 
+**Payoffs happen off-screen, in a cutaway.** `cutaway(paint, pages, then)` takes
+over the screen with a framed vignette and captions, then hands control back.
+This is the grammar the genre actually runs on, and it is the answer to how
+adult material gets staged here: the camera looks at the outside of the tent.
+It is funnier than showing it, it costs four pixels of animation instead of a
+sprite sheet, and it keeps the build shippable on storefronts that would
+otherwise need an age gate. When you add crude content, add it as a cutaway
+first and only reach for on-screen animation if the joke genuinely needs it.
+
+**Secrets are for players who go back.** `SECRETS` registers them, `GS.secrets`
+records them, and the curtain counts them. The rule that makes one worth finding:
+it must use an object the puzzle has already finished with, in a place the puzzle
+has already left, and it must be closed off to somebody. Brenda's requires
+retrieving the FREE GIFT sign from the bandshell after the show and handing it
+back — and a muscle build that intimidated her in the pitch can never open it,
+which is the point. Heat is what gates it, so the intrigue track now has teeth.
+
 **Set flags when they are earned, not in a `then` callback.** A `then` fires on
 dismissal; if the message is replaced by a room transition first, the flag never
 lands. `brendaWary` had this bug.

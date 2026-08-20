@@ -1456,7 +1456,7 @@ const GS = {
   stats:{ money:34, fight:33, charm:33 },
   cash:0,                                     // cents
   room:'boardwalk',
-  inv:[], flags:{}, heat:{}, verb:'look', sel:null,
+  inv:[], flags:{}, heat:{}, secrets:{}, cut:null, verb:'look', sel:null,
   player:{ x:60, y:150, tx:60, ty:150, walking:false, phase:0 },
   msg:null, invOpen:false, deaths:0, hustleTries:0
 };
@@ -1464,13 +1464,14 @@ const GS = {
 function saveGame(){
   try{ localStorage.setItem(SAVE_KEY, JSON.stringify({
     name:GS.name, look:GS.look, stats:GS.stats, cash:GS.cash, room:GS.room,
-    inv:GS.inv, flags:GS.flags, heat:GS.heat, deaths:GS.deaths, v:1 })); }catch(e){}
+    inv:GS.inv, flags:GS.flags, heat:GS.heat, secrets:GS.secrets, deaths:GS.deaths, v:1 })); }catch(e){}
 }
 function loadGame(){
   try{ const s = JSON.parse(localStorage.getItem(SAVE_KEY)||'null');
     if(s && s.v===1 && s.name){ Object.assign(GS, {
       name:s.name, look:s.look, stats:s.stats, cash:s.cash, room:s.room,
-      inv:s.inv||[], flags:s.flags||{}, heat:s.heat||{}, deaths:s.deaths||0 }); return true; }
+      inv:s.inv||[], flags:s.flags||{}, heat:s.heat||{}, secrets:s.secrets||{},
+      deaths:s.deaths||0 }); return true; }
   }catch(e){}
   return false;
 }
@@ -1873,6 +1874,46 @@ const CAST = {
 };
 const sayAs = (who, pages, opts) => say(pages, Object.assign({ speaker:CAST[who].name, look:CAST[who] }, opts||{}));
 
+/* ---------------------------------------------------------------------------
+   CUTAWAY.
+   The grammar this genre actually runs on: the payoff happens off-screen and
+   the camera looks at something else. It is funnier than showing it, it keeps
+   the game shippable anywhere, and it costs four pixels of animation instead of
+   a sprite sheet. A cutaway is a framed vignette plus captions; click through.
+   --------------------------------------------------------------------------- */
+function cutaway(paint, pages, then){
+  GS.cut = { paint, pages, i:0, then, t0:clock };
+  GS.msg = null; GS.scene = 'cutaway';
+  Audio_.scene('win');
+}
+function drawCutaway(t){
+  r(0, 0, W, 200, '#08040e');
+  const bx = 80, by = 18, bw = 160, bh = 82;
+  g.save();
+  g.beginPath(); g.rect(bx, by, bw, bh); g.clip();
+  GS.cut.paint(bx, by, bw, bh, t);
+  g.restore();
+  r(bx-1, by-1, bw+2, 1, P.hot);   r(bx-1, by+bh, bw+2, 1, P.hot);
+  r(bx-1, by-1, 1, bh+2, P.hot);   r(bx+bw, by-1, 1, bh+2, P.hot);
+  g.globalAlpha = .5;
+  r(bx-3, by-3, bw+6, 1, '#5a2a72'); r(bx-3, by+bh+2, bw+6, 1, '#5a2a72');
+  g.globalAlpha = 1;
+
+  const lines = wrap(GS.cut.pages[GS.cut.i], FONT.dlg, 292);
+  const lh = lines.length > 4 ? 11 : 13;                  // whatever the font does
+  let ty = 172 - lines.length*lh;
+  for(const ln of lines){ textC(ln, 160, ty, P.bone, FONT.dlg); ty += lh; }
+  if(Math.floor(t/500)%2 === 0)
+    textC(GS.cut.i < GS.cut.pages.length-1 ? 'MORE' : 'CLICK TO GO BACK',
+          160, 186, '#6b4d8a', FONT.sm);
+}
+function advanceCutaway(){
+  const c = GS.cut;
+  if(c.i < c.pages.length-1){ c.i++; Audio_.sfx('click'); return; }
+  GS.cut = null; GS.scene = 'play'; Audio_.scene('play');
+  if(c.then) c.then();
+}
+
 /* ---------- 5b. transitions & deaths ------------------------------------- */
 let fade = 0, fadeDir = 0, fadeThen = null;
 function transition(fn){ fadeDir = 1; fadeThen = fn; }
@@ -2026,7 +2067,20 @@ boardwalk:{
         'She has not taken the jacket off once all day. That is not stubbornness. That is a woman '+
         'who knows precisely what the jacket is doing and has priced the heat into it.']),
       talk:()=>brendaTalk(),
-      useItem:(it)=>{ if(it==='coupon'){ addHeat('brenda', 4);
+      useItem:(it)=>{
+        if(it==='sign'){
+          if(GS.flags.brendaWary){
+            drop('sign'); GS.flags.signReturned = true;
+            sayAs('brenda',['She takes the sign out of your hands without a word and puts it back '+
+              'on its stake.','"Do not come to this table again."']); return true; }
+          if(heatOf('brenda') < BRENDA_SECRET_HEAT){
+            drop('sign'); GS.flags.signReturned = true;
+            sayAs('brenda',['"...Huh. It came back."',
+              'She sets it on its stake, squares it off, and looks at you for a second longer than '+
+              'the transaction needs.','"Most things down here do not."']); return true; }
+          brendaSecret(); return true;
+        }
+        if(it==='coupon'){ addHeat('brenda', 4);
         sayAs('brenda',['That coupon is redeemable at any participating Shoreline property. There '+
           'are no participating Shoreline properties. That is not a lie, it is a *structure*.',
           'She is enjoying explaining this to you. She is aware that she is enjoying it.']);
@@ -2119,6 +2173,16 @@ pier:{
     { id:'tent', name:'the fortune tent', x:222, y:74, w:92, h:62, approach:[236,158],
       look:()=>narrate('"PALMS READ — $.25." Hand-painted, and the twenty-five has been painted over '+
         'something larger. Business is not what it was.') },
+
+    { id:'plantedsign', pri:3, name:'the FREE GIFT sign', x:96, y:112, w:20, h:26,
+      approach:[104,146],
+      hidden:()=>!GS.flags.crowdDrawn || has('sign') || GS.flags.signReturned,
+      look:()=>narrate('Still on its stake at the mouth of the bandshell, doing the only job it '+
+        'has ever had. Dickie has stopped needing it. It is, technically, still stolen.'),
+      take:()=>{ give('sign');
+        narrate(['You lift the sign off its stake for the second time today.',
+          'Nobody in the thinning crowd looks up. A sign that has already worked is invisible.']); },
+      use:()=>narrate('It is already working. The question is what else it could be worth.') },
 
     { id:'crate', name:'the crate', x:118, y:118, w:44, h:12, approach:[140,144],
       look:()=>narrate('An empty crate stencilled SHORELINE RESIDENCES. Whatever was in it is now '+
@@ -2478,6 +2542,90 @@ function takeSign(){
     'you. Nobody ever stops a person carrying something confidently.',
     'You are now in possession of two feet of laminated hot pink that promises something for '+
     'nothing. In this town that is not a sign. That is a crowd, folded up.'], { then:saveGame });
+}
+
+/* ---------------------------------------------------------------------------
+   SECRETS.
+   Nothing points at these. They are for the player who goes back to a place
+   the puzzle is finished with, carrying something they were not asked to carry.
+   --------------------------------------------------------------------------- */
+const SECRETS = {
+  brenda: { name:'Behind the unit',
+            where:'the timeshare booth, boardwalk',
+            needs:'Bring back the FREE GIFT sign after the bandshell show — Brenda has to '+
+                  'like you already (heat 18+), and intimidating her earlier closes it for good.',
+            payoff:'A cutaway, and the largest single heat swing in the level.' }
+};
+const SECRET_COUNT = Object.keys(SECRETS).length;
+function foundSecret(id){ GS.secrets[id] = true; saveGame(); }
+const secretsFound = () => Object.keys(GS.secrets).length;
+
+/* The FREE GIFT sign is the object the whole level runs on: you steal it from
+   Brenda, it buys you a crowd, and if you think to go back to the pier and
+   collect it afterwards you can hand it back to the woman you took it from.
+   She has to already like you. Intimidating her earlier closes this off. */
+const BRENDA_SECRET_HEAT = 18;
+
+function paintBoothBack(bx, by, bw, bh, t){
+  const grd = g.createLinearGradient(0, by, 0, by+bh);
+  grd.addColorStop(0, '#3d2255'); grd.addColorStop(1, '#7a4a6a');
+  g.fillStyle = grd; g.fillRect(bx, by, bw, bh);
+  r(bx, by+bh-26, bw, 26, P.wood2);                       // the boardwalk behind
+  for(let x = bx; x < bx+bw; x += 9) r(x, by+bh-26, 1, 26, P.wood3);
+  railing(bx, bx+bw, by+bh-34);
+
+  const cx = bx + bw/2;
+  r(cx-34, by+18, 68, 50, '#e8dcc4');                     // the back of the canopy
+  r(cx-34, by+18, 68, 3, '#d0c4ac');
+  r(cx-38, by+13, 76, 6, P.surf);
+  textC('SHORELINE', cx, by+13, '#0a3c44', FONT.sm);
+  r(cx-34, by+66, 68, 2, '#b8ac94');
+
+  /* a structural event, entirely in the canvas wall */
+  const wob = REDUCED ? 0 : Math.sin(t/170) * 3;
+  const bul = REDUCED ? 4 : 4 + Math.sin(t/170) * 2.5;
+  g.fillStyle = '#f2e8d4';
+  g.beginPath();
+  g.ellipse(cx + wob, by+42, 13 + bul, 15, 0, 0, Math.PI*2);
+  g.fill();
+  g.fillStyle = '#d8ccb4';
+  g.beginPath(); g.ellipse(cx + wob + 5, by+46, 7, 9, 0, 0, Math.PI*2); g.fill();
+
+  r(cx+26, by+40, 14, 22, P.gold);                        // the sign, propped up
+  r(cx+27, by+41, 12, 20, '#c41d68');
+  textC('FREE', cx+33, by+42, P.bone, FONT.sm);
+  textC('GIFT', cx+33, by+50, P.bone, FONT.sm);
+
+  const gx = bx + 18, gy = by + bh - 38;                  // one witness
+  const turn = Math.floor(t/900) % 2;
+  r(gx, gy, 4, 3, P.bone); r(gx + (turn?3:-1), gy-1, 2, 2, P.bone);
+  px(gx + (turn?4:-1), gy-1, P.gold);
+  r(gx+1, gy+3, 1, 2, P.gold);
+}
+
+function brendaSecret(){
+  drop('sign'); GS.flags.signReturned = true; foundSecret('brenda');
+  addHeat('brenda', 25);
+  sayAs('brenda', ['You hand back the FREE GIFT sign.',
+    'She looks at it. She looks at the bandshell, four hundred yards down the pier, where it has '+
+    'obviously been. She looks at you.',
+    '"You took my sign," she says, "you built a *crowd* with it, you took a cut off the top, and '+
+    'then you brought it back."',
+    'She puts it under the table without breaking eye contact.',
+    '"It is four-forty," Brenda says. "I work until seven."',
+    '"I am going to take a fifteen-minute break. Behind the unit. Structurally the back wall is '+
+    'the weakest part of the whole product and I have never once cared until today."'],
+    { then:()=>cutaway(paintBoothBack, [
+      'Brenda closes the Shoreline pop-up at four-forty, which is not seven, and which she does '+
+      'not explain to anybody.',
+      'From the boardwalk, the canopy appears to be having some kind of structural event.',
+      'A seagull watches the whole thing without blinking. Seagulls in this town have seen worse.',
+      'Fifteen minutes later the booth reopens. The FREE GIFT sign is back on its stake facing '+
+      'the wrong way, and nobody fixes it all afternoon.'],
+      ()=>sayAs('brenda', ['"Shoreline Residences," she says, to the four-thirty crowd, in exactly '+
+        'the voice she was using before. "Ninety seconds and a free gift."',
+        'She does not look over. Her lipstick is a different shape and she has not noticed yet.',
+        '"Come back when you have real money," she says, to you, without turning round.'])) });
 }
 
 /* ---- Madame LaRue: the boardwalk psychic ------------------------------- */
@@ -3041,6 +3189,8 @@ function routeNotes(){
     const tier = heatTier(heatOf(who));
     if(tier) n.push(CAST[who].name + ' ' + tier + '.');
   }
+  if(secretsFound())
+    n.push('Found ' + secretsFound() + ' of ' + SECRET_COUNT + ' things nobody mentioned.');
   if(GS.deaths) n.push('Died ' + GS.deaths + (GS.deaths===1?' time. It happens.':' times. Enthusiastically.'));
   return n;
 }
@@ -3126,6 +3276,7 @@ function handleClick(p){
     case 'drive':  Audio_.sfx('click'); startLevelCard(); return;
     case 'levelcard': if(cardT>700){ Audio_.sfx('click'); enterPlay(); } return;
     case 'death': Audio_.sfx('click'); reviveFromDeath(); return;
+    case 'cutaway': advanceCutaway(); return;
     case 'complete': {
       const bq = {x:106,y:180,w:108,h:15};
       if(inRect(p,bq)){ Audio_.sfx('click'); wipeSave(); location.reload(); } return; }
@@ -3269,6 +3420,7 @@ function frame(now){
     case 'levelcard': drawCard(now); break;
     case 'complete':  drawComplete(now); break;
     case 'death':     drawDeath(now); break;
+    case 'cutaway':   drawCutaway(now); break;
     default:          drawRoom(now);
   }
   if(fadeDir){                                    // room-to-room wipe

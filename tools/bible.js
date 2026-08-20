@@ -180,6 +180,7 @@ const AXES = [
       if(m >= G) per.money++; if(f >= G) per.fight++; if(c >= G) per.charm++;
     }
     return { rooms, cast, items, deaths, economy:ECONOMY, gates:GATES, GATE,
+             secrets:SECRETS, secretHeat:BRENDA_SECRET_HEAT,
              heatTiers:HEAT_TIERS, balance,
              coverage:{ total, anyGate, per },
              traits:{ hair:TRAITS.hair.length, hairC:TRAITS.hairC.length,
@@ -246,8 +247,8 @@ function render(D, load, flags){
 
   const nav = [['glance','At a glance'],['cast','Characters'],['places','Locations'],
                ['items','Items'],['economy','Economy'],['gates','Gates & odds'],
-               ['intrigue','Intrigue'],['deaths','Deaths'],['flags','Flags'],
-               ['chain','Progression'],['ai','When to reach for AI']];
+               ['intrigue','Intrigue'],['secrets','Secrets'],['deaths','Deaths'],
+               ['flags','Flags'],['chain','Progression'],['ai','When to reach for AI']];
 
   const bandClass = b => b === 'comfortable' ? 'ok' : b === 'watch' ? 'warn' : 'crit';
   const bandPct   = l => Math.min(100, Math.round((l.score / 110) * 100) + 6);
@@ -582,8 +583,31 @@ this cannot drift from what actually plays. Regenerate with <code>node tools/bib
         <li><b>Brenda</b> — charm route +20, money route +12, sitting through the pitch twice +8,
           handing back the coupon +4.</li>
         <li><b>Fighting earns wariness, not heat.</b> That is a real build difference, not an
-          oversight.</li>
+          oversight — and it is what locks a muscle build out of the secret.</li>
+        <li><b>Heat gates content.</b> ${D.secretHeat}+ with Brenda, and no earlier intimidation,
+          opens what is behind the booth.</li>
       </ul></div>
+  </div>
+</section>
+
+<section id="secrets">
+  <h2>Secrets <span>${Object.keys(D.secrets).length}</span></h2>
+  <p class="lede">Nothing points at these. They are for the player who goes back to a place the
+  puzzle has finished with, carrying something nobody asked them to carry. Payoffs happen in a
+  <b style="color:var(--bone)">cutaway</b> — a framed vignette and a caption — because off-screen
+  is funnier, cheaper to animate, and keeps the game shippable anywhere.</p>
+  <div class="grid two">
+  ${Object.entries(D.secrets).map(([k,x]) => `
+    <article class="card"><header><h3>${esc(x.name)}</h3>
+      <span class="pill warn">hidden</span></header>
+      <dl class="facts">
+        <div><dt>Where</dt><dd>${esc(x.where)}</dd></div>
+        <div><dt>Needs</dt><dd>${esc(x.needs)}</dd></div>
+        <div><dt>Payoff</dt><dd>${esc(x.payoff)}</dd></div>
+      </dl>
+      <p class="axes"><span class="mute">A build that muscled its way through Act 1 cannot reach
+      this at all. That is the point of it.</span></p>
+    </article>`).join('')}
   </div>
 </section>
 
