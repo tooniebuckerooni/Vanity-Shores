@@ -100,7 +100,8 @@ Brenda's pitch ──▶ aloe  (4 routes: charm / money / fighting / sit through
 quarter ──▶ LaRue's reading ──▶ fortune card (the tell) ────────────┤
                                                                     ▼
                                               Monte's shell game — $50 to sit
-                                              with the tell: win $120–175 by build
+                                              with the tell: $100 for anyone, or
+                                              $120/$150/$175 by build
                                               without it: lose the $50 (soft fail,
                                               grind Dickie encores at $15–20)
                                                                     │
@@ -114,6 +115,23 @@ has a grind path back, so the player is never stuck.
 Stat gate is `GATE = 38`. With 100 points across three stats, that's reachable by
 anyone who leans at all, and unreachable for a flat 33/33/33 spread — which is the
 intended trade.
+
+That trade has one hard rule attached: **no gate may be the only route past a
+progress-critical beat.** An even split clears no gate anywhere, so every required
+beat needs an ungated path or the level is unwinnable for that build. Monte's table
+violated this at first — the win options were all gated — which left an even split
+unable to beat the shells at all. The ungated "watch only his left hand" option
+($100 flat, versus $120/$150/$175 by lean) fixes it. Verified income by build:
+
+| build | before the table | encores needed | finishes |
+|---|---|---|---|
+| 34/33/33 | $63.40 | 1 | $113.40 |
+| money 60 | $76.00 | 0 | $176.00 |
+| fight 60 | $52.00 | 0 | $122.00 |
+| charm 60 | $82.00 | 0 | $207.00 |
+
+Re-run that arithmetic whenever a payout changes. Dickie's encore is uncapped on
+purpose: it is the grind path that guarantees no dead end.
 
 ## Where the design doc is only partly served
 

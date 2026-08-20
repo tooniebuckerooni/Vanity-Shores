@@ -2179,6 +2179,7 @@ function monteTalk(){
       fn:()=>monteWin('money') });
     if(S().fight >= GATE) opts.push({ text:'Play — then take hold of his left wrist.', tag:'FIGHTING',
       fn:()=>monteWin('fight') });
+    opts.push({ text:'Play — and watch only his left hand.', fn:()=>monteWin('plain') });
   }
   opts.push({ text:'Put fifty down. Follow the shells.', fn:monteLose });
   opts.push({ text:'Walk away.', fn:()=>narrate('You walk away from the table, which is the single '+
@@ -2219,6 +2220,14 @@ function monteWin(kind){
       'you sat down, which means the only real question was how much to make it worth.',
       'You lose the first two on purpose, small, and let him raise you. Then you take the third at '+
       'three to one and stand up while he is still working out when it started.'] },
+    plain:{ take:10000, lines:[
+      'You put fifty down and you do not watch the shells at all. You watch his left hand, the '+
+      'way the card told you to, and you keep watching it while every other person at this table '+
+      'watches the walnut shells dance.',
+      'It is not clever. It is just the one piece of information nobody else at the table paid '+
+      'twenty-five cents for.',
+      'You take it on the third pass, quietly, and you do not make a face about it. Monte pays '+
+      'without a word and looks at you for slightly too long.'] },
     fight:{ take:12000, lines:[
       'You put fifty down, let him run one clean shuffle, and then you reach across the felt and '+
       'take hold of his left wrist.',
