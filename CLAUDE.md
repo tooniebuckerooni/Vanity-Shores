@@ -14,7 +14,10 @@ every sprite, backdrop, portrait and note is generated in code at runtime.
    and flag, **generated from the shipping game** by `node tools/bible.js`.
    Never hand-edit it; regenerate after any change to a location, character,
    payout or gate.
-3. `docs/design-handoff.md` — the original design document. Internal.
+3. **`docs/art-and-arc.html`** — authored, not generated: the commissioning
+   briefs for the entry images, the Act 2 climax plan, and which love
+   interests actually pay off. Read it before writing any Act 2 content.
+4. `docs/design-handoff.md` — the original design document. Internal.
 
 ## The rules that are easy to break
 

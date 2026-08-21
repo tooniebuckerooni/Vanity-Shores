@@ -1,15 +1,25 @@
-# Publishes the game to GitHub Pages and tags every successful deploy, so there
-# is always a known-good build to hand a tester — or to go back to.
+# Guards every push, and publishes to GitHub Pages from the default branch.
 #
 #   game   ->  https://tooniebuckerooni.github.io/Vanity-Shores/
 #   bible  ->  https://tooniebuckerooni.github.io/Vanity-Shores/docs/game-bible.html
 #
-# One-time setup: repo Settings -> Pages -> Source: "GitHub Actions".
+# ONE ONE-TIME SWITCH, in the repo's web settings:
+#
+#   Settings -> Pages -> Source: "GitHub Actions".
+#
+# It cannot be done from here. GITHUB_TOKEN is not an admin no matter what
+# permissions the workflow asks for, so enablement:true fails with "Resource
+# not accessible by integration". Somebody with admin has to click it once.
+#
+# claude/level-1-game-build-ip4kml is this repo's default branch, so the deploy
+# job runs on it and the github-pages environment's branch policy is satisfied.
+# If the default branch ever changes, the deploy follows it — but the new
+# branch may then need adding under Settings -> Environments -> github-pages.
 name: Deploy
 
 on:
   push:
-    branches: [claude/level-1-game-build-ip4kml]
+    branches: ['**']
     paths-ignore: ['**.md']
   workflow_dispatch:
     inputs:
@@ -28,7 +38,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Runs on every branch. This is the part that is allowed to fail, because a
+  # failure here means the game is actually broken.
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the game parses before shipping it to anybody
+        run: |
+          awk '/^<script>/{f=1;next} /^<\/script>/{f=0} f' index.html > /tmp/game.js
+          node --check /tmp/game.js
+          echo "index.html: $(wc -l < index.html) lines, $(wc -c < index.html) bytes"
+
+  # Only from the default branch, or by hand. Feature branches skip this rather
+  # than failing on the github-pages environment's branch policy.
   deploy:
+    needs: check
+    if: github.ref_name == github.event.repository.default_branch || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -40,17 +66,7 @@ jobs:
 
       # The game is one self-contained file with no build step, so "building"
       # is just handing the repo to Pages as-is.
-      - name: Check the game parses before shipping it to anybody
-        run: |
-          awk '/^<script>/{f=1;next} /^<\/script>/{f=0} f' index.html > /tmp/game.js
-          node --check /tmp/game.js
-          echo "index.html: $(wc -l < index.html) lines, $(wc -c < index.html) bytes"
-
-      # enablement:true turns Pages on via the API, so this needs no manual
-      # visit to repo Settings. Requires the pages:write permission above.
       - uses: actions/configure-pages@v5
-        with:
-          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: '.'

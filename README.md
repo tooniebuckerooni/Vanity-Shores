@@ -50,6 +50,7 @@ Nothing here is blocked on an image generator.
 index.html              the entire game
 tools/bible.js          generates the game bible from the shipping game
 docs/game-bible.html    every character, location, payout and gate (generated)
+docs/art-and-arc.html   art commissioning briefs + the Act 2 plan (authored)
 docs/design-handoff.md  the original design document (internal)
 docs/BUILD-STATE.md     architecture notes + what to build next
 ```

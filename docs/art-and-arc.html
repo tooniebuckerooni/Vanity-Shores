@@ -1,0 +1,442 @@
+<title>Vanity Shores Art &amp; Arc</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Silkscreen:wght@400;700&family=VT323&display=swap">
+<style>
+:root{
+  --void:#10071c; --panel:#1a0d2c; --panel2:#221237; --edge:#33204a;
+  --bone:#f0e4d4; --mute:#a08cb4; --dim:#6f5a8c;
+  --hot:#ff2e88; --surf:#21e0d6; --gold:#ffc23d; --bad:#ff5f6d; --good:#4de0a0;
+  --ui:"Silkscreen",ui-monospace,monospace;
+  --body:"Archivo",system-ui,sans-serif;
+  --game:"VT323",ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--void); color:var(--bone); font-family:var(--body);
+  font-size:16px; line-height:1.6; -webkit-font-smoothing:antialiased}
+.wrap{display:grid; grid-template-columns:210px minmax(0,1fr); gap:44px;
+  max-width:1120px; margin:0 auto; padding:40px 24px 96px}
+@media (max-width:820px){ .wrap{grid-template-columns:1fr; gap:24px} nav.side{position:static !important} }
+
+nav.side{position:sticky; top:40px; align-self:start}
+nav.side .brand{font-family:var(--ui); font-size:11px; letter-spacing:.16em;
+  color:var(--hot); text-transform:uppercase; line-height:1.7; margin-bottom:18px}
+nav.side .brand b{display:block; color:var(--bone); font-weight:400}
+nav.side ol{list-style:none; border-left:1px solid var(--edge)}
+nav.side a{display:block; padding:5px 0 5px 14px; margin-left:-1px;
+  border-left:1px solid transparent; color:var(--mute); text-decoration:none; font-size:13.5px}
+nav.side a:hover{color:var(--bone); border-left-color:var(--hot)}
+nav.side a:focus-visible{outline:2px solid var(--surf); outline-offset:2px}
+
+h1{font-family:var(--ui); font-size:24px; line-height:1.4; color:var(--bone);
+  text-wrap:balance; margin-bottom:8px}
+.sub{color:var(--mute); max-width:66ch; margin-bottom:34px}
+section{margin-bottom:52px; scroll-margin-top:24px}
+h2{font-family:var(--ui); font-size:13px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--surf); padding-bottom:8px; border-bottom:1px solid var(--edge); margin-bottom:18px}
+h2 span{color:var(--dim); float:right; letter-spacing:.1em}
+h3.sub2{font-family:var(--ui); font-size:11px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--dim); margin:26px 0 10px}
+p.lede{color:var(--mute); max-width:68ch; margin-bottom:18px}
+p.lede + p.lede{margin-top:-8px}
+
+.card{background:var(--panel); border:1px solid var(--edge); border-radius:3px;
+  padding:18px 20px; margin-bottom:16px}
+.card header{display:flex; align-items:baseline; gap:12px; margin-bottom:4px; flex-wrap:wrap}
+.card h3{font-family:var(--ui); font-size:14px; letter-spacing:.04em; color:var(--bone)}
+.card .who{color:var(--mute); font-size:13.5px; flex:1}
+.pill{font-family:var(--ui); font-size:9px; letter-spacing:.1em; text-transform:uppercase;
+  padding:3px 7px; border-radius:2px; white-space:nowrap}
+.pill.ok{background:rgba(77,224,160,.14); color:var(--good)}
+.pill.warn{background:rgba(255,194,61,.14); color:var(--gold)}
+.pill.crit{background:rgba(255,95,109,.14); color:var(--bad)}
+.pill.info{background:rgba(33,224,214,.13); color:var(--surf)}
+
+dl.facts{display:grid; gap:2px; margin:14px 0}
+dl.facts div{display:grid; grid-template-columns:96px minmax(0,1fr); gap:12px;
+  font-size:14px; padding:6px 0; border-bottom:1px solid rgba(51,32,74,.55)}
+dt{font-family:var(--ui); font-size:9px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--dim); padding-top:4px}
+dd{color:var(--bone)}
+dd em{color:var(--mute); font-style:normal}
+
+.prompt{background:#120a1e; border:1px solid var(--edge); border-left:2px solid var(--gold);
+  border-radius:2px; padding:14px 16px; margin-top:12px}
+.prompt b{display:block; font-family:var(--ui); font-size:9px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--gold); margin-bottom:8px}
+.prompt p{font-family:var(--game); font-size:17px; line-height:1.4; color:var(--bone);
+  max-width:74ch}
+.avoid{margin-top:10px; font-size:13.5px; color:var(--mute)}
+.avoid b{color:var(--bad); font-weight:600}
+
+ul.plain{list-style:none; display:grid; gap:9px; max-width:70ch}
+ul.plain li{padding-left:15px; position:relative; color:var(--mute); font-size:14.5px}
+ul.plain li::before{content:""; position:absolute; left:0; top:.62em;
+  width:5px; height:5px; background:var(--hot); border-radius:1px}
+ul.plain b{color:var(--bone); font-weight:600}
+
+.scroll{overflow-x:auto; margin-top:12px}
+table{border-collapse:collapse; width:100%; font-size:13.5px}
+th,td{text-align:left; padding:8px 14px 8px 0; border-bottom:1px solid rgba(51,32,74,.6);
+  vertical-align:top}
+thead th{font-family:var(--ui); font-size:9px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--dim); border-bottom-color:var(--edge)}
+tbody th{font-weight:600; color:var(--bone); white-space:nowrap; padding-right:18px}
+code{font-family:var(--ui); font-size:10px; letter-spacing:.04em; color:var(--surf);
+  background:var(--panel2); padding:2px 5px; border-radius:2px}
+.note{border-left:2px solid var(--hot); padding:2px 0 2px 14px; margin:16px 0;
+  color:var(--mute); font-size:14.5px; max-width:68ch}
+.note b{color:var(--bone)}
+footer{border-top:1px solid var(--edge); padding-top:16px; color:var(--dim); font-size:13px}
+</style>
+
+<div class="wrap">
+<nav class="side">
+  <div class="brand">Vanity Shores<b>Art &amp; Arc</b></div>
+  <ol>
+    <li><a href="#spec">The entry-image format</a></li>
+    <li><a href="#pops">Marv “Pops” Delgado</a></li>
+    <li><a href="#chip">Chip Winthrop</a></li>
+    <li><a href="#duke">Duke Calvera</a></li>
+    <li><a href="#roxy">Roxy Steele</a></li>
+    <li><a href="#larue">Madame LaRue</a></li>
+    <li><a href="#wildcard">The Wildcard</a></li>
+    <li><a href="#climax">The Act 2 climax</a></li>
+    <li><a href="#loves">Who actually wins</a></li>
+  </ol>
+</nav>
+
+<main>
+<h1>Entry images, the Act 2 climax, and which romances are real</h1>
+<p class="sub">This document is <b>authored</b>, not generated — the opposite of the game bible,
+which is read out of the shipping code and must never be hand-edited. Keep them separate: the
+bible’s whole value is that it cannot drift, and this one’s whole value is that it can be argued
+with.</p>
+
+<section id="spec">
+  <h2>The entry-image format</h2>
+  <p class="lede">One full-screen painted plate per major character, played once, the first time
+  the player meets them. The machinery already exists — <code>closeup()</code> takes over the
+  screen, holds, and hands control back — so dropping a finished image in is one line of code plus
+  the file.</p>
+
+  <div class="card">
+    <dl class="facts">
+      <div><dt>Canvas</dt><dd>Author at <b>1280×800</b>, deliver downsampled to <b>320×200</b>.
+        The game’s logical screen is 320×200 and scales up 3× at run time.</dd></div>
+      <div><dt>Format</dt><dd>Indexed PNG, <b>32 colours or fewer</b>, under 40 KB.
+        <em>The palette limit is not nostalgia — it is what makes a painted plate sit in the same
+        world as the procedural art instead of looking pasted on.</em></dd></div>
+      <div><dt>Delivery</dt><dd>Base64 data URI, embedded in <code>index.html</code>. The game has
+        no asset folder and should not get one — a single file is what lets it run from a local
+        file, a static host, or an itch upload with no build step.</dd></div>
+      <div><dt>Duration</dt><dd>Holds until clicked. A name card fades in at the two-second mark.</dd></div>
+      <div><dt>Safe area</dt><dd>Bottom <b>40px</b> carries the caption. Keep faces and anything
+        load-bearing above y=150.</dd></div>
+    </dl>
+    <p class="lede" style="margin:0">Six plates at ~35 KB each adds ~210 KB to a 190 KB file. That
+    is the entire cost of this decision, and it is worth it: these are the only six moments in
+    eleven levels where the game stops and looks at somebody.</p>
+  </div>
+
+  <div class="note"><b>Order to commission:</b> Pops first — he is the Level 4 gate and the moment
+  the paid game has to justify itself. Then Duke and Roxy, who carry Act 2. Chip’s flip and the
+  Wildcard come last, because both depend on how the earlier acts actually play.</div>
+</section>
+
+<section id="pops">
+  <h2>Marv “Pops” Delgado <span>commission first</span></h2>
+  <div class="card">
+    <header><h3>The Kingfisher</h3>
+      <span class="who">Dive-bar owner and fixer. Knows everyone. Appears Level 4.</span>
+      <span class="pill info">Act 2 opens here</span></header>
+    <dl class="facts">
+      <div><dt>The moment</dt><dd>The door of the Kingfisher swings shut behind you and the
+        boardwalk noise cuts out. First frame of the paid game.</dd></div>
+      <div><dt>Must say</dt><dd>This man was here before the casino and will be here after it.
+        He is not impressed, he is not warm, and he is the only person in Vanity Shores who is
+        not currently selling you something.</dd></div>
+      <div><dt>Composition</dt><dd>Low angle from just inside the door. He is behind the bar,
+        backlit by the bottles, in the one pool of overhead light. He is drying a glass. He has
+        not looked up.</dd></div>
+      <div><dt>Palette</dt><dd>Tungsten amber and tobacco brown, hard against the game’s neon
+        purples. <em>The Kingfisher should be the only warm room in the city — that contrast is
+        the character.</em></dd></div>
+    </dl>
+    <div class="prompt"><b>Brief for the artist</b>
+      <p>Interior of a 1980s beachfront dive bar at dusk, painted in the style of a Sierra VGA
+      adventure-game splash screen — 320×200 pixel art, limited palette, hand-painted look, heavy
+      chiaroscuro. Low camera angle from just inside the doorway. Behind the bar: a heavyset Latino
+      man in his late sixties, short-sleeved shirt, forearms like mooring rope, reading glasses
+      pushed up on his forehead, drying a glass with a bar towel. He is lit from behind by a wall
+      of backlit liquor bottles and from above by one caged bulb; his face is half in shadow. He
+      is not looking at camera. Warm tungsten amber and tobacco brown throughout, deliberately
+      opposed to the neon magenta and cyan of the city outside. Details: a dead jukebox, a taped
+      handwritten sign, a framed photo turned face down on the back bar.</p>
+    </div>
+    <p class="avoid"><b>Avoid:</b> twinkling eyes, a raised eyebrow, a welcoming gesture, or any
+    other visual shorthand for “wise mentor.” He should look like the bar is closed even though it
+    is open. The warmth is in the <em>lighting</em>, not in his face — that gap is the whole joke,
+    and it is what makes him worth earning.</p>
+  </div>
+</section>
+
+<section id="chip">
+  <h2>Chip Winthrop <span>commission last</span></h2>
+  <div class="card">
+    <header><h3>The passenger seat</h3>
+      <span class="who">Demo antagonist. Flips to ally at Level 4.</span>
+      <span class="pill warn">depends on Act 1 heat</span></header>
+    <dl class="facts">
+      <div><dt>The moment</dt><dd>The flip. He gets into the pink convertible — on the passenger
+        side. You are driving.</dd></div>
+      <div><dt>Must say</dt><dd>Exactly the same person, now on your side, and somehow that is
+        worse. Nothing about him has improved; the arrangement has.</dd></div>
+      <div><dt>Composition</dt><dd>From the driver’s seat, over the wheel. He is turned toward
+        camera mid-sentence, one arm along the seat back, entirely at home in a seat he has never
+        sat in before.</dd></div>
+      <div><dt>Palette</dt><dd>The car’s impossible pink, white upholstery, the sunset doing
+        something obscene behind him.</dd></div>
+      <div><dt>In-engine</dt><dd>He already has a hand-drawn 44×52 pixel portrait and a close-up
+        treatment. The plate is an <em>upgrade</em> for one beat, not a replacement.</dd></div>
+    </dl>
+    <div class="prompt"><b>Brief for the artist</b>
+      <p>Sierra VGA adventure-game splash, 320×200 pixel art, limited palette. First-person view
+      from the driver’s seat of a 1986 convertible in a pink that does not occur in nature, white
+      leather interior, chrome wheel in the bottom of frame. In the passenger seat: a tanned white
+      man in his late twenties, blond, black flat-brim cap worn dead level, black mesh shirt, gold
+      chain, aviators pushed up on the brim. Caught mid-sentence, half-smiling on one side only,
+      one arm stretched along the seat back, utterly relaxed. Behind him a synthwave sunset over a
+      boardwalk strip, magenta into gold. He is lit hot from behind and cool from the dash.</p>
+    </div>
+    <p class="avoid"><b>Avoid:</b> any softening. No sheepishness, no truce, no warmth. He has not
+    been redeemed and the image must not suggest it — he has simply worked out that you are a
+    better vehicle than the car.</p>
+    <p class="avoid"><b>Note the dependency:</b> if Act 1 left him at high heat, this frame is
+    read as flirtation; if it left him wary, it is read as a hostile takeover. <b>Same image, both
+    ways</b> — which is why the composition must stay ambiguous and the caption does the work.</p>
+  </div>
+</section>
+
+<section id="duke">
+  <h2>Duke Calvera <span>commission second</span></h2>
+  <div class="card">
+    <header><h3>The arm around your shoulders</h3>
+      <span class="who">Rival — “The Scarface.” Volatile. Appears Act 2.</span>
+      <span class="pill crit">carries the Act 2 threat</span></header>
+    <dl class="facts">
+      <div><dt>The moment</dt><dd>First meeting. He is delighted to see you, which is the
+        problem.</dd></div>
+      <div><dt>Must say</dt><dd>You genuinely cannot tell which way this goes. Both readings —
+        he loves you, he is about to kill you — must be fully available in the same frame.</dd></div>
+      <div><dt>Composition</dt><dd>Very close, wide lens. He has thrown an arm around your
+        shoulders and pulled you into frame, mid-laugh, head back. <b>The hand you can see is
+        holding a drink. The other hand is out of frame.</b> That absence is the entire image.</dd></div>
+      <div><dt>Palette</dt><dd>Hot red spill from an unseen source, everything else crushed
+        toward black.</dd></div>
+    </dl>
+    <div class="prompt"><b>Brief for the artist</b>
+      <p>Sierra VGA adventure-game splash, 320×200 pixel art, limited palette, high contrast.
+      Extreme close two-shot, wide lens, slightly tilted. A man in his forties in an open silk
+      shirt, gold at the throat, thick dark hair, a scar through one eyebrow, head thrown back
+      mid-laugh with his eyes still on camera. His right arm is around the viewer’s shoulders,
+      pulling them into frame; his right hand holds a lowball glass. His left arm disappears out
+      of the bottom of frame and is not visible. Lit by a hot red source off-screen left,
+      everything else crushed to near-black. Sweat, gold, teeth.</p>
+    </div>
+    <p class="avoid"><b>Avoid:</b> a scowl, a weapon, or anything that resolves the ambiguity.
+    The moment a viewer can tell whether he is friendly, the character is dead. He should be the
+    most <em>likeable</em> face in the pack.</p>
+  </div>
+</section>
+
+<section id="roxy">
+  <h2>Roxy Steele <span>commission second</span></h2>
+  <div class="card">
+    <header><h3>The mirror</h3>
+      <span class="who">Rival — “The Bait-and-Switch.” Enters as a romance.</span>
+      <span class="pill crit">must lie to the player</span></header>
+    <dl class="facts">
+      <div><dt>The moment</dt><dd>Introduced as a conquest, indistinguishable from the rest of
+        the roster. The image has to work as a straight romance beat.</dd></div>
+      <div><dt>Must say</dt><dd>Everything a seduction plate should — and it must contain the tell
+        in plain sight, so that on replay it is obvious and on first play it is invisible.</dd></div>
+      <div><dt>Composition</dt><dd><b>She is looking at you in a mirror.</b> You see her
+        reflection, warm and open and meeting your eyes. Her actual face, turned away from camera
+        at the edge of frame, is not doing the same thing.</dd></div>
+      <div><dt>Palette</dt><dd>Vanity bulbs, powder pink and gold, one cold sliver where the real
+        room shows through.</dd></div>
+    </dl>
+    <div class="prompt"><b>Brief for the artist</b>
+      <p>Sierra VGA adventure-game splash, 320×200 pixel art, limited palette. A woman in her
+      thirties at a mirrored vanity ringed with warm bulbs, in a hotel penthouse at night. The
+      composition is dominated by her reflection, which is turned toward the viewer, lips parted,
+      eyes soft and directly engaged. At the left edge of frame we see the back and quarter-profile
+      of her actual head — the same woman, not looking at the viewer, expression flat and
+      unreadable. Powder pink and gold from the bulbs; one cold blue sliver of window at the far
+      edge. Everything about the reflection is inviting. Nothing about the real one is.</p>
+    </div>
+    <p class="avoid"><b>Avoid:</b> a smirk, a knowing look, a shadow across the eyes. Any
+    telegraphing ruins the turn. The reflection should be the warmest image in the entire pack —
+    it has to be worth falling for, or the betrayal costs nothing.</p>
+  </div>
+</section>
+
+<section id="larue">
+  <h2>Madame LaRue <span>already solved</span></h2>
+  <div class="card">
+    <header><h3>Optional upgrade</h3>
+      <span class="who">Boardwalk psychic. Level 1. Sells the tell that beats the shell game.</span>
+      <span class="pill ok">shipping in-engine</span></header>
+    <p class="lede" style="margin:0">She already has a hand-drawn 44×52 portrait in the build —
+    the storm of black curls, gold at brow, throat and ears, red with a white neckline. She does
+    not need a plate to function.</p>
+    <p class="lede">If you commission one anyway, the moment is <b>the reading</b>: her hands
+    turning yours over, shot from directly above, the table between you. Her face is out of frame
+    or at the very top edge. It is the only image in the pack where the player is the subject —
+    which is the right way to shoot the one character who is looking <em>at</em> the player rather
+    than selling to them.</p>
+  </div>
+</section>
+
+<section id="wildcard">
+  <h2>The Wildcard <span>do not commission yet</span></h2>
+  <div class="card">
+    <header><h3>Brief for a slot, not a person</h3>
+      <span class="who">Rival — deliberately undefined. Surfaces Act 2–3 from player behaviour.</span>
+      <span class="pill warn">blocked on playtest</span></header>
+    <p class="lede">The design doc leaves this character open on purpose and names them as the
+    natural first candidate for a goal-driven NPC. Commissioning art now would close the door the
+    design deliberately left open.</p>
+    <ul class="plain">
+      <li><b>What decides it:</b> playtest. The Wildcard should be whoever the player has actually
+        been treating as furniture — the character they used and never thought about again.</li>
+      <li><b>The tell to watch for:</b> which minor character has the most player interactions and
+        the least player <em>regard</em>. The game already tracks enough state to answer this.</li>
+      <li><b>Composition, whoever it turns out to be:</b> they are looking directly at camera and
+        have been for some time. No action, no threat, no drama. The horror is the eye contact and
+        the fact that the player does not immediately recognise them.</li>
+      <li><b>Commission this one last</b>, and expect it to be the cheapest and most effective
+        plate in the game.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="climax">
+  <h2>The Act 2 climax</h2>
+  <p class="lede">The design doc puts the Power-act climax at Level 8 as a direct clash with Duke
+  Calvera. You asked about Level 7. I would use both: <b>Level 7 is the chase, Level 8 is the
+  fountain.</b> That split solves two problems at once.</p>
+
+  <h3 class="sub2">Why a two-parter</h3>
+  <ul class="plain">
+    <li>The doc requires at least one <b>Outrun-style vector set-piece</b> as a deliberate mode
+      switch. It has to be load-bearing or it is a tech demo. Making it the <em>escape</em> that
+      sets up the confrontation earns it.</li>
+    <li>An act climax that is one conversation is thin. An act climax that is one chase is empty.
+      Together they are a chase you barely survive and a reckoning you have to walk into on
+      foot.</li>
+    <li>The pacing break lands where Act 2 sags — the middle of the blend-meter grind.</li>
+  </ul>
+
+  <h3 class="sub2">Level 7 — the chase</h3>
+  <p class="lede">Full vector/synthwave mode. Duke does not chase you; <b>Duke is in the car with
+  you</b>, laughing, while the people he has annoyed do the chasing. Your blend-meter position
+  decides who is behind you — the rackets, the law, or the press. The player’s build decides
+  whether you drive, fight out the window, or talk your way through a roadblock. It ends with the
+  car in the water and both of you alive, which Duke finds hilarious.</p>
+
+  <h3 class="sub2">Level 8 — the fountain</h3>
+  <p class="lede">Public. In front of everybody. <b>This is a Level 1 callback:</b> Chip already
+  told the player, in the opening minutes, <em>“My family loses more than that in the fountain.
+  There is a man whose entire job is the fountain.”</em> That line is already in the shipping
+  build. Paying it off six levels later — the confrontation with Duke happening in the fountain,
+  with that man standing there watching his life’s work get ruined — makes the whole game feel
+  planned rather than assembled.</p>
+
+  <div class="scroll"><table>
+    <thead><tr><th>option</th><th>what it costs</th><th>what it buys</th></tr></thead>
+    <tbody>
+      <tr><th>Chase → fountain</th>
+        <td>Two levels of build; the vector mode needs real obstacle and failure design.</td>
+        <td>Pays off a Level 1 line, delivers the required set-piece, and puts the act climax
+          in public where status actually changes. <b>Recommended.</b></td></tr>
+      <tr><th>The yacht</th>
+        <td>One level. Cheapest.</td>
+        <td>A closed room on open water — nobody can leave. Strong for dialogue, weak for
+          spectacle, and it wastes the vector mode.</td></tr>
+      <tr><th>The count room</th>
+        <td>One level, plus a new interior.</td>
+        <td>You and Duke either side of a table holding more money than either of you. Best
+          <em>theme</em> — but it is a quiet climax at the loudest point of the arc.</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="note"><b>The thing to protect:</b> Duke should not be defeated. The doc is explicit
+  that Level 3 ends in an invitation rather than a victory, and Act 2 should rhyme — Duke ends the
+  act <em>deciding you are worth keeping</em>, which is far more dangerous for the player than
+  beating him would be.</div>
+</section>
+
+<section id="loves">
+  <h2>Who actually wins</h2>
+  <p class="lede">The doc calls for 5–8 pursuable characters and says only <b>1–2</b> resolve as a
+  genuine net positive. The interesting question is not who is most attractive — it is what a
+  “win” even means in a game whose thesis is that everything is a transaction.</p>
+  <p class="lede">My answer: <b>the two people who saw you when you were worth nothing.</b> Every
+  other romance in Vanity Shores is priced. Only Chip and Brenda met you on day one, broke, with
+  a philosophy and one bag — and the game already tracks, from Level 1, exactly how you treated
+  them.</p>
+
+  <div class="scroll"><table>
+    <thead><tr><th>character</th><th>tier</th><th>outcome</th><th>why</th></tr></thead>
+    <tbody>
+      <tr><th>Chip Winthrop</th><td>high — Act 3</td>
+        <td><span class="pill ok">net positive</span></td>
+        <td>He is the only one who watched the whole arc from the outside. A win here means he
+          chose you <em>after</em> seeing exactly how you did it — which is the one thing money
+          cannot buy in this city. Highest heat ceiling in the game.</td></tr>
+      <tr><th>Brenda Tang</th><td>low — winnable from Act 2</td>
+        <td><span class="pill ok">net positive</span></td>
+        <td>She priced you correctly in your first ninety seconds and came back anyway. She is
+          the only character who never needed you to be anything, and the only one whose route
+          you can close off permanently in Level 1 by intimidating her. <b>That is the game’s
+          best argument for replaying with a different build.</b></td></tr>
+      <tr><th>Roxy Steele</th><td>high — Act 3</td>
+        <td><span class="pill crit">structurally cannot win</span></td>
+        <td>She is the bait-and-switch; the betrayal is her function. She should therefore be the
+          <em>most</em> seductive route in the game — the best writing, the warmest art, the
+          fastest heat gain. If she is not genuinely tempting the turn costs nothing.</td></tr>
+      <tr><th>Duke Calvera</th><td>high — Act 3</td>
+        <td><span class="pill warn">a win that is a loss</span></td>
+        <td>Reachable, magnetic, and catastrophic. The ending reads as triumphant and is the
+          worst outcome in the matrix. Good comedy, better warning.</td></tr>
+      <tr><th>The Trophy</th><td>high — Act 3, gated hardest</td>
+        <td><span class="pill warn">deliberately empty</span></td>
+        <td>The one the whole city wants. Hardest to reach, most expensive, and the payoff is
+          nothing — a person who is exactly as advertised and nothing more. This is the
+          thesis stated out loud, so it needs to be earned to land.</td></tr>
+      <tr><th>Dickie Vermouth</th><td>not a romance</td>
+        <td><span class="pill info">the control group</span></td>
+        <td>Plays like one and resolves as friendship. He is the only person in Vanity Shores who
+          wants nothing from you, and the game should quietly reward noticing that.</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="note"><b>What this does to Level 1:</b> it makes the heat already shipping in the
+  build load-bearing for the entire game. Chip and Brenda are the two winnable routes, both are
+  seeded in the free demo, and one of them can already be <em>permanently closed</em> by playing
+  Act 1 as muscle. That is the strongest replay hook available and it costs nothing more to
+  build — it is already there.</div>
+
+  <div class="note"><b>Sequel hook:</b> the doc requires at least one ending that gestures at Part
+  2. Use <b>Brenda</b>. Her Level 1 line is already written and already shipping:
+  <em>“When you have real money, come and find me. Not for a unit.”</em> An ending where she
+  finally names what that meant, and it is a business proposition rather than a romance, closes
+  the demo’s oldest thread and opens the next game in one line.</div>
+</section>
+
+<footer>Authored, not generated. The counterpart to <code>docs/game-bible.html</code>, which is read
+out of the shipping code — keep the two separate.</footer>
+</main>
+</div>
