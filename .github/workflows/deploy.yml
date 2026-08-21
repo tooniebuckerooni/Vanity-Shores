@@ -46,7 +46,11 @@ jobs:
           node --check /tmp/game.js
           echo "index.html: $(wc -l < index.html) lines, $(wc -c < index.html) bytes"
 
+      # enablement:true turns Pages on via the API, so this needs no manual
+      # visit to repo Settings. Requires the pages:write permission above.
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
