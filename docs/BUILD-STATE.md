@@ -70,19 +70,37 @@ change. Two things to watch when drawing one: the fringe ellipse must clear the
 brows (they sit at y=17), and the hair has to stay light enough to separate from
 the backing plate, which is dark.
 
-**Sprites are composited, not drawn straight to screen.** `drawPerson` renders into
-a scratch buffer, derives a dark keyline from the buffer's alpha (`source-in` fill,
-stamped at four offsets), then draws the sprite over it. That outline is what stops
-a figure reading as a stack of boxes against a busy backdrop, and it is why
-`drawPersonRaw` can use `clearRect` to notch shoulders and jaw — cleared pixels
-change the silhouette the keyline follows. The ground shadow is drawn *outside* the
-buffer on purpose, so the outline doesn't trace it. `o.pose` ('crossed', 'hold',
-'pocket', 'stiff') changes the arms and is most of what distinguishes one
-character from another at this size. `o.figure` ('straight', 'curved', 'hourglass', 'broad')
-changes the silhouette — `curved` nips the waist with `clearRect`, flares the
-hip and adds a chest line; `hourglass` pushes all three further and adds a hip
-turn so there is a back to see. Combine it with `build:-1` for the narrowest
-silhouette the format allows — that is what Madame LaRue runs. Outfits run masculine through feminine (blazer, tank,
+**Bodies are built from curves and are height-parameterised.** Every proportion in
+`charMetrics` is a fraction of `CHAR_H`, so **Level 2 ships at 72px by calling
+`setCharHeight(72)`** — buffers resize and the sprite cache clears automatically.
+Nothing else in the renderer needs touching; what needs touching is the four
+backdrops, whose props and walk bands are composed for a 40px cast.
+
+`drawPersonRaw` draws the torso as one path (shoulder to waist to hip), limbs as
+tapered shapes via `limbShape`, and the head and hair from ellipses. The buffer's
+alpha is then hardened to 1-bit — without that, curves read as smudges once
+scaled 3x — and a dark keyline is stamped at four offsets. `spriteBuffer` caches
+the finished composite per look and per animation frame (walk bucket, bob, blink,
+sequin shimmer), so the per-frame cost is a blit: 60fps with the cache holding
+~22 frames. The ground shadow is drawn *outside* the buffer on purpose so the
+keyline doesn't trace it.
+
+Outfits are painted **inside a clip of the torso path**, which is why they can
+stay rect-based and still take the silhouette's shape. Add a new one to the
+switch and it gets the body for free.
+
+**The keyline sets a hard floor on silhouette detail.** It is 1px on each side,
+so any gap narrower than ~3px closes up. At `CHAR_H = 40` an hourglass waist is
+about 1.5px of gap, which means it *cannot* survive in the outline — measured, not
+guessed. So the waist is painted instead: a dark wedge inside the torso clip that
+reads as a cinch at any size. At 72 the geometry starts doing the work by itself
+and the wedge just reinforces it. If you change arm placement, re-run
+`silh.js` in the scratch harness, which measures the contiguous torso run at
+shoulder, waist and hip.
+
+`o.pose` ('crossed', 'hold', 'pocket', 'stiff') changes the arms. `o.figure`
+('straight', 'curved', 'hourglass', 'broad') sets shoulder/waist/hip ratios;
+combine with `build:-1` for the narrowest figure available — that is Madame LaRue. Outfits run masculine through feminine (blazer, tank,
 hawaiian, polo, sequins, bikini, lingerie, slip, corset, halter); the last five
 set `skirt` in `ccLook()` so the hip reads, and mark themselves bare-shouldered
 in `paintGeneric` so the portrait agrees with the sprite.
