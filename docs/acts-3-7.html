@@ -1,0 +1,916 @@
+<title>Vanity Shores Acts 3&ndash;7</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Silkscreen:wght@400;700&family=VT323&display=swap">
+<style>
+:root{
+  --void:#10071c; --panel:#1a0d2c; --panel2:#221237; --edge:#33204a;
+  --bone:#f0e4d4; --mute:#a08cb4; --dim:#6f5a8c;
+  --hot:#ff2e88; --surf:#21e0d6; --gold:#ffc23d; --bad:#ff5f6d; --good:#4de0a0;
+  --ui:"Silkscreen",ui-monospace,monospace;
+  --body:"Archivo",system-ui,sans-serif;
+  --game:"VT323",ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--void); color:var(--bone); font-family:var(--body);
+  font-size:16px; line-height:1.6; -webkit-font-smoothing:antialiased}
+.wrap{display:grid; grid-template-columns:210px minmax(0,1fr); gap:44px;
+  max-width:1120px; margin:0 auto; padding:40px 24px 96px}
+@media (max-width:820px){ .wrap{grid-template-columns:1fr; gap:24px} nav.side{position:static !important} }
+
+nav.side{position:sticky; top:40px; align-self:start}
+nav.side .brand{font-family:var(--ui); font-size:11px; letter-spacing:.16em;
+  color:var(--hot); text-transform:uppercase; line-height:1.7; margin-bottom:18px}
+nav.side .brand b{display:block; color:var(--bone); font-weight:400}
+nav.side ol{list-style:none; border-left:1px solid var(--edge)}
+nav.side a{display:block; padding:5px 0 5px 14px; margin-left:-1px;
+  border-left:1px solid transparent; color:var(--mute); text-decoration:none; font-size:13.5px}
+nav.side a:hover{color:var(--bone); border-left-color:var(--hot)}
+nav.side a:focus-visible{outline:2px solid var(--surf); outline-offset:2px}
+
+h1{font-family:var(--ui); font-size:24px; line-height:1.4; color:var(--bone);
+  text-wrap:balance; margin-bottom:8px}
+.sub{color:var(--mute); max-width:66ch; margin-bottom:34px}
+section{margin-bottom:52px; scroll-margin-top:24px}
+h2{font-family:var(--ui); font-size:13px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--surf); padding-bottom:8px; border-bottom:1px solid var(--edge); margin-bottom:18px}
+h2 span{color:var(--dim); float:right; letter-spacing:.1em}
+h3.sub2{font-family:var(--ui); font-size:11px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--dim); margin:26px 0 10px}
+p.lede{color:var(--mute); max-width:68ch; margin-bottom:18px}
+p.lede + p.lede{margin-top:-8px}
+
+.card{background:var(--panel); border:1px solid var(--edge); border-radius:3px;
+  padding:18px 20px; margin-bottom:16px}
+.card header{display:flex; align-items:baseline; gap:12px; margin-bottom:4px; flex-wrap:wrap}
+.card h3{font-family:var(--ui); font-size:14px; letter-spacing:.04em; color:var(--bone)}
+.card .who{color:var(--mute); font-size:13.5px; flex:1}
+.pill{font-family:var(--ui); font-size:9px; letter-spacing:.1em; text-transform:uppercase;
+  padding:3px 7px; border-radius:2px; white-space:nowrap}
+.pill.ok{background:rgba(77,224,160,.14); color:var(--good)}
+.pill.warn{background:rgba(255,194,61,.14); color:var(--gold)}
+.pill.crit{background:rgba(255,95,109,.14); color:var(--bad)}
+.pill.info{background:rgba(33,224,214,.13); color:var(--surf)}
+
+dl.facts{display:grid; gap:2px; margin:14px 0}
+dl.facts div{display:grid; grid-template-columns:96px minmax(0,1fr); gap:12px;
+  font-size:14px; padding:6px 0; border-bottom:1px solid rgba(51,32,74,.55)}
+dt{font-family:var(--ui); font-size:9px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--dim); padding-top:4px}
+dd{color:var(--bone)}
+dd em{color:var(--mute); font-style:normal}
+
+.prompt{background:#120a1e; border:1px solid var(--edge); border-left:2px solid var(--gold);
+  border-radius:2px; padding:14px 16px; margin-top:12px}
+.prompt b{display:block; font-family:var(--ui); font-size:9px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--gold); margin-bottom:8px}
+.prompt p{font-family:var(--game); font-size:17px; line-height:1.4; color:var(--bone);
+  max-width:74ch}
+.avoid{margin-top:10px; font-size:13.5px; color:var(--mute)}
+.avoid b{color:var(--bad); font-weight:600}
+
+ul.plain{list-style:none; display:grid; gap:9px; max-width:70ch}
+ul.plain li{padding-left:15px; position:relative; color:var(--mute); font-size:14.5px}
+ul.plain li::before{content:""; position:absolute; left:0; top:.62em;
+  width:5px; height:5px; background:var(--hot); border-radius:1px}
+ul.plain b{color:var(--bone); font-weight:600}
+
+.scroll{overflow-x:auto; margin-top:12px}
+table{border-collapse:collapse; width:100%; font-size:13.5px}
+th,td{text-align:left; padding:8px 14px 8px 0; border-bottom:1px solid rgba(51,32,74,.6);
+  vertical-align:top}
+thead th{font-family:var(--ui); font-size:9px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--dim); border-bottom-color:var(--edge)}
+tbody th{font-weight:600; color:var(--bone); white-space:nowrap; padding-right:18px}
+code{font-family:var(--ui); font-size:10px; letter-spacing:.04em; color:var(--surf);
+  background:var(--panel2); padding:2px 5px; border-radius:2px}
+.note{border-left:2px solid var(--hot); padding:2px 0 2px 14px; margin:16px 0;
+  color:var(--mute); font-size:14.5px; max-width:68ch}
+.note b{color:var(--bone)}
+footer{border-top:1px solid var(--edge); padding-top:16px; color:var(--dim); font-size:13px}
+</style>
+
+<div class="wrap">
+<nav class="side">
+  <div class="brand">Vanity Shores<b>Acts 3&ndash;7</b></div>
+  <ol>
+    <li><a href="#scope">What this plans</a></li>
+    <li><a href="#l5">L5 &mdash; Going Concern</a></li>
+    <li><a href="#l6">L6 &mdash; The Guest List</a></li>
+    <li><a href="#l78">L7&ndash;8 &mdash; the fixed point</a></li>
+    <li><a href="#l9">L9 &mdash; Comped</a></li>
+    <li><a href="#l10">L10 &mdash; Anything You Want</a></li>
+    <li><a href="#l11">L11 &mdash; Everything Else</a></li>
+    <li><a href="#payoff">What the back half reads</a></li>
+    <li><a href="#arcs">The recurring cast</a></li>
+    <li><a href="#faces">New faces</a></li>
+    <li><a href="#quarantine">The Level 4 quarantine</a></li>
+    <li><a href="#properties">The properties, at scale</a></li>
+  </ol>
+</nav>
+
+<main>
+<h1>The back half: seven authoring acts, eleven levels, one hand held out</h1>
+<p class="sub">This document is <b>authored</b>, not generated. It is the second half of the pair
+that starts with <code>docs/art-and-arc.html</code> — the commissioning briefs, the Level 7 chase
+into the Level 8 fountain, and the ruling that only Chip and Brenda pay off. Everything settled
+there is settled here too; this picks up the levels either side of it and carries them to the end.
+The generated bible stays the ground truth for anything that actually ships.</p>
+
+<section id="scope">
+  <h2>What this plans <span>and what it refuses to re-plan</span></h2>
+  <p class="lede">Two things are fixed before this document starts. <b>Level 1 ships</b>, and every
+  flag named below is read out of the shipping build by <code>tools/bible.js</code> — if a flag
+  name here does not appear in the bible, it is marked <em>proposed</em> and it is a request on
+  whoever builds that level. <b>Levels 7 and 8 are already designed</b> in art-and-arc, and this
+  document does not touch their construction. It only says what they read on the way in and what
+  they hand forward on the way out.</p>
+
+  <h3 class="sub2">Authoring acts are not the label on the screen</h3>
+  <p class="lede">The handoff sells three acts — Money, Power, Conquest — and that is what the
+  player sees; <code>ACT 1, LEVEL 1 — SMALL CHANGE</code> is already painted on the complete card.
+  The seven acts below are the units this document plans in, and they never appear in the game.</p>
+
+  <div class="scroll"><table>
+    <thead><tr><th>authoring act</th><th>levels</th><th>the unit of work</th><th>player-facing</th></tr></thead>
+    <tbody>
+      <tr><th>1 &mdash; Small Change</th><td>1</td>
+        <td>Shipping. One person, one boardwalk, one hundred dollars in a hand that does not want it.</td>
+        <td>Act 1</td></tr>
+      <tr><th>2 &mdash; The Competition</th><td>2&ndash;4</td>
+        <td>Chip stops mocking and starts competing, loses in public, and invites you up. The wall,
+          then the Kingfisher.</td>
+        <td>Act 1 &rarr; Act 2</td></tr>
+      <tr><th>3 &mdash; The Foothold</th><td>5&ndash;6</td>
+        <td>You acquire a thing that earns, and a name people say when you are not there.</td>
+        <td>Act 2</td></tr>
+      <tr><th>4 &mdash; The Reckoning</th><td>7&ndash;8</td>
+        <td><b>Owned by art-and-arc.</b> The chase, then the fountain, in front of everybody.</td>
+        <td>Act 2</td></tr>
+      <tr><th>5 &mdash; The Top of the Tower</th><td>9</td>
+        <td>Everything is free, which means everything is priced somewhere you cannot see it.</td>
+        <td>Act 3</td></tr>
+      <tr><th>6 &mdash; The Turn</th><td>10</td>
+        <td>Roxy spends what she was given. The city drops you in an afternoon.</td>
+        <td>Act 3</td></tr>
+      <tr><th>7 &mdash; Everything Else</th><td>11 + denouement</td>
+        <td>The settlement, the endings matrix, and one person who will not take your money.</td>
+        <td>Act 3</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="note"><b>The spine.</b> Level 1's win condition was deliberately changed from
+  <em>reach $100</em> to <em>make Chip hold what you did with it</em>, and that change is the shape
+  of the whole game. A number can be crossed alone in a room. <b>A person has to be in the room with
+  you.</b> Every level below names its win line as a human being, and the money — the blend meter,
+  the guest list, the count — is always the ticket and never the trophy.</div>
+
+  <div class="note"><b>One ambiguity resolved up front.</b> The handoff calls the blend meter a
+  two-pole spectrum (Underworld &harr; Legit) in &sect;5.4 and then names a third &ldquo;Fame
+  branch&rdquo; in &sect;5.2 and &sect;6. Treat it as <b>two poles and one amplitude</b>: position
+  decides <em>who engages you</em>, fame decides <em>how loudly</em>. Fame is a multiplier on
+  whichever pole you are standing on, not a third direction — which is why Level 6 can be entirely
+  about fame without moving the needle an inch, and why that is the level's joke.</div>
+</section>
+
+<section id="l5">
+  <h2>Level 5 &mdash; &ldquo;Going Concern&rdquo; <span>authoring act 3</span></h2>
+  <p class="lede">Level 4 hands the player a bar stool, an ally who used to be the antagonist, and
+  a meter with nothing on it. Level 5 is the first time money has to <em>stay</em> somewhere. It is
+  also the first level a low-tier romance can actually resolve, which the handoff gates to Act 2
+  and the quarantine gates to the far side of the wall.</p>
+
+  <div class="card">
+    <header><h3>The first thing that pays you while you sleep</h3>
+      <span class="who">Rackets, laundry, or column inches — pick a door and the other two lean on it.</span>
+      <span class="pill ok">win line: Brenda Tang</span></header>
+    <dl class="facts">
+      <div><dt>Wants</dt><dd>An asset. Not a score — a score is Act 1. Something with a lease on it
+        that is still yours on Monday.</dd></div>
+      <div><dt>In the way</dt><dd>Duke Calvera prices the boardwalk at four per cent of everything
+        that touches it and considers this generous. The city wants a permit it will not issue to a
+        person with no history. Trish Vandermeer wants a quote, and printing your name is the same
+        as spending it.</dd></div>
+      <div><dt>Win line</dt><dd><b>Brenda Tang puts the brochure on the table face up.</b> In Level 1
+        she wrote something on the back of one, said &ldquo;when you have real money, come and find
+        me — not for a unit,&rdquo; and put it in her blazer pocket. The level ends the moment she
+        turns it over and says the second half of that sentence out loud. Nothing else completes it;
+        the money is what buys the meeting.</dd></div>
+      <div><dt>Ungated</dt><dd>Every build can reach the meeting. Charm gets it in one pass, money
+        gets a better split, fighting gets it by being the only person who ever solved a problem for
+        her without invoicing. <em>No gate is the only route, per the house rule.</em></dd></div>
+      <div><dt>If closed</dt><dd><code>brendaWary</code> — a muscle build that stood over her in
+        Level 1 — locks this permanently, exactly as art-and-arc requires. The slot is <b>refilled,
+        not removed</b>: see the note below.</dd></div>
+      <div><dt>Reads</dt><dd><code>brendaWary</code>, <code>gotPremium</code>,
+        <code>signReturned</code> and the <code>brenda</code> secret, <code>heat.brenda</code>,
+        <code>pitchCount</code>, <code>gilPaid</code>, the build split.</dd></div>
+      <div><dt>Rooms</dt><dd>The Kingfisher back room &middot; the Shoreline sales floor (Brenda's
+        booth, grown up: air conditioning and a scale model of a resort that does not exist yet)
+        &middot; Suds Royale, a coin laundry with a broken change machine &middot; the alley behind
+        the churro cart.</dd></div>
+    </dl>
+  </div>
+
+  <h3 class="sub2">The beats</h3>
+  <ul class="plain">
+    <li><b>Suds Royale is the launder joke made literal.</b> A coin laundry that takes quarters and
+      gives back quarters, and the entire business is the difference. The change machine has been
+      broken since March and the owner has been feeding it by hand — which means the books are a
+      man's memory, which is why it is for sale.</li>
+    <li><b>Duke's four per cent is not a threat, it is a compliment.</b> He explains it with an arm
+      around you: <em>&ldquo;Everything on this boardwalk is mine at four. You are on the
+      boardwalk.&rdquo;</em> Paying it is fine. Refusing it is fine. Negotiating it is the one thing
+      that moves the meter hard, because it means he has to think about you twice.</li>
+    <li><b>Brenda's meeting is not a date and must not be staged as one.</b> She has a folder. She
+      has done the arithmetic on you. The romance lands because the proposal is a business
+      proposal — she is the only person in the city who never needed you to be anything, and the
+      way she flirts is by showing you a spreadsheet.</li>
+    <li><b>The mandatory table:</b> the deposit. Whatever the player buys, they put down more than
+      they are comfortable with in a room where somebody could simply keep it. Level 1's Monte rule,
+      one act up: <em>there is no route to the win line that skips the moment you can lose it.</em></li>
+  </ul>
+
+  <div class="note"><b>The replacement route, in full.</b> If Brenda is closed, her slot is filled by
+  <b>Gil Furnace</b> — the sunburnt tourist from the Level 1 bench, back in June, peeling, wearing a
+  Shoreline polo, because after you sold him the aloe he sat through the pitch and <em>bought a
+  unit</em>. He is now the only person in Vanity Shores who owns something and does not know what it
+  is worth. Win line becomes: <b>Gil hands you the keys and thanks you for taking them.</b> Same
+  shape, worse deal, funnier, and it turns the demo's smallest transaction into an act structure.
+  This is the general rule for the back half — <b>a closed route is replaced, never removed</b>.</div>
+</section>
+
+<section id="l6">
+  <h2>Level 6 &mdash; &ldquo;The Guest List&rdquo; <span>authoring act 3</span></h2>
+  <p class="lede">The fame level. It is deliberately the level where the blend meter can move
+  furthest and mean least — you can end it famous and worth exactly what you were on Monday, which
+  is the satirical point and also a fair warning to the player about which axis is real.</p>
+
+  <div class="card">
+    <header><h3>Known without being introduced</h3>
+      <span class="who">The Coral Room, the step-and-repeat, and one dead jukebox.</span>
+      <span class="pill ok">win line: Marv &ldquo;Pops&rdquo; Delgado</span></header>
+    <dl class="facts">
+      <div><dt>Wants</dt><dd>To walk past a rope without saying a name. Access, which in this city
+        is the only currency that cannot be counted in the count room.</dd></div>
+      <div><dt>In the way</dt><dd>Duke wants you photographed <em>with him</em>, because a partner
+        in the paper is a partner who cannot leave. Pops wants you out of the paper entirely and
+        will not explain why. Roxy Steele arrives here for the first time and is nothing but
+        helpful, and she is right about everything, and none of it costs you anything yet.</dd></div>
+      <div><dt>Win line</dt><dd><b>Pops says your name.</b> Not &ldquo;kid.&rdquo; The name the
+        player typed at character creation, out loud, unprompted, in his own bar. It is one
+        <code>say()</code> holding <code>GS.name</code> and it is the most personal line in the
+        game, because the player wrote it themselves and has not heard anybody use it since the bus.</dd></div>
+      <div><dt>Ungated</dt><dd><b>The jukebox.</b> It is already in his commissioning brief — the
+        dead jukebox in the corner of the Kingfisher plate. Fixing it is the ungated path and costs
+        no stat: it costs going back to a place the puzzle had finished with, which is the same
+        instinct Level 1's secret rewards. Charm gets the name earlier, fighting gets it after you
+        remove somebody from his bar without being asked, money can simply buy the part.</dd></div>
+      <div><dt>Reads</dt><dd><code>heat.chip</code> and <code>chipEnding</code> (Chip is the one who
+        gets you on the list, and how he does it depends on how Level 1 ended), <code>deaths</code>
+        (Trish's first column is about the newcomer who keeps nearly dying),
+        <code>dickiePaid</code>, blend position.</dd></div>
+      <div><dt>Rooms</dt><dd>The Coral Room, a nightclub with a rope and a man at it &middot; the
+        step-and-repeat outside the Winthrop &middot; the Shore Report's two-desk office &middot;
+        the Kingfisher.</dd></div>
+    </dl>
+  </div>
+
+  <h3 class="sub2">The beats</h3>
+  <ul class="plain">
+    <li><b>The record on the jukebox is Dickie Vermouth's only single.</b> Of course it is. The B
+      side has been the fourth button on that machine since 1974. When it finally plays, Pops does
+      not comment on it, does not look up, and thirty seconds later uses your name for the first
+      time — and that is the entire payoff, so <b>do not write him a speech</b>. The line is the
+      name.</li>
+    <li><b>The Act 2 secret is the framed photo turned face down on the back bar</b> — also already
+      in his commissioning brief. Turn it over: Pops at about twenty-five, and a man with a scar
+      through one eyebrow with an arm around his shoulders, head back, mid-laugh, <b>in exactly the
+      composition of Duke's entry plate</b>. The other hand is out of frame there too. Nobody
+      mentions it. It is registered in <code>SECRETS</code> and it is worth more than any payout in
+      the level.</li>
+    <li><b>Trish Vandermeer will write about you either way.</b> The choice is never whether to be
+      in the paper, it is which of two true sentences she uses. This is the fame amplitude in one
+      mechanic and it costs one dialogue tree.</li>
+    <li><b>Roxy's introduction must read as a straight romance beat</b>, per her plate brief. She
+      does you a favour here that you did not ask for and cannot repay, and the game should let the
+      player feel good about it for four levels.</li>
+  </ul>
+
+  <div class="note"><b>Why the win line is Pops and not the rope.</b> Getting into the Coral Room is
+  a puzzle, and puzzles end. The level ends when the one man in Vanity Shores who is not selling you
+  anything decides you are a person with a name. That is the only kind of access the fame axis
+  cannot buy, and putting it at the end of the fame level is the joke landing on the mechanic.</div>
+</section>
+
+<section id="l78">
+  <h2>Levels 7&ndash;8 &mdash; the fixed point <span>art-and-arc owns these</span></h2>
+  <p class="lede">The chase into the fountain is designed. Nothing here re-plans it. What follows is
+  only the interface: what those two levels read on the way in, and what the second half of the game
+  is entitled to assume on the way out.</p>
+
+  <div class="card">
+    <header><h3>Level 7 &mdash; &ldquo;Right of Way&rdquo;</h3>
+      <span class="who">The vector set-piece. Duke is in the car; the people he has annoyed do the chasing.</span>
+      <span class="pill info">title is a Level 1 callback</span></header>
+    <dl class="facts">
+      <div><dt>The title</dt><dd>The shipping <code>FLATTENED</code> death card ends
+        <em>&ldquo;Right of way belongs to whoever owns more of the road.&rdquo;</em> By Level 7 the
+        player owns some of the road. Put the same sentence on the chase's fail card and the joke
+        completes itself six levels later at a cost of zero.</dd></div>
+      <div><dt>Reads in</dt><dd>Blend position decides who is behind you (rackets, law, or press).
+        Build decides whether you drive, fight out of the window, or talk through the roadblock.
+        <code>monteEnemy</code> puts Monte in the crowd that does not part for you — the one man on
+        that boardwalk with a reason.</dd></div>
+      <div><dt>Hands out</dt><dd>The car is in the water. Both of you are alive. Duke finds this
+        hilarious and the player's ears are still ringing, which is the correct emotional state to
+        walk into Level 8 with.</dd></div>
+    </dl>
+  </div>
+
+  <div class="card">
+    <header><h3>Level 8 &mdash; &ldquo;In Front of Everybody&rdquo;</h3>
+      <span class="who">The fountain. Public. The Act 2 climax.</span>
+      <span class="pill warn">Duke is not defeated</span></header>
+    <dl class="facts">
+      <div><dt>Win line</dt><dd><b>Duke Calvera decides you are worth keeping, and witnesses hear
+        him do it.</b> Framed as a relationship rather than a victory, per art-and-arc: the terrible
+        outcome is that it works.</dd></div>
+      <div><dt>The witness</dt><dd>The man whose entire job is the fountain gets a name here:
+        <b>Ruben Ortiz</b>, forty-one years, long-handled coin sieve, municipal windbreaker. He is
+        the only person present who is upset about the water rather than about the money, and his
+        single line is the one the scene is built around. See <a href="#faces">New faces</a>.</dd></div>
+      <div><dt>Hands out</dt><dd>Act 3 inherits a player who is <em>owned</em> and popular, a blend
+        position that is now public record, and a Duke who will not be got rid of by any means the
+        game has taught so far.</dd></div>
+    </dl>
+  </div>
+</section>
+
+<section id="l9">
+  <h2>Level 9 &mdash; &ldquo;Comped&rdquo; <span>authoring act 5</span></h2>
+  <p class="lede">Act 3 opens and the handoff opens the full roster with it. The level's texture is
+  that nothing costs anything any more: the drinks, the room, the car, the company. Everything is
+  comped, which is the most expensive word in the language.</p>
+
+  <div class="card">
+    <header><h3>The room with one window</h3>
+      <span class="who">The penthouse, the floor, and the count room used quietly.</span>
+      <span class="pill ok">win line: Chip Winthrop</span></header>
+    <dl class="facts">
+      <div><dt>Wants</dt><dd>The top of the tower. It has been visible from the boardwalk since the
+        first frame of the game and the Level 1 hotspot already says it: <em>&ldquo;From here you
+        can see the penthouse. From the penthouse, you are a smudge.&rdquo;</em></dd></div>
+      <div><dt>In the way</dt><dd>You are being comped by four different people who each think
+        that makes you theirs. Angel — the Trophy — is finally reachable and takes an entire level
+        to reach if you let them. Roxy is helping, brilliantly, and asks for nothing.</dd></div>
+      <div><dt>Win line</dt><dd><b>Chip takes you up to the room with one window.</b> He described it
+        in Level 1, in an optional beat that is already shipping: a room at the top of the tower with
+        one window facing the whole boardwalk, nobody can see in, <em>&ldquo;it is a very boring
+        room, you would hate it.&rdquo;</em> Level 9 is that line coming back. It is boring. One
+        chair, one window, the whole strip below and not one person looking up. He goes there
+        constantly and has never taken anybody.</dd></div>
+      <div><dt>Ungated</dt><dd>Anyone can be taken up. The ungated route is to <b>ask him for it and
+        spend the favour you were saving</b> — the level hands the player one obviously valuable
+        marker early and the plain path is to burn it on a room with no furniture. Charm, money and
+        fighting each get a version; heat above 60 gets the version where he does not make you
+        ask.</dd></div>
+      <div><dt>Reads</dt><dd><code>chipEnding</code> (all five routes; see the payoff table),
+        <code>heat.chip</code>, <code>chipFlirt</code> — <em>whether the player ever heard the tower
+        beat at all</em> — plus blend position and the build.</dd></div>
+      <div><dt>Rooms</dt><dd>The Winthrop casino floor &middot; the penthouse &middot; the count room
+        &middot; the room with one window.</dd></div>
+    </dl>
+  </div>
+
+  <h3 class="sub2">The beats</h3>
+  <ul class="plain">
+    <li><b>Both readings of the tower beat have to work</b>, exactly the way Chip's entry plate has
+      to work at high heat and at low. If the player heard the Level 1 line, Level 9 is a promise
+      kept. If they never did, it is a stranger showing them something and being obviously terrified
+      about it. Write the scene so it does not know which one you are having.</li>
+    <li><b>The count room, finally used correctly.</b> art-and-arc rejected it as the Act 2 climax
+      because it is a quiet room at the loudest point of the arc. Level 9 is the quiet point: you and
+      Chip either side of a table holding more money than either of you, and he counts it
+      one-handed, with his thumb, exactly the way Monte did under the pier — and one of you notices.</li>
+    <li><b>Angel is a dead end and the level must fund it anyway.</b> The player can spend the whole
+      of Level 9 on the hardest-gated conquest in the game and finish with nothing but an anecdote.
+      That is the thesis stated out loud and it only lands if the pursuit is genuinely good.</li>
+    <li><b>The mandatory table:</b> the favour. Every route up the tower costs something the player
+      would rather keep, and the game never tells them what it was worth until Level 10.</li>
+  </ul>
+</section>
+
+<section id="l10">
+  <h2>Level 10 &mdash; &ldquo;Anything You Want&rdquo; <span>authoring act 6</span></h2>
+  <p class="lede">The turn. Roxy Steele spends what she was given, and the thing to protect is that
+  she never took anything — every single item in her hands was handed over by the player, cheerfully,
+  in a scene they enjoyed.</p>
+
+  <div class="card">
+    <header><h3>The city drops you between lunch and four o'clock</h3>
+      <span class="who">Roxy uses the access. Everybody who was comping you stops on the same afternoon.</span>
+      <span class="pill ok">win line: Dickie Vermouth</span></header>
+    <dl class="facts">
+      <div><dt>Wants</dt><dd>Everything at once, which is the state Act 3 has spent two levels
+        teaching the player to want.</dd></div>
+      <div><dt>What she takes</dt><dd>Not money. <b>Your position.</b> She puts your name on the
+        underworld side of a ledger the press can read and on the legit side of a conversation Duke
+        can hear, and both are true, which is why nothing can be denied. If Level 9 ended in the room
+        with one window, what she uses is <b>the key to that room</b>, which you gave her. If it did
+        not, she takes the Kingfisher's lease instead, and Pops finds out from a letter.</dd></div>
+      <div><dt>Win line</dt><dd><b>Dickie Vermouth says yes to something that cannot possibly benefit
+        him.</b> The has-been lounge act from the Level 1 pier — the one the player may have ground
+        for encores at fifteen dollars a time until he refused to sing — is the door that opens. The
+        level ends when he agrees, not when the plan works.</dd></div>
+      <div><dt>Ungated</dt><dd>Dickie does not check anything. There is no stat gate on the win line
+        of this level at all, on purpose: it is the one beat in the game that is decided entirely by
+        what the player did to somebody who could not stop them.</dd></div>
+      <div><dt>Reads</dt><dd><code>dickiePaid</code>, <code>encores</code> — <em>the exact number</em>
+        — <code>readingDone</code>, <code>monteEnemy</code>, <code>brendaWary</code>,
+        <code>heat.*</code>, blend, and whatever Level 9's favour was.</dd></div>
+      <div><dt>Rooms</dt><dd>The penthouse, emptied &middot; the Shore Report office at deadline
+        &middot; the bandshell out of season &middot; Dickie's room above a dry cleaner.</dd></div>
+    </dl>
+  </div>
+
+  <h3 class="sub2">The beats</h3>
+  <ul class="plain">
+    <li><b>Madame LaRue's card is the key to the whole level and it is already shipping.</b> The
+      fortune card reads <em>&ldquo;THE PEA IS NEVER UNDER A SHELL. WATCH THE LEFT HAND, NOT THE
+      SHELLS.&rdquo;</em> If <code>readingDone</code> is set, quote it verbatim at the moment the
+      player works out that Roxy was never the shell — Duke's hand has been under the table since
+      Level 5. If the player never bought the reading, they get the same realisation two scenes
+      later and nobody says anything clever about it. <b>Twenty-five cents in Level 1, cashed in
+      Level 10.</b></li>
+    <li><b>Dickie says the number out loud and the game does not punish it.</b> <em>&ldquo;Six,&rdquo;
+      Dickie says. &ldquo;You had me sing it six times.&rdquo;</em> Then he gets his coat. That is
+      the entire treatment of the grind path: it is remembered, it is stated, and it changes nothing
+      except how the player feels, which is the only currency this scene deals in.</li>
+    <li><b>Roxy gets no redemption scene and no villain speech.</b> The best the player is allowed is
+      that she is not surprised to see them still standing. Her plate brief says the reflection has to
+      be worth falling for; the turn has to be worth having fallen.</li>
+    <li><b>Nobody the player paid for shows up.</b> Angel is unreachable, comps are cancelled, and
+      the only people who answer are the ones who were never on the ledger — which is the argument
+      the ending matrix is about to make.</li>
+  </ul>
+
+  <div class="note"><b>Climb-out, guaranteed.</b> Losing your position is the back half's version of
+  losing the fifty dollars at Monte's table, and it obeys the same rule: <b>no state the player
+  cannot climb out of.</b> Dickie is the floor. He is always available, he never checks a stat, and
+  he cannot be closed off by anything the player did — the game lets you exploit him, and then makes
+  him the only exit.</div>
+</section>
+
+<section id="l11">
+  <h2>Level 11 &mdash; &ldquo;Everything Else&rdquo; <span>authoring act 7</span></h2>
+  <p class="lede">The protagonist's philosophy, stated on the bus in the prologue, is <em>first you
+  get the money, then you get the power, then you get everything else</em>. Eleven levels later the
+  game finally asks what the third clause was supposed to mean, and the answer is a person or it is
+  nothing.</p>
+
+  <div class="card">
+    <header><h3>The settlement, and then the bar after close</h3>
+      <span class="who">Every thread converges; the endings matrix resolves; one coda.</span>
+      <span class="pill ok">win line: whoever will not take it</span></header>
+    <dl class="facts">
+      <div><dt>Wants</dt><dd>To settle. Publicly, expensively, with everybody in one room — the
+        Level 1 curtain run at full scale, because the player learned in the first hour that the way
+        you win in this city is to make somebody hold what you did.</dd></div>
+      <div><dt>In the way</dt><dd>Everyone left wants a different version of you and they are all on
+        the same floor: Duke, who owns you; Chip, who is invested in you; Brenda or Gil, who is your
+        partner; Trish, who will file either way; and whoever the Wildcard turned out to be, who has
+        been in the background of this level since the boardwalk.</dd></div>
+      <div><dt>Win line</dt><dd><b>One person in Vanity Shores refuses your money and stays anyway.</b>
+        The public act is the player trying to pay everybody off, and it works — that is the point,
+        it all works. The ending is decided by who will not take it and is still there in the
+        morning.</dd></div>
+      <div><dt>The coda</dt><dd>The Kingfisher after close. You put money on the bar. Pops slides it
+        back. <em>&ldquo;Bar's closed.&rdquo;</em> Then he uses your name for the second and last time
+        in the game.</dd></div>
+      <div><dt>Reads</dt><dd>Everything. <code>chipEnding</code>, every <code>heat</code> value,
+        <code>GS.secrets</code>, <code>brendaWary</code>, <code>monteEnemy</code>,
+        <code>deaths</code>, <code>quarterOnGround</code>, <code>GS.name</code>, blend position and
+        the build split.</dd></div>
+      <div><dt>Rooms</dt><dd>The Winthrop's floor, dressed for an event &middot; the fountain, repaired
+        &middot; the Kingfisher &middot; the arrival stop, one last time.</dd></div>
+    </dl>
+  </div>
+
+  <h3 class="sub2">The beats</h3>
+  <ul class="plain">
+    <li><b>The quarter is still there.</b> <code>quarterOnGround</code> is live state in the shipping
+      build — a player who never picked it up left twenty-five cents on the tarmac at the bus stop in
+      the first minute of the game. Level 11 goes back to that room. If it is still on the ground, it
+      is still on the ground, and nobody in eleven levels has bent down for it.</li>
+    <li><b>The last frame is the first gesture, reversed.</b> You hold your hand out, palm up, exactly
+      the way Chip held his out over the quarter and exactly the way the player can end Level 1 —
+      and you wait. It took him eleven seconds. The game counts them again and does not tell you
+      what it is counting.</li>
+    <li><b>Endings are generated from blend position &times; romance outcome</b>, per the handoff:
+      mostly neutral, one or two clear wins, none of them a death. Chip and Brenda are the two net
+      positives; Duke is the triumphant-looking disaster; Angel is the empty one; Dickie resolves as
+      friendship and the game should quietly notice that the player noticed.</li>
+    <li><b>The sequel hook is Brenda's</b>, as ruled in art-and-arc: the ending where she finally
+      names what &ldquo;not for a unit&rdquo; meant, and it is a business proposition. If she was
+      closed in Level 1, the hook passes to <b>Gil Furnace</b>, who has read one book about real
+      estate and has ideas, and it is somehow more ominous.</li>
+  </ul>
+</section>
+
+<section id="payoff">
+  <h2>What the back half reads <span>Level 1 is load-bearing</span></h2>
+  <p class="lede">Every flag below is in the shipping build and appears in the generated bible with
+  its read and write counts. The demo is not a prologue that gets thrown away — it is the save file
+  the last seven levels are written against.</p>
+
+  <div class="scroll"><table>
+    <thead><tr><th>state</th><th>set in</th><th>read by</th><th>what it changes</th></tr></thead>
+    <tbody>
+      <tr><th><code>chipEnding</code></th><td>L1 curtain</td><td>L4, L9, L11</td>
+        <td>Five routes. Its own table below — this is the one already recorded for later acts.</td></tr>
+      <tr><th><code>heat.chip</code></th><td>L1 (opener, three optional beats, the curtain)</td>
+        <td>L4, L6, L9, L11</td>
+        <td>Caption on the passenger-seat plate; whether Chip gets you on the Coral Room list without
+          being asked; whether Level 9 makes you ask for the room. Highest ceiling in the game.</td></tr>
+      <tr><th><code>heat.brenda</code></th><td>L1 pitch, coupon, the secret</td><td>L5, L10, L11</td>
+        <td>Whether the Level 5 meeting is a proposal or an audition; whether she is one of the
+          people who does not drop you in Level 10.</td></tr>
+      <tr><th><code>brendaWary</code></th><td>L1 — intimidating her in the pitch</td>
+        <td>L5, L10, L11</td>
+        <td>Closes her permanently. Level 5's win line becomes Gil Furnace, and the sequel hook moves
+          with her. The strongest single argument for a second playthrough.</td></tr>
+      <tr><th><code>signReturned</code> + secret <code>brenda</code></th><td>L1 — bringing the sign back</td>
+        <td>L5, L11</td>
+        <td>The only Act 1 evidence that the player ever gave something back. Level 5 opens the
+          partnership one scene earlier; Level 11 has a line for it.</td></tr>
+      <tr><th><code>gotPremium</code></th><td>L1 — talking her out of the good bag</td><td>L5</td>
+        <td>Sets which of Brenda's two registers runs through the whole partnership: colleague, or
+          the mark who got lucky once.</td></tr>
+      <tr><th><code>gilPaid</code></th><td>L1 — selling the aloe</td><td>L5, L11</td>
+        <td>Gil exists to come back. Without this he is not in the game after Level 1; with it he is
+          a landlord.</td></tr>
+      <tr><th><code>dickiePaid</code>, <code>encores</code></th><td>L1 bandshell and every encore</td>
+        <td>L6, L10</td>
+        <td>His record is the fourth button on Pops' jukebox. The encore count is spoken aloud, as a
+          number, in the level where he saves you.</td></tr>
+      <tr><th><code>readingDone</code></th><td>L1 — paying LaRue two bits</td><td>L10</td>
+        <td>Unlocks the verbatim fortune-card line at the moment the player understands the turn.
+          Twenty-five cents, cashed nine levels later.</td></tr>
+      <tr><th><code>monteWon</code> / <code>monteEnemy</code></th><td>L1 shell game</td><td>L7, L10, L11</td>
+        <td><code>monteEnemy</code> — taking his wrist — puts him in the crowd that does not part in
+          the Level 7 chase, and on the wrong side of the ledger Roxy reads from.</td></tr>
+      <tr><th><code>quarterOnGround</code></th><td>L1 arrival</td><td>L11</td>
+        <td>Whether there is still a quarter on the tarmac at the bus stop in the last scene of the
+          game.</td></tr>
+      <tr><th><code>deaths</code></th><td>L1 onward, all four gags</td><td>L6, L11</td>
+        <td>Trish Vandermeer's first column. Comedy only — it never gates anything.</td></tr>
+      <tr><th><code>GS.name</code></th><td>character creation</td><td>L6, L11</td>
+        <td>Pops says it twice in eleven levels and nobody else says it at all.</td></tr>
+      <tr><th>build split</th><td>character creation, locked</td><td>every level</td>
+        <td>Route and flavour, never whether you can finish. <code>GATES</code> stays at 38 and later
+          levels differentiate by <em>route</em>, not by threshold — raising the gate narrows every
+          build at once, which the bible's balance table shows.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 class="sub2">Where Chip's showdown route lands</h3>
+  <p class="lede"><code>flags.chipEnding</code> is written the moment he takes the money and is one
+  of five values. It is the single richest piece of Act 1 state and it is already being recorded for
+  exactly this purpose. It never closes his route — art-and-arc reserves permanent closure for
+  Brenda alone — it changes what the route costs.</p>
+
+  <div class="scroll"><table>
+    <thead><tr><th>value</th><th>what happened</th><th>Level 4 flip</th><th>Level 9 tower</th><th>Level 11</th></tr></thead>
+    <tbody>
+      <tr><th><code>plain</code></th><td>Hand out, palm up, eleven seconds, nothing said.</td>
+        <td>He gets in the car without a word about it. Heat decides the plate's caption and this route
+          adds the least of it, so it lands nearer the takeover reading than the flirtation.</td>
+        <td>He takes you up and neither of you mentions the eleven seconds, which is how you know he
+          has been counting them for eight levels.</td>
+        <td>Cleanest route to the net-positive ending. Nothing to undo.</td></tr>
+      <tr><th><code>charm</code></th><td>He said it was a nice hundred dollars, out loud, in public.</td>
+        <td>The plate reads as flirtation. Highest starting heat of the five.</td>
+        <td>He does not make you ask.</td>
+        <td>Fastest to the win, and the ending has to work to avoid being cheap.</td></tr>
+      <tr><th><code>force</code></th><td>You closed his fingers around it one at a time.</td>
+        <td>Hostile takeover reading, unambiguously. He is useful and he is watching his wrist.</td>
+        <td>The room is offered as a transaction and the offer is real.</td>
+        <td><b>Open, but priced:</b> the good ending requires giving something back, in public,
+          without being asked. Not closed — expensive.</td></tr>
+      <tr><th><code>math</code></th><td>Twenty-five cents at nine and a quarter, compounded since Tuesday.</td>
+        <td>He brings a folder to the flip. He has been doing sums about you since.</td>
+        <td>You are shown the room the way an asset is shown a portfolio, and then he ruins it by
+          meaning it.</td>
+        <td>The route where the romance and the partnership are the same document.</td></tr>
+      <tr><th><code>heat</code></th><td>&ldquo;You parked where you could watch me. So watch.&rdquo;</td>
+        <td>The plate's ambiguity collapses toward flirtation and stays there.</td>
+        <td>He took you up two scenes ago; Level 9 is about what the room is <em>for</em>.</td>
+        <td>Highest ceiling and the most to lose in Level 10.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 class="sub2">What Level 2 has to record</h3>
+  <p class="lede">Level 2 is not built, so nothing below is a fact — these are <em>proposed</em> flag
+  names and a request on whoever builds it. Keep them cheap and keep them about people.</p>
+  <ul class="plain">
+    <li><code>l2Crew</code> <em>(proposed)</em> — who the player ran the string of cons with. Read by
+      Level 5, which needs one warm body who will vouch for a stranger buying a laundromat.</li>
+    <li><code>l2Burned</code> <em>(proposed)</em> — who paid for the stake and did not know it. Read by
+      Level 10, where the ledger Roxy reads from wants a name that is genuinely embarrassing.</li>
+    <li><code>l2Sabotage</code> <em>(proposed)</em> — how the player answered Chip actively competing.
+      Give it the same five-value grammar as <code>chipEnding</code> so Level 4's flip can read the
+      pair rather than one line.</li>
+    <li><b>Do not add a second money line.</b> <code>ECONOMY</code> and <code>GATES</code> stay the
+      single source of truth, in cents, and Level 5 onward should add rows rather than figures.</li>
+  </ul>
+</section>
+
+<section id="arcs">
+  <h2>The recurring cast <span>across acts 3&ndash;7</span></h2>
+
+  <div class="card">
+    <header><h3>Chip Winthrop</h3>
+      <span class="who">Antagonist L1&ndash;3, ally from L4, the highest ceiling in the game.</span>
+      <span class="pill ok">net positive available</span></header>
+    <p class="lede" style="margin:0">He does not get better; he gets <b>invested</b>, which is worse
+    and much funnier. The arc is a man discovering that the most interesting thing on the strip is
+    something he cannot buy, and responding by trying to buy it anyway, competently, for eight
+    levels. Level 5&ndash;6 he is the door — access is what a Winthrop has instead of a skill.
+    <b>Level 8 is the price of the flip:</b> he is in the crowd at the fountain and he does not help,
+    because a Winthrop does not get into water, and the game must let that sit. Level 9 he takes you
+    up to the room. Level 10 he is what Roxy uses, and he is furious in a way that is entirely about
+    himself. Level 11 he is the best available ending and the only one that requires having been
+    watched the whole way.</p>
+  </div>
+
+  <div class="card">
+    <header><h3>Brenda Tang</h3>
+      <span class="who">Timeshare shark, L1. Partner from L5. Low tier, winnable early.</span>
+      <span class="pill ok">net positive &middot; closeable in L1</span></header>
+    <p class="lede" style="margin:0">She is the legit pole of the blend meter with a face on it. Her
+    arc is the smallest and the most complete: she priced the player correctly in ninety seconds,
+    came back anyway, and spends the back half being the only person whose respect is a spreadsheet.
+    Level 5 she proposes. Level 6&ndash;8 she is the reason there is anything to lose. Level 10 she
+    does not drop you and does not make a thing of it. Level 11 she names the business and the game
+    ends on a sequel hook rather than a kiss. <b>A muscle build never meets any of this</b>, and that
+    is the single strongest replay lever the demo has.</p>
+  </div>
+
+  <div class="card">
+    <header><h3>Duke Calvera</h3>
+      <span class="who">The Scarface. L5 onward, escalating.</span>
+      <span class="pill crit">a win that is a loss</span></header>
+    <p class="lede" style="margin:0">Never a villain, always a problem. Level 5 he prices you at four
+    per cent, delighted. Level 6 he wants you photographed with him. Level 7 he is in the car. Level
+    8 he decides you are worth keeping, in public, and that is his victory. Levels 9&ndash;10 the
+    keeping tightens without a single threat being made — the comps, the introductions, the favours
+    you did not ask for. The Level 6 back-bar photograph is the only thing in the game that suggests
+    he was ever anybody's friend, and it is face down. His romance is reachable, magnetic, and the
+    worst outcome in the matrix; the ending should play as a triumph and be read, on the second
+    playthrough, as a hostage video.</p>
+  </div>
+
+  <div class="card">
+    <header><h3>Roxy Steele</h3>
+      <span class="who">The Bait-and-Switch. Enters L6, essential by L9, spends it in L10.</span>
+      <span class="pill crit">structurally cannot win</span></header>
+    <p class="lede" style="margin:0">The discipline is that <b>she never asks for anything</b>. Every
+    item she uses in Level 10 was handed to her in a scene the player enjoyed, and the game must be
+    able to show the receipts. Level 6 she does you an unasked favour. Level 9 she is the reason the
+    hardest doors open. Level 10 she uses the ledger, not a knife. Level 11 she is standing at the
+    back and she is not surprised. No redemption arc, no villain monologue, and — per her plate
+    brief — the warmest writing in the game right up until it stops.</p>
+  </div>
+
+  <div class="card">
+    <header><h3>Marv &ldquo;Pops&rdquo; Delgado</h3>
+      <span class="who">The Kingfisher. L4 onward. Not a mentor.</span>
+      <span class="pill info">the ungated conscience</span></header>
+    <p class="lede" style="margin:0">Four states across eight levels, and he never delivers a lesson.
+    <b>L4:</b> he does not look up. <b>L6:</b> the jukebox plays and he says your name. <b>L8:</b> he
+    is not at the fountain, deliberately, and the player should notice the absence rather than be
+    told about it. <b>L10:</b> he may lose the bar, depending on what the player gave away in Level 9,
+    and if he does he says nothing about that either. <b>L11:</b> he slides the money back across the
+    bar. His whole function is to be the one price in Vanity Shores that never gets quoted, and the
+    warmth stays in the lighting rather than the face — the rule his commissioning brief already
+    sets.</p>
+  </div>
+
+  <div class="card">
+    <header><h3>The rest of the boardwalk</h3>
+      <span class="who">Dickie, LaRue, Monte, Gil — the demo cast, all of whom come back.</span>
+      <span class="pill info">cheap payoffs</span></header>
+    <ul class="plain" style="margin-top:8px">
+      <li><b>Dickie Vermouth</b> — the control group. Plays like a romance, resolves as friendship,
+        and is the win line of Level 10 because he is the only person the player could exploit
+        without consequence and the game waited nine levels to mention it.</li>
+      <li><b>Madame LaRue</b> — one scene per act, always already knowing. Her Level 1 card is the
+        thesis of Level 10 and she never explains it. She does not need a plate; her portrait ships.</li>
+      <li><b>Monte</b> — the shell game becomes the count room. If <code>monteEnemy</code> is set he
+        is a small, patient, specific problem in Levels 7 and 10; if it is not, he is the man who
+        teaches the player how a count room actually skims.</li>
+      <li><b>Gil Furnace</b> — the sunburnt tourist who bought a unit. He is the replacement route in
+        Level 5, a landlord by Level 9, and the sequel hook if Brenda was closed.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="faces">
+  <h2>New faces <span>and what they cost</span></h2>
+  <p class="lede">art-and-arc budgets six painted plates at roughly 35 KB each — about 210 KB on a
+  190 KB file — and argues that is the whole cost of stopping the game to look at somebody. The back
+  half adds three named characters and <b>exactly one plate</b>. Seven plates is ~245 KB. Everyone
+  else gets a 44&times;52 in-engine portrait through <code>paintGeneric</code>, which costs nothing
+  and is what the machinery is for.</p>
+
+  <div class="card">
+    <header><h3>Angel <span class="who">&mdash; &ldquo;The Trophy&rdquo;</span></h3>
+      <span class="who">High tier, Act 3, gated hardest. The one the whole city wants.</span>
+      <span class="pill warn">commission &mdash; the only new plate</span></header>
+    <dl class="facts">
+      <div><dt>The moment</dt><dd>First sight, Level 9, on the banquette in the Coral Room. Everyone
+        in the city calls him Angel. The lease on his apartment says <b>Gary</b>. Learning that is
+        the whole reveal and there is nothing on the other side of it.</dd></div>
+      <div><dt>Must say</dt><dd><b>Nothing.</b> This is the only plate in the pack that has to
+        contain no information. Roxy's image hides a lie in plain sight; this one hides nothing, and
+        the discipline is not putting anything there.</dd></div>
+      <div><dt>Composition</dt><dd>Dead centre, symmetrical, evenly lit, fully available, looking
+        straight down the lens with complete uncomplicated welcome. Every other plate in the pack has
+        something out of frame — Duke's hand, LaRue's face, Roxy's real head. <b>This one has nothing
+        out of frame</b>, and that absence of an absence is the joke.</dd></div>
+      <div><dt>Palette</dt><dd>Gold and champagne, no shadow anywhere. The flattest lighting in the
+        pack, deliberately: the Kingfisher is the warmest room in the city and this is the
+        brightest, and they are not the same thing.</dd></div>
+    </dl>
+    <div class="prompt"><b>Brief for the artist</b>
+      <p>Sierra VGA adventure-game splash, 320&times;200 pixel art, limited palette. A man in his late
+      twenties on a white leather banquette in a casino nightclub, shot the way a magazine shoots
+      somebody: centred, symmetrical, evenly lit from the front, nothing hidden. Open shirt, gold at
+      the throat, a tan with no edges, hair that has obviously been paid for. He is looking directly
+      at the viewer with an expression of complete, uncomplicated welcome. Behind him the club is
+      expensively out of focus — champagne, brass, a smear of neon. Warm gold throughout, no
+      shadow anywhere, no rim light, no drama. Everything in the frame is finished. Nothing in the
+      frame is happening.</p>
+    </div>
+    <p class="avoid"><b>Avoid:</b> any tell. No bitten nail, no chipped tooth, no flicker of boredom
+    behind the eyes, no sad-behind-the-smile shorthand. Hidden depth is the one thing this character
+    does not have, and the moment the image suggests otherwise the player starts hoping and the whole
+    Act 3 argument collapses. He should be genuinely, expensively lovely and completely empty, and
+    the plate has to be brave enough to be a little boring.</p>
+  </div>
+
+  <div class="card">
+    <header><h3>Ruben Ortiz</h3>
+      <span class="who">The man whose entire job is the fountain. One scene, Level 8.</span>
+      <span class="pill ok">no plate &mdash; in-engine portrait</span></header>
+    <p class="lede" style="margin:0">Level 1 already tells the player he exists. Level 8 puts the act
+    climax in his water. He gets a generic 44&times;52 portrait — municipal windbreaker, reading
+    glasses on a cord, a long-handled coin sieve — and no painted plate, because <b>the joke requires
+    him to look like nobody</b>. A plate would make him somebody, and a somebody standing in that
+    fountain is a different and much worse scene.</p>
+    <p class="lede">He has one line and the scene is built around it: <em>&ldquo;Forty-one years.
+    Nobody has ever been in the water.&rdquo;</em> He is the only person at the climax who is upset
+    about the fountain rather than about the money, and he is therefore the only reliable witness the
+    level has.</p>
+  </div>
+
+  <div class="card">
+    <header><h3>Trish Vandermeer</h3>
+      <span class="who">The Shore Report. Fame amplitude, L6 onward. Low tier, resolves neutral.</span>
+      <span class="pill ok">no plate &mdash; in-engine portrait</span></header>
+    <p class="lede" style="margin:0">Four thousand readers, all of them liars, and a column that is
+    the only mechanism in the game for turning behaviour into reputation. She is pursuable, she is
+    never a net positive, and the outcome is the same either way: she writes about you. The choice is
+    only ever <em>which true sentence</em>.</p>
+    <p class="lede">No plate, on the pack's own rule: a plate is for the moments the game stops and
+    looks at somebody, and Trish is never still. She is always mid-sentence and always leaving. Give
+    her a portrait, a blazer with a pen in the pocket, and the fastest dialogue in the game.</p>
+  </div>
+
+  <div class="card">
+    <header><h3>The Wildcard <span class="who">&mdash; still a slot</span></h3>
+      <span class="who">Surfaces L9&ndash;L10 from player behaviour.</span>
+      <span class="pill warn">do not commission &middot; blocked on playtest</span></header>
+    <p class="lede" style="margin:0">art-and-arc leaves this open deliberately and this document does
+    not close it. What it can add is the shortlist the shipping game is already capable of ranking,
+    since the measure is <em>most interactions, least regard</em>:</p>
+    <ul class="plain" style="margin-top:10px">
+      <li><b>The two onlookers under the pier</b> (<code>u1</code>, <code>u2</code>) — the strongest
+        structural candidate. They are present for the player's worst available Act 1 move, they have
+        no names, and the player has never once looked at them. If <code>monteEnemy</code> is set,
+        two people watched it happen and the game never asked who they were.</li>
+      <li><b>Gil Furnace</b> — if the aloe was sold at the fighting rate and he was never spoken to
+        again.</li>
+      <li><b>Dickie Vermouth</b> — high interactions, and the encore count is a direct readout of
+        regard. Rejected on purpose: he is the control group, and turning the one person who wants
+        nothing into a rival would spend the game's best quiet joke on a loud one.</li>
+      <li><b>Monte</b> — the obvious pick, and therefore the least interesting. He is a rival the
+        player would <em>expect</em>, which is exactly the wrong shape for this slot.</li>
+    </ul>
+    <p class="avoid" style="margin-top:12px"><b>Still true:</b> whoever it is, they are looking
+    directly at camera and have been for some time, and the horror is that the player does not
+    recognise them.</p>
+  </div>
+</section>
+
+<section id="quarantine">
+  <h2>The Level 4 quarantine <span>where the crude content actually lives</span></h2>
+  <p class="lede">Levels 1&ndash;3 are the free demo. They have to be openable from a link, a static
+  host, an itch page or a hosted artifact with no age gate in front of them, which means <b>the
+  demo's ceiling is innuendo</b>. Level 4 is behind a one-time unlock. That unlock is already a
+  commercial gate, and it is also the only age gate this build needs — so the quarantine line and the
+  paywall line are the same line, drawn once, at Level 4.</p>
+
+  <div class="scroll"><table>
+    <thead><tr><th>band</th><th>ceiling</th><th>the worked example</th></tr></thead>
+    <tbody>
+      <tr><th>L1&ndash;3 &mdash; free</th>
+        <td>Innuendo, implication, and one cutaway per level at most. Nothing below the waist in
+          the caption, nothing that needs a warning label on a store page.</td>
+        <td>Brenda's fifteen-minute break behind the unit: a canopy having a structural event, a
+          seagull that does not blink, and a reopened booth with the sign facing the wrong way.
+          <b>That is the demo's hard ceiling and it is already the funniest cutaway in the build.</b></td></tr>
+      <tr><th>L4 &mdash; the wall</th>
+        <td>The register changes audibly inside ten minutes.</td>
+        <td>The Kingfisher door shuts, the boardwalk noise cuts out, and the first paid cutaway lands
+          before the player has finished looking around. The purchase has to justify itself in the
+          first scene, not the first level.</td></tr>
+      <tr><th>L5&ndash;8 &mdash; crude, framed</th>
+        <td>Full LSL register in the captions. Still framed, still off-screen, still one seagull's
+          worth of visual information.</td>
+        <td>Level 5's deposit scene and Level 6's back room at the Coral Room. The blend meter gets a
+          filthy joke per pole and the game stops apologising.</td></tr>
+      <tr><th>L9&ndash;11 &mdash; the payoff act</th>
+        <td>The tonal peak the handoff promises for Act 3. Cartoon-crude, never explicit.</td>
+        <td>The full roster resolves. Angel's is the most elaborate cutaway in the game and the
+          caption underneath it is one flat sentence about nothing, which is the entire point.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 class="sub2">What the quarantine changes about pacing</h3>
+  <ul class="plain">
+    <li><b>The demo cannot spend its best jokes</b>, so Act 1's engine has to be a person rather than
+      the raunch — which is exactly why Level 1's win line is Chip and not a number, and why the heat
+      track is tracked-but-never-resolved. The demo's hook is a relationship it refuses to consummate.
+      That is a feature and it is already shipping.</li>
+    <li><b>Level 4 carries the whole burden of proof.</b> Everywhere else the game can pace itself;
+      Level 4 has ten minutes to demonstrate that the paid game is a different animal. Front-load it:
+      Pops' plate, the register change, and a cutaway, in that order, before any puzzle.</li>
+    <li><b>No seduction may resolve below the line.</b> This agrees with the handoff, which gates
+      low-tier conquests to Act 2 and the rest to Act 3, and it means Level 5 is the first level where
+      a romance can actually close. Heat accumulated in the demo is a promissory note the paid game
+      pays out.</li>
+    <li><b>The camera never moves.</b> Every quarantined beat is still <code>cutaway()</code> — a
+      framed vignette and captions. The quarantine escalates <em>what the caption says</em>, not what
+      the screen shows. That keeps the escalation free (prose costs nothing, a sprite sheet costs
+      weeks), keeps the build shippable on storefronts that would otherwise demand an age gate, and
+      means no new art technology is required anywhere after Level 4.</li>
+    <li><b>House rules, unchanged in every band:</b> everyone in the cast is an adult, nothing depicts
+      a real person, and the camera stays outside the tent. Reach for on-screen animation only if a
+      joke genuinely cannot survive being described, which so far none has.</li>
+  </ul>
+
+  <div class="note"><b>The pacing risk to watch.</b> A hard register change at Level 4 can read as two
+  different games stapled together. The fix is that the <em>subject</em> never changes: Act 1 is about
+  what people will hold for you, Act 3 is about what people will hold for you, and the only thing that
+  escalates is how expensive the holding got. If a paid-side scene would still work in the demo with a
+  cleaner caption, it is on-theme. If it only works because it is filthy, it is a sketch.</div>
+</section>
+
+<section id="properties">
+  <h2>The properties, at scale <span>re-check these when anything moves</span></h2>
+  <p class="lede">Three rules keep Level 1 winnable for every build. The back half needs a fourth,
+  because Act 1 now writes state that Act 3 reads, and state can close a door that a stat never
+  could.</p>
+  <ul class="plain">
+    <li><b>No route to the win line that skips the table.</b> Level 1's version is Monte: no build can
+      reach a hundred dollars without sitting down and risking fifty. Every level below names its
+      table — <b>L5</b> the deposit, <b>L6</b> the guest list, <b>L7</b> the car, <b>L8</b> the
+      fountain, <b>L9</b> the favour, <b>L10</b> the key, <b>L11</b> the settlement. If a level has no
+      moment where the player can lose what they are carrying, it is a corridor.</li>
+    <li><b>No state the player cannot climb out of.</b> In the demo the trap is financial and the
+      floor is Dickie's encore. In the back half the trap is social — position, access, reputation —
+      and the floor is still Dickie, who never checks a stat and cannot be closed off. Level 10 is
+      built on this deliberately.</li>
+    <li><b>No stat gate may be the only route past a progress-critical beat.</b> An even split clears
+      nothing, so every win line above has an ungated path stated in its card. Keep
+      <code>GATES</code> at 38 and differentiate later levels by route rather than threshold; the
+      bible's balance table shows that raising the number narrows all three builds at once.</li>
+    <li><b>No Act 1 flag may be the only route past a beat either.</b> The new one. Brenda can be
+      closed permanently in Level 1 and Level 5's win line depends on her, so Level 5 ships Gil
+      Furnace as a full replacement rather than a consolation. <b>A closed route is replaced, never
+      removed</b> — otherwise the game's best replay hook becomes its worst soft-lock.</li>
+  </ul>
+
+  <div class="note"><b>When to re-run this.</b> Any change to a payout, a gate, or a flag's read/write
+  count changes something above. <code>node tools/bible.js</code> regenerates the ground truth; this
+  document is the thing that has to be argued with afterwards. If the bible and this page disagree,
+  <b>the bible is right and this page is out of date</b>.</div>
+</section>
+
+<footer>Authored, not generated. The second half of the pair that begins with
+<code>docs/art-and-arc.html</code>; <code>docs/game-bible.html</code> is read out of the shipping
+code and stays the ground truth for anything that actually plays.</footer>
+</main>
+</div>

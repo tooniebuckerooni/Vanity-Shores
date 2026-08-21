@@ -1,0 +1,60 @@
+<!doctype html><meta charset="utf-8"><title>Last Bus</title>
+<style>body{background:#101014;color:#ddd;font:14px ui-monospace,monospace;padding:24px}</style>
+<h1>Last Bus</h1>
+<p id="out">A deliberately tiny, deliberately flawed game. It exists so Canon can be
+pointed at something that is not Vanity Shores — different globals, a different stat
+model, a different word for "say" — and prove it still works. The defects below are
+on purpose; the test asserts Canon finds exactly these.</p>
+<script>
+/* Nothing here shares a single identifier with Vanity Shores. */
+var STATE = { marks:{}, coins:0, scene:'depot' };
+var STATS = { nerve:30, cash:30 };
+
+var PLACES = {
+  depot: { bounds:[0,0,64,32], folk:['dispatcher'] },
+  kerb:  { bounds:[0,0,64,32], folk:['stranger'] }
+};
+var FOLK = {
+  dispatcher:{ label:'The Dispatcher', role:'Sells the ticket. Will not be hurried.',
+               where:'Behind the window, depot' },
+  stranger:{ label:'Somebody Waiting', role:'Knows when the bus really comes.',
+             where:'The kerb' }
+};
+var PRICES = { ticket:475, tip:100 };
+var CHECK  = 25;                       /* the one gate */
+
+function tell(t){ document.getElementById('out').textContent = t; }
+var need = s => STATS[s] >= CHECK;
+
+/* DEFECT 1: every route out of this required scene is behind a stat check, so a
+   spread build cannot leave the depot. Canon must fail the build on this. */
+function buyTicket(){  /* @owner dispatcher @critical */
+  return [
+    { text:'Talk him down on the price, smiling the whole time.', tag:'nerve', go: () => {
+        STATE.marks.talkedDown = true; tell('He knocks a dollar off and resents it.'); } },
+    { text:'Pay the full fare without looking at it.', tag:'cash', go: () => {
+        STATE.coins -= PRICES.ticket; tell('The ticket is warm from the printer.'); } }
+  ];
+}
+
+function askStranger(){  /* @owner stranger */
+  return [
+    { text:'Ask when the bus actually comes.', go: () => {
+        tell('"Twenty past. It has never once been the time on the board."'); } },
+    { text:'Ask what they are waiting for.', tag:'nerve', go: () => {
+        tell('They look at you for slightly too long. "Same as you."'); } },
+    /* DEFECT 2: branches on a mark that nothing in this game ever writes. */
+    { text:'Mention the thing they told you last time.', go: () => {
+        tell(STATE.marks.toldMeBefore ? 'They remember.' : 'They do not.'); } }
+  ];
+}
+
+/* DEFECT 3: talks to the player, but carries no @owner tag, so its dialogue would
+   go uncounted. Canon must report it rather than skip it. */
+function driverShrugs(){
+  tell('The driver shrugs at you through the glass, which is the whole of his answer.');
+}
+
+tell(document.getElementById('out').textContent);
+window.TOY_READY = true;
+</script>

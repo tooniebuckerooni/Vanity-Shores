@@ -275,13 +275,45 @@ Content scales fine, but `index.html` will not stay comfortable much past ~5000
 lines. When Level 3 lands, split content out into a `LEVELS` array of modules and
 concatenate at build time, keeping the single-file output.
 
-## The game bible
+## Canon, and the game bible
 
-`node tools/bible.js` drives the real `index.html` in a headless browser, reads
+`node tools/canon.js` drives the real `index.html` in a headless browser, reads
 the live game objects, scans the source for dialogue volume and flag traffic,
 and writes `docs/game-bible.html`. It is the answer to "what is in this game
 now" and it is generated, never hand-maintained — a written breakdown would
 drift the first time a payout changed.
+
+The generator itself is now general. `tools/canon/` contains nothing about this
+game: it knows how to drive an artifact, scan JavaScript without being fooled by
+braces inside dialogue, measure authoring load, keep a state ledger and sweep a
+configuration space. Everything specific lives in one adapter,
+`tools/vanity-shores.canon.js`. Pointing Canon at another config documents
+another game — `tools/fixtures/toy.canon.js` does exactly that, for a two-stat
+game that shares no identifier with this one.
+
+**The map of scene → character used to live inside the tool as a hand-kept
+table, which was the exact drift the tool exists to prevent.** It had already
+gone wrong: `brendaSecret` was missing from it, so Brenda's authoring load had
+been under-reported since the day that scene was written. Ownership is now
+declared at the declaration — `function brendaSecret(){  /* @owner brenda */` —
+and any scene that talks to the player without a tag is *reported as unclaimed*
+rather than skipped.
+
+### The invariants are checked, not just displayed
+
+`node tools/canon.js --check` exits non-zero, and the deploy runs it on every
+push. It fails the build on: a required beat (`@critical`) whose every choice is
+gated; a build that cannot finish the level; a build that reaches the stake line
+without sitting down at Monte; a purse ceiling that reopens the encore exploit;
+and a flag that is read but never written. It distinguishes that last case from
+a flag *written* but never read, which is not a bug in a multi-level game — it is
+a promise a later level has not collected yet, and the bible lists those as the
+spine Act 2 inherits.
+
+`node tools/canon-test.js` is Canon's own suite: 16 checks, run against a fixture
+with three defects planted on purpose. A checker that has silently stopped
+checking also reports clean, so the suite proves it still bites before it
+certifies the real game.
 
 It carries an **authoring-load** read per character: `branches × axes`, where an
 axis is something a line *varies on* (build, flags, heat, items, purse) and not
@@ -289,10 +321,11 @@ something a scene *does* (`give`, `addHeat`, `pay` cost nothing to author). The
 measure is multiplicative because the matrix you write by hand is the product of
 the axes, not their sum. Under 30 is comfortable, 30-80 is worth watching, over
 80 is where a goal-driven NPC starts earning its keep. Everyone is currently
-comfortable; Monte is highest at 24.
+comfortable; Chip is highest at 30, right on the boundary.
 
-Regenerate it whenever you add a location, a character, a payout or a gate, and
-check the balance table still says every build clears.
+Regenerate it whenever you add a location, a character, a payout or a gate. You
+no longer have to remember to read the balance table afterwards — `--check` reads
+it for you and fails if it stopped holding.
 
 ## Shipping
 

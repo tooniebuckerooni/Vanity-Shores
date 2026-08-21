@@ -11,13 +11,37 @@ every sprite, backdrop, portrait and note is generated in code at runtime.
 1. **`docs/BUILD-STATE.md`** — architecture, the non-obvious invariants, and
    what to build next. This is the file that stops you re-deriving decisions.
 2. **`docs/game-bible.html`** — every character, location, payout, gate, secret
-   and flag, **generated from the shipping game** by `node tools/bible.js`.
+   and flag, **generated from the shipping game** by `node tools/canon.js`.
    Never hand-edit it; regenerate after any change to a location, character,
    payout or gate.
 3. **`docs/art-and-arc.html`** — authored, not generated: the commissioning
    briefs for the entry images, the Act 2 climax plan, and which love
    interests actually pay off. Read it before writing any Act 2 content.
-4. `docs/design-handoff.md` — the original design document. Internal.
+4. **`docs/acts-3-7.html`** — authored: per-level beats for the rest of the
+   game, the cross-level payoff table, and the Level 4 quarantine.
+5. `docs/design-handoff.md` — the original design document. Internal.
+
+## Canon does the checking, so you do not have to remember
+
+`node tools/canon.js` reads the running game and writes the bible.
+`node tools/canon.js --check` asserts the rules below and **exits non-zero**, and
+the deploy runs it on every push. They are build gates now, not good intentions.
+
+Two things this changes about how you write scenes:
+
+- **Every scene declares its owner at the declaration**, as
+  `function chipBeat(){  /* @owner chip */`. A scene that talks to the player
+  without a tag is reported as *unclaimed* rather than skipped — a loud gap
+  beats a silent miscount. Narration that belongs to no character is
+  `@owner system`.
+- **A beat the player must get past is tagged `@critical`.** Canon fails the
+  build if every one of its choices ends up behind a stat gate.
+
+`node tools/canon-test.js` is Canon's own suite. It runs the generator against
+`tools/fixtures/toy.html` — a tiny game with three defects planted on purpose —
+and requires that all three are found. A checker that has quietly stopped
+checking also reports a clean bill of health, so the suite proves it still bites
+before it certifies the real game.
 
 ## The rules that are easy to break
 

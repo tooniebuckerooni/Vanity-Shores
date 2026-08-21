@@ -1,2 +1,5 @@
 node_modules/
 *.log
+
+# Canon writes this when the fixture runs; it is output, not a deliverable.
+tools/fixtures/toy-bible.html

@@ -50,6 +50,17 @@ jobs:
           node --check /tmp/game.js
           echo "index.html: $(wc -l < index.html) lines, $(wc -c < index.html) bytes"
 
+      # Canon reads the shipping game and asserts the rules that are otherwise
+      # only prose in CLAUDE.md: no required beat gated on every route, no build
+      # that cannot finish, no route to the win line that skips Monte, no state
+      # read but never written. An error here is a game that must not ship.
+      - name: Canon — the invariants must hold
+        run: |
+          npm install --no-save playwright
+          npx playwright install chromium
+          node tools/canon-test.js
+          node tools/canon.js --check
+
   # Only from the default branch, or by hand. Feature branches skip this rather
   # than failing on the github-pages environment's branch policy.
   deploy:

@@ -48,16 +48,20 @@ Nothing here is blocked on an image generator.
 
 ```
 index.html              the entire game
-tools/bible.js          generates the game bible from the shipping game
+tools/canon.js          reads the shipping game: writes the bible, checks the rules
+tools/canon/            the generator, with nothing game-specific in it
+tools/vanity-shores.canon.js   this game's adapter (the only file that knows the game)
+tools/canon-test.js     Canon's own suite, against a deliberately broken fixture
 docs/game-bible.html    every character, location, payout and gate (generated)
 docs/art-and-arc.html   art commissioning briefs + the Act 2 plan (authored)
+docs/acts-3-7.html      per-level beats for the rest of the game (authored)
 docs/design-handoff.md  the original design document (internal)
 docs/BUILD-STATE.md     architecture notes + what to build next
 ```
 
 ## The game bible
 
-`node tools/bible.js` reads the real game and writes `docs/game-bible.html` —
+`node tools/canon.js` reads the real game and writes `docs/game-bible.html` —
 characters, locations, items, the economy table, every stat gate with the share
 of builds that clear it, the intrigue tiers, deaths, flags, and the progression
 chain. It is generated rather than written, so it cannot drift from what ships.

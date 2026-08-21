@@ -1820,7 +1820,7 @@ function say(pages, opts){
              choices:opts.choices||null, then:opts.then||null, hover:-1 };
   GS.invOpen = false;
 }
-function narrate(t, opts){ say(t, opts||{}); }
+function narrate(t, opts){ say(t, opts||{}); }  /* @owner system */
 function advanceMsg(){
   const m = GS.msg; if(!m) return;
   if(dlgHasMore(m)){ m.sub = (m.sub||0)+1; Audio_.sfx('click'); return; }
@@ -2127,35 +2127,35 @@ function clickScene(p){
 
 /* ---------- 5. CONTENT: the cast ----------------------------------------- */
 const CAST = {
-  chip:{ pose:'pocket', portrait:'chip', name:'Chip Winthrop', skin:'tan',
+  chip:{ pose:'pocket', portrait:'chip', name:'Chip Winthrop', skin:'tan', role:'Demo antagonist, and the level\'s win condition. Flips to ally at Level 4.', where:'Bus stop, then the boardwalk',
          hair:'pomp', hairC:'#d8b45a', hairC2:'#f2dc9a',
          hat:'flat', hatC:'#1a1620',
          shirtStyle:'mesh', shirt:'#241f2e', shirtD:'#14101c', inner:'#ffffff',
          pants:'#efe6d4', pantsD:'#cfc4ae', shoes:'#8a5a3a', acc:'chain',
          figure:'broad', eyes:'#4a7ab0', size:2, still:false },
-  gil:{ pose:'stiff', name:'Gil Furnace', skin:'burn', hair:'cap', hairC:'#e8e4d8', hairC2:'#c4c0b4',
+  gil:{ pose:'stiff', name:'Gil Furnace', skin:'burn', role:'Sunburnt tourist. Your first customer.', where:'Bench, boardwalk', hair:'cap', hairC:'#e8e4d8', hairC2:'#c4c0b4',
          shirtStyle:'hawaii', shirt:'#2fa8a0', shirtD:'#1d7a74',
          pants:'#d8cfa8', pantsD:'#b0a882', shoes:'#f0ece0', build:1, eyes:'#5a7a4a' },
-  brenda:{ pose:'hold', name:'Brenda Tang', skin:'tan', hair:'bun', hairC:'#231a26', hairC2:'#4a3a4e', figure:'curved',
+  brenda:{ pose:'hold', name:'Brenda Tang', skin:'tan', role:'Timeshare shark. Gatekeeper for the aloe and the sign.', where:'Timeshare booth, boardwalk', hair:'bun', hairC:'#231a26', hairC2:'#4a3a4e', figure:'curved',
          shirtStyle:'blazer', shirt:'#2a3f5e', shirtD:'#1b2a42', inner:'#f5e6d3',
          skirt:'#2a3f5e', shoes:'#241134', lips:'#d8365e', acc:'none',
          eyes:'#3a2a2a', build:-1 },
-  zsazsa:{ portrait:'larue', name:'Madame LaRue', skin:'deep', hair:'perm',
+  zsazsa:{ portrait:'larue', name:'Madame LaRue', skin:'deep', role:'Boardwalk psychic. Sells the tell that beats the table.', where:'Fortune tent, pier', hair:'perm',
          hairC:'#1c1030', hairC2:'#3a2352', figure:'hourglass', build:-1,
          shirtStyle:'halter', shirt:'#c4304a', shirtD:'#8e1e33', inner:'#f5e6d3',
          skirt:'#c4304a', shoes:'#241134', lips:'#c02a4e', acc:'hoops',
          eyes:'#2a1a1a', size:-1 },
-  dickie:{ pose:'hold', name:'Dickie Vermouth', skin:'pale', hair:'pomp', hairC:'#7a7488', hairC2:'#a8a2b4',
+  dickie:{ pose:'hold', name:'Dickie Vermouth', skin:'pale', role:'Has-been lounge act. Repeatable income.', where:'Bandshell, pier', hair:'pomp', hairC:'#7a7488', hairC2:'#a8a2b4',
          shirtStyle:'sequin', shirt:'#8e2a4e', shirtD:'#5e1a32', inner:'#f5e6d3',
          pants:'#2a2438', pantsD:'#1a1626', shoes:'#e8e4d8', stubble:true,
          mustache:true, eyes:'#4a4a5a', size:-2 },
-  monte:{ pose:'crossed', name:'Monte', skin:'tan', hair:'ponytail', hairC:'#2a1c14', hairC2:'#4a3424',
+  monte:{ pose:'crossed', name:'Monte', skin:'tan', role:'Shell game. The level\u2019s boss fight.', where:'Folding table, under the pier', hair:'ponytail', hairC:'#2a1c14', hairC2:'#4a3424',
          shirtStyle:'tank', shirt:'#e8e4d8', shirtD:'#c4c0b4',
          pants:'#3a3448', pantsD:'#241f30', shoes:'#241134', acc:'chain',
          stubble:true, build:1, eyes:'#3a2a1a' },
-  rube1:{ name:'a tourist', skin:'fair', hair:'perm', hairC:'#b4703a', hairC2:'#d8965a', figure:'curved',
+  rube1:{ name:'a tourist', skin:'fair', role:'Set dressing. Proves the boardwalk has other people on it.', where:'Boardwalk', hair:'perm', hairC:'#b4703a', hairC2:'#d8965a', figure:'curved',
           shirtStyle:'tank', shirt:'#f0a8c0', pants:'#e8e0d0', size:-1, still:true },
-  rube2:{ name:'a tourist', skin:'deep', hair:'cap', hairC:'#c41d68', hairC2:'#8e1148',
+  rube2:{ name:'a tourist', skin:'deep', role:'Set dressing. Proves the boardwalk has other people on it.', where:'Boardwalk', hair:'cap', hairC:'#c41d68', hairC2:'#8e1148',
           shirtStyle:'hawaii', shirt:'#f0c23d', pants:'#3a4a6a', build:1, still:true }
 };
 const sayAs = (who, pages, opts) => say(pages, Object.assign({ speaker:CAST[who].name, look:CAST[who] }, opts||{}));
@@ -2666,13 +2666,17 @@ function flirtBeat(who, beats, perBeat){
 const you = () => GS.name || 'you';
 
 /* Three beats he does not have to give you. Each one costs him something. */
-const CHIP_BEATS = [
+const CHIP_BEATS = [  /* @owner chip */
   ['He has moved four feet along the car so that he is facing you now, which he would describe, '+
    'if anybody asked him, as a coincidence.',
    '"Do you know the worst thing about a town like this? Everybody wants the same six things."',
    '"You want them too. You just want them out loud. It is —" he goes looking for a word he can '+
    'afford "— unbecoming."',
-   'He says the word to your mouth rather than your eyes. Then he notices that he has done it.'],
+   'He says the word to your mouth rather than your eyes. Then he notices that he has done it.',
+   '"You know what is in that fountain?" He does not point at it. "Eleven hundred dollars on a '+
+   'good week. My family loses more than that in the fountain."',
+   '"There is a man whose entire job is the fountain." He lets it sit. "I have never learned his '+
+   'name. I want you to think about why that is the part you find upsetting."'],
   ['"You are still here."',
    'He says it like an accusation. It arrives like a compliment. Both of you hear which one it '+
    'was, and neither of you does anything about that.',
@@ -2685,7 +2689,7 @@ const CHIP_BEATS = [
    'The pause runs exactly one beat longer than a pause is supposed to.',
    '"It is a very boring room," Chip says. "You would hate it."']
 ];
-function chipIntro(){
+function chipIntro(){  /* @owner chip */
   if(GS.flags.metChip){
     const beat = flirtBeat('chip', CHIP_BEATS, 6);
     if(beat){ sayAs('chip', beat); return; }
@@ -2709,7 +2713,7 @@ function chipIntro(){
     'Chip Winthrop. My family built the tower you\'ve been staring at since you got off. '+
     'You\'ll be staring at it for a while.'], { choices:opts });
 }
-function chipBeat(kind){
+function chipBeat(kind){  /* @owner chip */
   GS.flags.metChip = true;
   if(kind==='charm') addHeat('chip', 18);
   if(kind==='money') addHeat('chip', 8);     // being read is its own kind of intimate
@@ -2741,7 +2745,7 @@ function chipBeat(kind){
 }
 
 /* ---- Gil Furnace: the sunburnt tourist --------------------------------- */
-function gilTalk(){
+function gilTalk(){  /* @owner gil */
   if(GS.flags.gilPaid){ sayAs('gil', ['I can move my ARMS. Do you understand what you\'ve done '+
     'for me?','I\'m going to go stand in the ocean now. Slowly. Like a gentleman.']); return; }
   if(has('aloe')){ sayAs('gil', ['Is that — is that ALOE? Is that aloe in your hand right now?',
@@ -2756,7 +2760,7 @@ function gilTalk(){
     'to the first person who brings me something cold. I am not joking. I have never been less funny '+
     'in my life.']);
 }
-function gilPayoff(){
+function gilPayoff(){  /* @owner gil @critical */
   drop('aloe'); GS.flags.gilPaid = true;
   const opts = [{ text:'"Twenty. Pleasure doing business."', fn:()=>gilPay('base',
     ['He pays. He does not haggle. A man in that condition has no leverage and both of you know it.']) }];
@@ -2773,7 +2777,7 @@ function gilPayoff(){
       'and puts it away again while watching your face.']) });
   say('The tube changes hands. Gil makes a noise that should not be made in public.', { choices:opts });
 }
-function gilPay(route, lines){
+function gilPay(route, lines){  /* @owner gil */
   pay(earn('gilAloe', route));
   say(lines.concat(['You are ' + money() + ' into Vanity Shores. It is not power. It is the thing '+
     'you buy power with.']), { speaker:CAST.gil.name, look:CAST.gil });
@@ -2781,7 +2785,7 @@ function gilPay(route, lines){
 
 /* ---- Brenda Tang: the timeshare shark ---------------------------------- */
 /* Offered only once her business with you is finished — she does not flirt on the clock. */
-const BRENDA_BEATS = [
+const BRENDA_BEATS = [  /* @owner brenda */
   ['"Still here." She checks the clipboard. The clipboard does not need checking.',
    '"I work until seven. Then the jacket comes off and I stop being pleasant to people for money, '+
    'and those two events are related."'],
@@ -2798,7 +2802,7 @@ const BRENDA_BEATS = [
 ];
 const brendaDone = () => GS.flags.gotPremium || GS.flags.brendaWary ||
                          (GS.flags.pitchCount||0) >= 2;
-function brendaTalk(){
+function brendaTalk(){  /* @owner brenda @critical */
   if(brendaDone()){
     const beat = flirtBeat('brenda', BRENDA_BEATS, 6);
     if(beat){ sayAs('brenda', beat); return; }
@@ -2824,7 +2828,7 @@ function brendaTalk(){
      'weeks you use.',
      'Also the weeks you don\'t use. But those are cheaper.'], { choices:opts });
 }
-function brendaOut(kind){
+function brendaOut(kind){  /* @owner brenda */
   GS.flags.pitchDone = true;
   if(kind==='charm'){
     GS.flags.gotPremium = true; give('aloe'); give('coupon');
@@ -2877,7 +2881,7 @@ function brendaOut(kind){
       'for the people who won\'t leave.']);
   }
 }
-function takeSign(){
+function takeSign(){  /* @owner brenda */
   if(!GS.flags.pitchDone){
     Audio_.sfx('deny');
     sayAs('brenda','Hand. Off. The sign, sweetheart. The sign is *the whole business*.'); return; }
@@ -2909,7 +2913,7 @@ const secretsFound = () => Object.keys(GS.secrets).length;
    Brenda, it buys you a crowd, and if you think to go back to the pier and
    collect it afterwards you can hand it back to the woman you took it from.
    She has to already like you. Intimidating her earlier closes this off. */
-const BRENDA_SECRET_HEAT = 18;
+const BRENDA_SECRET_HEAT = 18;  /* @owner brenda */
 
 function paintBoothBack(bx, by, bw, bh, t){
   const grd = g.createLinearGradient(0, by, 0, by+bh);
@@ -2948,7 +2952,7 @@ function paintBoothBack(bx, by, bw, bh, t){
   r(gx+1, gy+3, 1, 2, P.gold);
 }
 
-function brendaSecret(){
+function brendaSecret(){  /* @owner brenda */
   drop('sign'); GS.flags.signReturned = true; foundSecret('brenda');
   addHeat('brenda', 25);
   sayAs('brenda', ['You hand back the FREE GIFT sign.',
@@ -2974,7 +2978,7 @@ function brendaSecret(){
 }
 
 /* ---- Madame LaRue: the boardwalk psychic ------------------------------- */
-function zsaTalk(){
+function zsaTalk(){  /* @owner zsazsa */
   if(has('fortune') || GS.flags.readingDone){
     sayAs('zsazsa','I told you what I saw. Twenty-five cents doesn\'t buy a second opinion.'); return; }
   if(has('quarter')){
@@ -2986,7 +2990,7 @@ function zsaTalk(){
     'from here and I didn\'t need the cards.','Find a quarter. This town is *littered* with men who '+
     'throw them.']);
 }
-function zsaReading(){
+function zsaReading(){  /* @owner zsazsa */
   drop('quarter'); GS.flags.readingDone = true; give('fortune'); Audio_.sfx('charm');
   const lean = leanName();
   const personal = {
@@ -3014,7 +3018,7 @@ function zsaReading(){
 }
 
 /* ---- Dickie Vermouth: the has-been ------------------------------------- */
-function dickieTalk(){
+function dickieTalk(){  /* @owner dickie */
   if(GS.flags.crowdDrawn){
     if(GS.cash >= ECONOMY.monteStake && !GS.flags.monteWon){
       sayAs('dickie', ['Kid. You are standing there with table money in your pocket asking me to '+
@@ -3039,7 +3043,7 @@ function dickieTalk(){
     'Get me a crowd and I\'ll split what lands in the jar. Straight down the middle, and I\'ll cry '+
     'about it later in private like a professional.']);
 }
-function plantSign(){
+function plantSign(){  /* @owner dickie */
   if(!has('sign')){ narrate('You would need something that makes people stop.'); return; }
   drop('sign'); GS.flags.crowdDrawn = true;
   const opts = [{ text:'Stand back and let it happen.', fn:()=>dickiePay('base',
@@ -3066,7 +3070,7 @@ function plantSign(){
     'Dickie Vermouth steps to the microphone with the expression of a man who has been kept in a '+
     'garage for nine years.'], { choices:opts });
 }
-function dickiePay(route, lines){
+function dickiePay(route, lines){  /* @owner dickie */
   pay(earn('dickieSplit', route)); GS.flags.dickiePaid = true; Audio_.sfx('fanfare');
   say(lines.concat(['He counts the jar out on the stage lip, halves it without being asked, and '+
     'presses your share into your hand with both of his.',
@@ -3082,7 +3086,7 @@ function encoreTake(){
   const raw = first * Math.pow(ECONOMY.encoreDecay, GS.flags.encores || 0);
   return Math.max(ECONOMY.encoreFloor, Math.round(raw/25)*25);
 }
-function dickieEncore(){
+function dickieEncore(){  /* @owner dickie */
   const take = encoreTake();
   GS.flags.encores = (GS.flags.encores || 0) + 1;
   pay(take); Audio_.sfx('cash');
@@ -3097,7 +3101,7 @@ function dickieEncore(){
 }
 
 /* ---- Monte: the shell game, and the point of the whole level ------------ */
-function monteTalk(){
+function monteTalk(){  /* @owner monte @critical */
   if(GS.flags.monteWon){
     sayAs('monte', ['Table\'s closed.','It\'s closed for you specifically. Everybody else, table\'s '+
       'wide open.']); return; }
@@ -3123,7 +3127,7 @@ function monteTalk(){
     'there where you can see it. I\'m not hiding anything. Look at my hands.',
     'Everybody looks at my hands. That\'s free too.'], { choices:opts });
 }
-function monteLose(){
+function monteLose(){  /* @owner monte */
   pay(-ECONOMY.monteStake, false); Audio_.sfx('shell'); GS.hustleTries++;
   GS.flags.encores = 0;              // hours pass; the pier gets a fresh crowd
   say(['You put fifty on the felt and you watch the shells. You watch them *hard*. You do not blink.',
@@ -3136,7 +3140,7 @@ function monteLose(){
       narrate('You are down to ' + money() + '. Dickie Vermouth would do another set. Dickie '+
         'Vermouth would do another set at gunpoint, and there is no gun.', { then:saveGame }); } });
 }
-function monteWin(kind){
+function monteWin(kind){  /* @owner monte */
   pay(-ECONOMY.monteStake, false); Audio_.sfx('shell');
   const beats = {
     charm:{ take:earn('monteWin','charm'), lines:[
@@ -3194,7 +3198,7 @@ function monteWin(kind){
    what you did with it. He can be paid five ways; every one of them ends with
    a hundred dollars in a hand that does not want it.
    --------------------------------------------------------------------------- */
-function chipStrip(){
+function chipStrip(){  /* @owner chip */
   if(!GS.flags.stake){
     const c = GS.cash;
     sayAs('chip', c < 2000
@@ -3214,7 +3218,7 @@ function chipStrip(){
   chipShowdown();
 }
 
-function chipShowdown(){
+function chipShowdown(){  /* @owner chip @critical */
   const opts = [];
   if(gated('chipShowdown','charm')) opts.push({
     text:'"You said it was a nice hundred dollars. Hold it and say that again."',
@@ -3238,7 +3242,7 @@ function chipShowdown(){
     '"So," he says. "You have had a day."'], { choices:opts });
 }
 
-function chipTakes(kind){
+function chipTakes(kind){  /* @owner chip */
   GS.flags.chipEnding = kind;
   addHeat('chip', kind === 'heat' ? 14 : 8);
   const beat = {
@@ -3284,7 +3288,7 @@ function chipTakes(kind){
 }
 
 /* ---- looking at what you are carrying ---------------------------------- */
-function lookItem(id){
+function lookItem(id){  /* @owner system */
   if(id === 'spf'){
     say(['Coco Blast SPF 2. "TROPICAL COCONUT." The bottle is warm and it sloshes and it smells, '+
          'frankly, incredible.','On the back, in letters too small to be a real warning: DO NOT DRINK.'],
