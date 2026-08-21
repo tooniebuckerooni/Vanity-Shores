@@ -25,7 +25,8 @@ const CHROME = process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome
 
 /* ---- which scripted scenes belong to whom ---- */
 const OWNS = {
-  chip:   { fns:['chipIntro','chipBeat','chipFinale','chipCrack'], consts:['CHIP_BEATS'] },
+  chip:   { fns:['chipIntro','chipBeat','chipStrip','chipShowdown','chipTakes'],
+            consts:['CHIP_BEATS'] },
   brenda: { fns:['brendaTalk','brendaOut','takeSign'],             consts:['BRENDA_BEATS'] },
   gil:    { fns:['gilTalk','gilPayoff','gilPay'],                  consts:[] },
   dickie: { fns:['dickieTalk','plantSign','dickiePay','dickieEncore'], consts:[] },
@@ -33,7 +34,7 @@ const OWNS = {
   monte:  { fns:['monteTalk','monteLose','monteWin'],              consts:[] }
 };
 const ROLE = {
-  chip:'Demo antagonist. Legacy heir; flips to ally at Level 4.',
+  chip:'Demo antagonist, and the level\'s win condition. Flips to ally at Level 4.',
   brenda:'Timeshare shark. Gatekeeper for the aloe and the sign.',
   gil:'Sunburnt tourist. Your first customer.',
   dickie:'Has-been lounge act. Repeatable income.',
@@ -161,8 +162,8 @@ const AXES = [
       const before = cash;
       cash -= E.monteStake;
       cash += best('monteWin');
-      return { before, encores, final: cash, passes: cash >= E.winLine,
-               mustPlay: before < E.winLine };
+      return { before, encores, final: cash, passes: cash >= E.stakeLine,
+               mustPlay: before < E.stakeLine };
     };
     const builds = { 'Even 34/33/33':[34,33,33], 'Money 60':[60,20,20],
                      'Fighting 60':[20,60,20], 'Charm 60':[20,20,60],
@@ -494,12 +495,16 @@ this cannot drift from what actually plays. Regenerate with <code>node tools/bib
     <div class="stat"><b>${Object.keys(D.items).length}</b><span>items</span></div>
     <div class="stat"><b>${totalWords.toLocaleString()}</b><span>words spoken</span></div>
     <div class="stat"><b>${Object.keys(D.deaths).length}</b><span>ways to die</span></div>
-    <div class="stat"><b>${cash(D.economy.winLine)}</b><span>win line</span></div>
+    <div class="stat"><b>${cash(D.economy.stakeLine)}</b><span>stake line</span></div>
     <div class="stat"><b>${traitCombos.toLocaleString()}</b><span>look combinations</span></div>
   </div>
   <ul class="plain">
-    <li><b>The win condition is one number.</b> Cross ${cash(D.economy.winLine)} and walking onto
-      the boardwalk fires the curtain. There is no other exit.</li>
+    <li><b>The win condition is a person, not a number.</b> Chip flicks a quarter at you in the
+      opening minute, then parks where he can watch the whole strip. The level ends when you walk
+      back up and make him hold a hundred dollars — five ways, by build and by heat.</li>
+    <li><b>${cash(D.economy.stakeLine)} is the ticket, not the trophy.</b> Crossing it only buys
+      the right to have that conversation. Under it he needles you in three escalating registers
+      depending on what you are carrying.</li>
     <li><b>Opening purse is Money × ${cash(D.economy.startPerMoneyPoint)}.</b> Everything else is
       taken off this boardwalk.</li>
     <li><b>One hard dependency:</b> the shell game cannot be beaten without the fortune card.
@@ -544,8 +549,8 @@ this cannot drift from what actually plays. Regenerate with <code>node tools/bib
   <p class="lede" style="margin-top:12px"><b style="color:var(--bone)">"Before the table" is also the
   ceiling.</b> Dickie's take halves with every encore and he refuses to sing at all once you are
   holding the stake, so that column is the most any build can carry without sitting down at the
-  shell game. Every figure in it is under ${cash(D.economy.winLine)}, which is what makes Monte
-  mandatory rather than optional. The ${cash(D.economy.encoreFloor)} floor is what stops a lost
+  shell game. Every figure in it is under ${cash(D.economy.stakeLine)}, which is what makes Monte
+  mandatory rather than optional — and the shell game is what buys the confrontation. The ${cash(D.economy.encoreFloor)} floor is what stops a lost
   stake becoming a dead end. Re-run this whenever a payout changes.</p>
 </section>
 
@@ -643,7 +648,9 @@ quarter ──▶ LaRue's reading ──▶ <b>fortune card</b> ─────�
                                         with the card: <b>${cash(D.economy.earn.monteWin.base)}–${cash(D.economy.earn.monteWin.charm)}</b>
                                         without it: the stake is gone
                                                               │
-                                        purse ≥ <b>${cash(D.economy.winLine)}</b> ──▶ curtain</div>
+                                        purse ≥ <b>${cash(D.economy.stakeLine)}</b>
+                                                              │
+                                <i>walk back up and give Chip his quarter back</i> ──▶ curtain</div>
 </section>
 
 <section id="ai">

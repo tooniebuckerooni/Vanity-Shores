@@ -48,6 +48,14 @@ offscreen bakes, which is why painted signs inside the scenery stay lo-fi pixel 
 and only the interface gets the sharp treatment. `textW` returns **logical** width.
 If you change `SC`, clear `_tcache` — the baked glyphs are resolution-specific.
 
+**Two characters are hand-drawn now.** `BESPOKE` maps `larue` and `chip`. Chip is
+deliberately drawn harder than the generic painter allows: angular jaw polygon
+rather than an ellipse, oversized eyes with a catchlight and a hard upper lash,
+a flat-brim cap built as crown + separate brim, and a mesh shirt drawn as a
+modulo grid with the chest left open. Two things to check on any new portrait —
+the fringe must clear the brows at y≈17-20, and hair has to stay light enough to
+separate from the dark backing plate.
+
 **Portraits are where a character gets to look like somebody.** A 40px world
 sprite has no room for a face, so the portraits carry the casting. They are
 drawn into a 44x52 buffer at 1:1 using real curves — `ell()` and `ring()`, which
@@ -70,9 +78,11 @@ a figure reading as a stack of boxes against a busy backdrop, and it is why
 change the silhouette the keyline follows. The ground shadow is drawn *outside* the
 buffer on purpose, so the outline doesn't trace it. `o.pose` ('crossed', 'hold',
 'pocket', 'stiff') changes the arms and is most of what distinguishes one
-character from another at this size. `o.figure` ('straight', 'curved', 'broad')
+character from another at this size. `o.figure` ('straight', 'curved', 'hourglass', 'broad')
 changes the silhouette — `curved` nips the waist with `clearRect`, flares the
-hip and adds a chest line. Outfits run masculine through feminine (blazer, tank,
+hip and adds a chest line; `hourglass` pushes all three further and adds a hip
+turn so there is a back to see. Combine it with `build:-1` for the narrowest
+silhouette the format allows — that is what Madame LaRue runs. Outfits run masculine through feminine (blazer, tank,
 hawaiian, polo, sequins, bikini, lingerie, slip, corset, halter); the last five
 set `skirt` in `ccLook()` so the hip reads, and mark themselves bare-shouldered
 in `paintGeneric` so the portrait agrees with the sprite.
@@ -101,8 +111,22 @@ webfonts are slow, blocked, or substituted.
 reader has reached the final view of the final page, matching what's drawn.
 
 **Money is in cents.** `GS.cash` is an integer; `money()` formats it. `pay()` also
-sets `flags.stake` the moment the purse crosses the win line, however the player
-got there.
+sets `flags.stake` the moment the purse crosses `ECONOMY.stakeLine`.
+
+**The level is won against a person, not a number.** `stakeLine` is the *ticket*:
+crossing it only earns the right to walk back up to Chip and make him hold a
+hundred dollars. Under it he needles you in three escalating registers; over it,
+talking to him is the showdown, which resolves five ways (four build/heat routes
+plus one anyone can take) and records `flags.chipEnding` for later acts. Nothing
+completes the level except that conversation — do not put an automatic finale
+back on a room's `onEnter`, which is where it used to live and where it robbed
+the player of the last move.
+
+**A face can take the whole screen.** `closeup(look, pages, then)` reuses the
+cutaway state but paints full-bleed: speed lines out of frame centre, the
+portrait buffer at 2x, captions under it. `drawCutaway` branches on
+`GS.cut.look` — set means close-up, absent means framed vignette. Use it when
+the scene *is* somebody's expression.
 
 **The grind path is capped by refusal, not by exhaustion.** Dickie's encore
 halves each time (`encoreDecay`) and floors at `encoreFloor`, and he refuses to
@@ -251,6 +275,16 @@ comfortable; Monte is highest at 24.
 
 Regenerate it whenever you add a location, a character, a payout or a gate, and
 check the balance table still says every build clears.
+
+## Shipping
+
+`.github/workflows/deploy.yml` publishes the repo to GitHub Pages on every push
+and tags the result, so there is always a named build to hand a tester and
+always a known-good commit to go back to. Run it from the Actions tab with a
+`milestone` input to name a build (`level-1-testers`); leave it blank and it
+tags `build-YYYYMMDD-HHMM`. It refuses to deploy if `index.html` does not parse.
+
+One-time setup, in the repo: **Settings → Pages → Source: GitHub Actions.**
 
 ## Testing
 

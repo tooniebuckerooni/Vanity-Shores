@@ -261,13 +261,25 @@ function drawPersonRaw(x, y, o, t, walkPhase){
   r(cx-tw/2, torT, tw, torH, sc);
   if(bd>0) r(cx-tw/2-1, torT+torH-6, tw+2, 6, sc);        // a fuller middle
   if(fig === 'broad') r(cx-tw/2-1, torT, tw+2, 4, sc);    // shoulders carry it
-  if(fig === 'curved'){
-    r(cx-tw/2+1, torT+3, tw-2, 2, shade(sc,.13));         // chest
-    r(cx-tw/2+1, torT+5, tw-2, 1, shade(sc,-.14));
-    g.clearRect(cx-tw/2,   torT+torH-8, 1, 4);            // waist nips in
-    g.clearRect(cx+tw/2-1, torT+torH-8, 1, 4);
-    r(cx-tw/2-1, torT+torH-4, tw+2, 4, o.skirt || sc);    // and the hips out
-    r(cx-tw/2-1, torT+torH-4, tw+2, 1, shade(o.skirt||sc, .12));
+  if(fig === 'curved' || fig === 'hourglass'){
+    const X = fig === 'hourglass' ? 1 : 0;                 // how far to push it
+    r(cx-tw/2+1, torT+3, tw-2, 2, shade(sc, .13));         // chest
+    r(cx-tw/2+1, torT+5, tw-2, 1, shade(sc, -.14));
+    if(X){
+      r(cx-tw/2-1, torT+3, 2, 3, sc);   r(cx+tw/2-1, torT+3, 2, 3, sc);
+      r(cx-tw/2-1, torT+3, 1, 1, shade(sc, .22));
+      r(cx+tw/2,   torT+5, 1, 1, shade(sc, -.24));
+    }
+    g.clearRect(cx-tw/2,       torT+torH-8, 1+X, 4);       // waist nips in
+    g.clearRect(cx+tw/2-1-X,   torT+torH-8, 1+X, 4);
+    const hipC = o.skirt || sc;
+    r(cx-tw/2-1-X, torT+torH-4, tw+2+X*2, 4, hipC);        // and the hips out
+    r(cx-tw/2-1-X, torT+torH-4, tw+2+X*2, 1, shade(hipC, .12));
+    if(X){                                                 // a turn, so there is a back to see
+      r(cx+tw/2+1, torT+torH-4, 2, 5, hipC);
+      r(cx+tw/2+1, torT+torH-4, 1, 5, shade(hipC, .10));
+      r(cx+tw/2+2, torT+torH-1, 1, 2, shade(hipC, -.22));
+    }
   }
   r(cx-tw/2, torT, tw, 1, o.shirtL||scD);
   r(cx-tw/2, torT, 1, torH, shade(sc,.16));               // lit edge
@@ -333,6 +345,15 @@ function drawPersonRaw(x, y, o, t, walkPhase){
     r(cx-tw/2, torT+2, tw, 5, sc);
     r(cx-tw/2, torT+2, tw, 1, shade(sc,.16));
     r(cx-1, torT-2, 2, 4, sc);                            // neck strap
+  } else if(o.shirtStyle==='mesh'){
+    r(cx-tw/2, torT, tw, torH, sk.s);                     // it is barely a shirt
+    r(cx+tw/2-2, torT, 2, torH, sk.d);
+    for(let y = torT; y < torT+torH; y += 2)
+      for(let x = cx-tw/2; x < cx+tw/2; x += 2)
+        px(x + (((y-torT)/2) % 2 ? 1 : 0), y, sc);
+    r(cx-tw/2, torT, tw, 1, shade(sc, .3));
+    r(cx-1, torT, 2, torH, sc);
+    r(cx-tw/2, torT+torH-1, tw, 1, sc);
   } else if(o.shirtStyle==='polo'){
     r(cx-2, torT, 4, 4, o.inner||P.white);
     r(cx-3, torT-1, 2, 3, o.inner||P.white); r(cx+1, torT-1, 2, 3, shade(o.inner||P.white,-.12));
@@ -409,6 +430,14 @@ function drawPersonRaw(x, y, o, t, walkPhase){
   }
   if(o.hat==='fedora'){ r(hx-3,hdT-1,hdW+6,2,o.hatC||'#e8dcc4'); r(hx-1,hdT-4,hdW+2,3,o.hatC||'#e8dcc4');
                         r(hx-1,hdT-2,hdW+2,1,'#6b4426'); }
+  if(o.hat==='flat'){                                     // flat brim, worn dead level
+    const hc = o.hatC || '#1a1620';
+    r(hx-1, hdT-5, hdW+2, 5, hc);
+    r(hx-1, hdT-5, hdW+2, 1, shade(hc, .28));
+    r(hx-5, hdT-1, hdW+7, 2, hc);
+    r(hx-5, hdT-1, hdW+7, 1, shade(hc, .16));
+    px(hx+1, hdT-3, P.gold);
+  }
   return { headTop: hdT, headX: hx, headW: hdW, torsoTop: torT };
 }
 
@@ -559,7 +588,110 @@ function larueBuffer(blink){
   _portCache.set(key, b);
   return b;
 }
-const BESPOKE = { larue: larueBuffer };
+/* ---- Chip Winthrop ------------------------------------------------------
+   Drawn harder than the others on purpose: angular jaw, big anime eyes with a
+   catchlight, shades pushed up on the brim so nothing is between you and him,
+   black flat cap, and a mesh shirt doing almost no work at all. */
+const CHIP_PAL = ['#0e0a14','#1a1620','#2e2836','#4a4454','#6e6880',
+                  '#a86f45','#d99a63','#f2bb85','#ffd6a8','#7a4a28','#4a2a10',
+                  '#a8873a','#d8b45a','#f2dc9a','#fff4c4',
+                  '#f2e4d4','#1e3a5c','#4a7ab0','#8ec4f0',
+                  '#8e3a4a','#c85a6a','#ffc23d','#f5e6d3'].map(rgb);
+
+function paintChip(c, blink){
+  c.clearRect(0, 0, PW, PH);
+  const CX = 22;
+  const SKN = '#d99a63', LIT = '#f2bb85', SHD = '#a86f45', HI = '#ffd6a8', DEEP = '#7a4a28';
+
+  /* face first — angular, and given room to be a face */
+  c.fillStyle = SKN;
+  c.beginPath();
+  c.moveTo(12, 17); c.lineTo(32, 17); c.lineTo(31.5, 28);
+  c.lineTo(25, 36); c.lineTo(19, 36); c.lineTo(12.5, 28); c.closePath(); c.fill();
+  ell(c, CX, 24, 9.5, 8.5, SKN);
+  ell(c, CX-4, 22, 5, 6, LIT);
+  ell(c, CX-5, 20, 2.6, 2.2, HI);
+  c.fillStyle = SHD;
+  c.beginPath(); c.moveTo(31, 19); c.lineTo(32, 28); c.lineTo(25, 36);
+  c.lineTo(CX+4, 25); c.closePath(); c.fill();
+  ell(c, CX, 34, 4.2, 2.2, SHD);
+  c.fillStyle = DEEP; c.fillRect(15, 30.5, 5, 1); c.fillRect(25, 30.5, 5, 1);
+
+  /* neck, and a chest the shirt is not covering */
+  c.fillStyle = SHD; c.fillRect(17, 35, 10, 8);
+  c.fillStyle = SKN; c.fillRect(17, 36, 7, 7);
+  ell(c, CX, 43, 7.5, 3.5, SKN);
+  ell(c, 10, 48, 12, 8, SKN);  ell(c, 34, 48, 12, 8, SKN);
+  ell(c, 11, 46, 8, 3.5, LIT);
+
+  /* the mesh: dark, fine, and doing almost nothing */
+  c.fillStyle = '#1a1620';
+  for(let y = 42; y < PH; y++)
+    for(let x = 0; x < PW; x++)
+      if(((x + y) % 3 === 0) && !(x > 17 && x < 27 && y < 49)) c.fillRect(x, y, 1, 1);
+  c.fillStyle = '#2e2836';
+  c.fillRect(0, 42, PW, 1);
+  c.beginPath(); c.moveTo(14, 42); c.lineTo(18, 52); c.lineTo(15, 52); c.lineTo(11, 42);
+  c.closePath(); c.fill();
+  c.beginPath(); c.moveTo(30, 42); c.lineTo(26, 52); c.lineTo(29, 52); c.lineTo(33, 42);
+  c.closePath(); c.fill();
+  ell(c, CX, 45, 3.2, 1.4, '#ffc23d');
+  ell(c, CX, 45.4, 1.2, 0.6, '#a8873a');
+
+  /* brows and the eyes, which are the whole point of the shot */
+  c.fillStyle = '#4a2a10';
+  c.fillRect(13, 20, 8, 2); c.fillRect(23, 20, 8, 2);
+  c.fillStyle = '#7a4a28'; c.fillRect(13, 20, 8, 1); c.fillRect(23, 20, 8, 1);
+  if(blink){
+    c.fillStyle = SHD; c.fillRect(14, 25, 7, 1); c.fillRect(24, 25, 7, 1);
+    c.fillStyle = '#0e0a14'; c.fillRect(13, 24, 8, 1); c.fillRect(23, 24, 8, 1);
+  } else {
+    ell(c, 17.4, 25, 3.6, 2.8, '#f2e4d4');  ell(c, 26.6, 25, 3.6, 2.8, '#f2e4d4');
+    ell(c, 17.8, 25.2, 2.2, 2.5, '#1e3a5c'); ell(c, 27, 25.2, 2.2, 2.5, '#1e3a5c');
+    ell(c, 17.8, 25.6, 1.3, 1.6, '#4a7ab0'); ell(c, 27, 25.6, 1.3, 1.6, '#4a7ab0');
+    c.fillStyle = '#8ec4f0'; c.fillRect(16, 24, 2, 1); c.fillRect(25, 24, 2, 1);
+    c.fillStyle = '#f5e6d3'; c.fillRect(19, 26, 1, 1); c.fillRect(28, 26, 1, 1);
+    c.fillStyle = '#0e0a14';
+    c.fillRect(13, 23, 9, 1); c.fillRect(23, 23, 9, 1);
+    c.fillRect(12, 24, 1, 1); c.fillRect(32, 24, 1, 1);
+  }
+  c.fillStyle = SHD; c.fillRect(CX, 27, 2, 3);
+  c.fillStyle = HI;  c.fillRect(CX-1, 28, 1, 2);
+
+  /* the smirk — one side only, always the same side */
+  c.fillStyle = '#8e3a4a';
+  c.fillRect(18, 32.5, 8, 1); c.fillRect(25, 31.5, 2, 1);
+  c.fillStyle = '#c85a6a'; c.fillRect(19, 31.5, 5, 1);
+
+  /* blond fringe, then the cap dead level on top of it */
+  c.fillStyle = '#d8b45a';
+  c.fillRect(11, 16, 22, 2);
+  c.fillStyle = '#f2dc9a'; c.fillRect(13, 16, 5, 1); c.fillRect(24, 16, 4, 1);
+  c.fillStyle = '#a8873a'; c.fillRect(11, 17, 22, 1);
+  ell(c, 10, 20, 2.4, 3.5, '#d8b45a');  ell(c, 34, 20, 2.4, 3.5, '#d8b45a');
+
+  ell(c, CX, 9, 12.5, 6, '#1a1620');
+  c.fillStyle = '#1a1620'; c.fillRect(9, 9, 26, 5);
+  c.fillStyle = '#2e2836'; c.fillRect(4, 13, 36, 3);      // the flat brim
+  c.fillStyle = '#4a4454'; c.fillRect(4, 13, 36, 1);
+  c.fillStyle = '#0e0a14'; c.fillRect(4, 15, 36, 1);
+  ell(c, CX-4, 5.5, 6, 2.2, '#2e2836');
+  c.fillStyle = '#6e6880'; c.fillRect(11, 6, 7, 1);
+  c.fillStyle = '#ffc23d'; c.fillRect(19, 10, 6, 2);      // a monogram, obviously
+  c.fillStyle = '#0e0a14'; c.fillRect(21, 10, 2, 2);
+}
+function chipBuffer(blink){
+  const key = 'chip' + (blink ? 1 : 0);
+  let b = _portCache.get(key);
+  if(b) return b;
+  b = offscreen(PW, PH);
+  const c = b.getContext('2d');
+  paintChip(c, blink);
+  quantize(c, CHIP_PAL);
+  _portCache.set(key, b);
+  return b;
+}
+const BESPOKE = { larue: larueBuffer, chip: chipBuffer };
 
 /* ---- everyone else, from their look parameters, same technique ---------- */
 function paintGeneric(c, o, blink){
@@ -1069,6 +1201,12 @@ const ROOMART = {
     },
     live(t){
       if(!GS.flags.chipGone) convertible(196, 124, t);
+      if(GS.flags.quarterOnGround && !has('quarter')){        // it has to be visible
+        r(180, 155, 5, 4, '#c8c8d4'); r(181, 154, 3, 6, '#c8c8d4');
+        r(179, 156, 7, 2, '#c8c8d4'); r(181, 156, 3, 2, '#9a9aa8');
+        g.globalAlpha = .35; r(178, 154, 9, 7, '#e8e8f0'); g.globalAlpha = 1;
+        if(!REDUCED && Math.floor(t/620)%3 === 0) px(181 + (Math.floor(t/160)%3), 155, P.white);
+      }
       const on = REDUCED || Math.floor(t/1100)%9 !== 0;  // buzzing neon
       neonTube(108, 62, 122, 1, P.hot, on);
       if(!REDUCED && Math.floor(t/300)%2===0) px(180+((t/90)|0)%6, 60, P.gold);
@@ -1482,7 +1620,7 @@ const money = () => '$' + (GS.cash/100).toFixed(2);
 function pay(cents, sfx){
   GS.cash += cents;
   if(sfx!==false) Audio_.sfx(cents>0?'cash':'deny');
-  if(GS.cash >= ECONOMY.winLine && !GS.flags.stake) GS.flags.stake = true;  // the Level 1 win line
+  if(GS.cash >= ECONOMY.stakeLine && !GS.flags.stake) GS.flags.stake = true;
   saveGame();
 }
 function has(id){ return GS.inv.indexOf(id) >= 0; }
@@ -1843,10 +1981,12 @@ function clickScene(p){
 
 /* ---------- 5. CONTENT: the cast ----------------------------------------- */
 const CAST = {
-  chip:{ pose:'pocket', name:'Chip Winthrop', skin:'tan', hair:'pomp', hairC:'#d8b45a', hairC2:'#f2dc9a',
-         shirtStyle:'polo', shirt:'#6fd8c0', shirtD:'#3ba892', inner:'#ffffff',
-         pants:'#efe6d4', pantsD:'#cfc4ae', shoes:'#8a5a3a', acc:'shades',
-         eyes:'#4a7ab0', size:2, still:false },
+  chip:{ pose:'pocket', portrait:'chip', name:'Chip Winthrop', skin:'tan',
+         hair:'pomp', hairC:'#d8b45a', hairC2:'#f2dc9a',
+         hat:'flat', hatC:'#1a1620',
+         shirtStyle:'mesh', shirt:'#241f2e', shirtD:'#14101c', inner:'#ffffff',
+         pants:'#efe6d4', pantsD:'#cfc4ae', shoes:'#8a5a3a', acc:'chain',
+         figure:'broad', eyes:'#4a7ab0', size:2, still:false },
   gil:{ pose:'stiff', name:'Gil Furnace', skin:'burn', hair:'cap', hairC:'#e8e4d8', hairC2:'#c4c0b4',
          shirtStyle:'hawaii', shirt:'#2fa8a0', shirtD:'#1d7a74',
          pants:'#d8cfa8', pantsD:'#b0a882', shoes:'#f0ece0', build:1, eyes:'#5a7a4a' },
@@ -1855,7 +1995,7 @@ const CAST = {
          skirt:'#2a3f5e', shoes:'#241134', lips:'#d8365e', acc:'none',
          eyes:'#3a2a2a', build:-1 },
   zsazsa:{ portrait:'larue', name:'Madame LaRue', skin:'deep', hair:'perm',
-         hairC:'#1c1030', hairC2:'#3a2352', figure:'curved',
+         hairC:'#1c1030', hairC2:'#3a2352', figure:'hourglass', build:-1,
          shirtStyle:'halter', shirt:'#c4304a', shirtD:'#8e1e33', inner:'#f5e6d3',
          skirt:'#c4304a', shoes:'#241134', lips:'#c02a4e', acc:'hoops',
          eyes:'#2a1a1a', size:-1 },
@@ -1886,7 +2026,44 @@ function cutaway(paint, pages, then){
   GS.msg = null; GS.scene = 'cutaway';
   Audio_.scene('win');
 }
+/* A face, filling the screen, with the room drawn out from behind it. Used when
+   somebody gets close enough that the scene is their expression. */
+function closeup(look, pages, then){
+  GS.cut = { look, pages, i:0, then, t0:clock };
+  GS.msg = null; GS.scene = 'cutaway';
+}
+function drawCloseup(t){
+  r(0, 0, W, 200, '#08040e');
+  const cx = 160, cy = 62;
+  g.strokeStyle = 'rgba(255,46,136,.40)'; g.lineWidth = 1;
+  for(let i = 0; i < 30; i++){
+    const a = i/30*Math.PI*2 + (REDUCED ? 0 : t/3400);
+    const r0 = 48 + (i % 3)*8;
+    g.beginPath();
+    g.moveTo(cx + Math.cos(a)*r0, cy + Math.sin(a)*r0);
+    g.lineTo(cx + Math.cos(a)*280, cy + Math.sin(a)*280);
+    g.stroke();
+  }
+  g.globalAlpha = .40; r(0, 0, W, 200, '#180624'); g.globalAlpha = 1;
+
+  const b = portraitBuffer(GS.cut.look, false);
+  const w2 = PW*2, h2 = PH*2, bx = cx - w2/2, by = 8;
+  r(bx-2, by-2, w2+4, h2+4, '#241134');
+  g.drawImage(b, 0, 0, PW, PH, bx, by, w2, h2);
+  r(bx-2, by-2, w2+4, 1, P.hot); r(bx-2, by+h2+1, w2+4, 1, P.hot);
+  r(bx-2, by-2, 1, h2+4, P.hot); r(bx+w2+1, by-2, 1, h2+4, P.hot);
+
+  const lines = wrap(GS.cut.pages[GS.cut.i], FONT.dlg, 288);
+  const lh = lines.length > 3 ? 11 : 13;
+  let ty = 178 - lines.length*lh;
+  for(const ln of lines){ textC(ln, 160, ty, P.bone, FONT.dlg); ty += lh; }
+  if(Math.floor(t/500)%2 === 0)
+    textC(GS.cut.i < GS.cut.pages.length-1 ? 'MORE' : 'CLICK TO GO BACK',
+          160, 190, '#6b4d8a', FONT.sm);
+}
+
 function drawCutaway(t){
+  if(GS.cut.look) return drawCloseup(t);
   r(0, 0, W, 200, '#08040e');
   const bx = 80, by = 18, bw = 160, bh = 82;
   g.save();
@@ -2031,18 +2208,37 @@ arrival:{
 /* ============================ BOARDWALK ================================== */
 boardwalk:{
   walk:{ x0:14, x1:306, y0:126, y1:168 }, spawn:[40,150],
-  npcs:[ { id:'gil', x:62, y:152, look:CAST.gil },
+  npcs:[ { id:'chip', x:158, y:130, look:CAST.chip,
+           hidden:()=>!GS.flags.chipOnStrip || GS.flags.levelDone },
+         { id:'gil', x:62, y:152, look:CAST.gil },
          { id:'brenda', x:272, y:158, look:CAST.brenda,
            extra:()=>{ r(278,142,7,9,P.bone); r(279,143,5,7,'#8a9ab0');
                        r(279,144,4,1,'#5a6a80'); r(279,146,3,1,'#5a6a80'); } } ],
   onEnter(){
-    if(GS.flags.stake && !GS.flags.finale){ GS.flags.finale = true; setTimeout(chipFinale, 500); return; }
+    if(GS.flags.stake && GS.flags.chipOnStrip && !GS.flags.chipNoticed){
+      GS.flags.chipNoticed = true;
+      narrate(['Chip Winthrop is leaning on the railing where he can see the whole strip, and he '+
+        'is looking directly at your hands.',
+        'He has been there the entire time. You have just become worth turning his head for.'],
+        { then:saveGame });
+      return; }
     if(!GS.flags.sawStrip){ GS.flags.sawStrip = true;
       narrate(['The boardwalk. Two hundred yards of oiled shoulders, frozen drinks in souvenir cups, '+
                'and a casino tower at the far end throwing a shadow across all of it.',
                'Everybody here is selling something. The ones who look like they are not selling '+
                'anything are selling the hardest.']); } },
   hotspots:[
+    { id:'chip', pri:2, name:'Chip Winthrop', x:144, y:92, w:30, h:44, approach:[166,148],
+      hidden:()=>!GS.flags.chipOnStrip || GS.flags.levelDone,
+      look:()=>narrate(['Black flat-brim cap dead level, a mesh shirt that is not so much clothing '+
+        'as a filing decision, and the deep even tan of a man who has never once been told no.',
+        'He is not doing anything. He drove down here specifically to not do anything at you, and '+
+        'he is extremely good at it.']),
+      talk:()=>chipStrip(),
+      take:()=>narrate('You would need a much larger bag and a much better lawyer.'),
+      useItem:(it)=>{ if(it==='churro'){ sayAs('chip','I do not eat anything I can see the sugar '+
+        'on.'); return true; } return false; } },
+
     { id:'gil', pri:2, name:'the sunburnt man', x:50, y:112, w:28, h:46, approach:[74,152],
       look:()=>narrate('A man the colour of a stop sign, radiating heat like a parked car. His '+
         'Hawaiian shirt is unbuttoned to a depth that is a cry for help. He is holding himself very '+
@@ -2267,7 +2463,7 @@ const GATE = 38;                       // default stat needed to open a build ro
    --------------------------------------------------------------------------- */
 const ECONOMY = {
   startPerMoneyPoint: 10,              // opening purse = Money stat x this
-  winLine: 10000,                      // cross it and the level's curtain fires
+  stakeLine: 10000,                    // enough money to make Chip look at you
   monteStake: 5000,                    // cost to sit at the shell game
   encoreDecay: 0.5,                    // each encore plays to a thinner crowd
   encoreFloor: 500,                    // ...but never for nothing
@@ -2287,7 +2483,8 @@ const GATES = {
   gilPrice:     { stat:'any',   need:GATE, opens:'a better price for the aloe' },
   dickieSplit:  { stat:'any',   need:GATE, opens:'a bigger cut of the tip jar' },
   dickieEncore: { stat:'charm', need:GATE, opens:'a bigger first encore before the decay bites' },
-  monteTable:   { stat:'any',   need:GATE, opens:'a bigger take at the shell game' }
+  monteTable:   { stat:'any',   need:GATE, opens:'a bigger take at the shell game' },
+  chipShowdown: { stat:'any',   need:GATE, opens:'a build-specific way to make Chip take the money' }
 };
 const gateNeed = k => (GATES[k] ? GATES[k].need : GATE);
 const gated = (k, stat) => S()[stat] >= gateNeed(k);
@@ -2391,8 +2588,10 @@ function chipBeat(kind){
     narrate(['He flicks a coin at your feet. It lands, spins, and settles heads up, which somehow '+
       'makes it worse.',
       '"Buy yourself a personality," Chip says. "Ask for the small."',
-      'He goes back to leaning on the car. As far as Chip Winthrop is concerned, this conversation '+
-      'has already stopped having happened.'], { then:saveGame }); } });
+      'Then he gets in the car, and instead of leaving he drives four hundred yards down the strip '+
+      'and parks where he can see the whole boardwalk.',
+      'He is not finished. He has cleared his afternoon.'],
+      { then:()=>{ GS.flags.chipOnStrip = true; GS.flags.chipGone = true; saveGame(); } }); } });
 }
 
 /* ---- Gil Furnace: the sunburnt tourist --------------------------------- */
@@ -2842,45 +3041,100 @@ function monteWin(kind){
           { then:saveGame }); } });
 }
 
-/* ---- the Level 1 curtain: Chip, again, and a crack in the sneer --------- */
-function chipFinale(){
-  GS.flags.chipGone = true;
-  Audio_.scene('tense');
-  const lean = leanName();
-  const jab = { money:'"You *counted* it," he says, delighted. "You counted it in front of me."',
-                fight:'"Somebody down there is holding an ice pack right now, aren\'t they."',
-                charm:'"Who\'d you have to be nice to? No — don\'t. Let me keep guessing."' }[lean];
-  say(['The pink convertible is at the kerb at the top of the steps, engine running, doing that thing '+
-       'expensive cars do where they idle like they are bored of you.'],
-      { then:()=>sayAs('chip', [
-    'There he is. The philosophy.',
-    jab,
-    'You know what you\'ve got in your hand? You\'ve got a hundred dollars. That\'s not a *win*, '+
-    'that\'s a *Tuesday*. My family loses more than that in the fountain. There is a man whose entire '+
-    'job is the fountain.'],
-    { choices:[
-      { text:'"Then why drive down here to look at it?"', fn:()=>chipCrack(true) },
-      { text:'Say nothing. Just let him look at it.', fn:()=>chipCrack(false) } ] }) });
+/* ---------------------------------------------------------------------------
+   THE CURTAIN.
+   Level 1 is not won by reaching a number. The number only buys you the right
+   to walk back up to the man who flicked a quarter at you and make him hold
+   what you did with it. He can be paid five ways; every one of them ends with
+   a hundred dollars in a hand that does not want it.
+   --------------------------------------------------------------------------- */
+function chipStrip(){
+  if(!GS.flags.stake){
+    const c = GS.cash;
+    sayAs('chip', c < 2000
+      ? ['You have been down here the better part of an hour now.',
+         '"And you are still worth" — he does the arithmetic without looking away — "almost '+
+         'exactly what I flicked at you."']
+      : c < 5000
+      ? ['"Twenty dollars," Chip says, delighted. "*Twenty.* My father tips more than that to '+
+         'have a door held open."',
+         '"Keep going. Genuinely. You are the most interesting thing on this strip, which is a '+
+         'devastating sentence for me to have had to build."']
+      : ['He straightens up off the railing, which is the most physical effort he has made today.',
+         '"Oh, you are close. That is the worst thing about you. Close is where people down here '+
+         '*live*, and look at them, they are all still here."']);
+    return;
+  }
+  chipShowdown();
 }
-function chipCrack(spoke){
-  addHeat('chip', spoke ? 12 : 16);          // the silence costs him more
-  say(spoke ?
-    ['Chip Winthrop opens his mouth.','Nothing comes out of it.',
-     'It lasts less than a second — a hairline crack across ninety years of family money — and then '+
-     'the sunglasses go back on and the smile comes back up like a garage door.'] :
-    ['You do not say anything. You just hold it, loosely, the way people hold money they expect to '+
-     'have more of.',
-     'Chip looks at it for exactly one second longer than he means to, and then he looks at the '+
-     'hand holding it, and then at you, and the whole survey takes less than a breath and he '+
-     'files every part of it.',
-     'Then the sunglasses go back on and the smile comes back up like a garage door.'],
-    { speaker:CAST.chip.name, look:CAST.chip, then:()=>sayAs('chip', [
-      '"Enjoy your hundred dollars," he says. "It\'s a very nice hundred dollars."',
-      '"There\'s a hustle on the strip Thursday. Everybody who\'s nobody is going to be there." '+
-      'He puts the car in gear.',
-      '"Come. Genuinely. I want to watch it happen to you in front of people."'],
-      { then:()=>{ GS.flags.levelDone = true; saveGame(); Audio_.sfx('fanfare');
-                   GS.scene = 'complete'; GS.completeAt = clock; } }) });
+
+function chipShowdown(){
+  const opts = [];
+  if(gated('chipShowdown','charm')) opts.push({
+    text:'"You said it was a nice hundred dollars. Hold it and say that again."',
+    tag:'CHARM', fn:()=>chipTakes('charm') });
+  if(gated('chipShowdown','fight')) opts.push({
+    text:'Take his wrist. Put it in his hand. Close the fingers one at a time.',
+    tag:'FIGHTING', fn:()=>chipTakes('force') });
+  if(gated('chipShowdown','money')) opts.push({
+    text:'"Twenty-five cents. Nine and a quarter. Compounded since Tuesday."',
+    tag:'MONEY', fn:()=>chipTakes('math') });
+  if(heatOf('chip') >= 35) opts.push({
+    text:'"You parked where you could watch me. So watch."',
+    tag:'HEAT', fn:()=>chipTakes('heat') });
+  opts.push({ text:'Hold your hand out, palm up, and wait.', fn:()=>chipTakes('plain') });
+  opts.push({ text:'Not yet.', fn:()=>sayAs('chip','Mm. Come back when your hands stop shaking. '+
+    'I will be here. I have cleared the afternoon.') });
+
+  sayAs('chip', ['He has seen it. He saw it before you were off the steps.',
+    'The whole performance — the railing, the boredom, the four hundred yards of parking — is '+
+    'still running, and underneath it Chip Winthrop is doing sums about you.',
+    '"So," he says. "You have had a day."'], { choices:opts });
+}
+
+function chipTakes(kind){
+  GS.flags.chipEnding = kind;
+  addHeat('chip', kind === 'heat' ? 14 : 8);
+  const beat = {
+    plain:['You do not say anything at all. You hold your hand out, palm up, exactly the way he '+
+      'held his out over the quarter, and you wait.',
+      'It takes eleven seconds. He is counting them too.',
+      'Then his hand comes out — because the alternative is standing on a public boardwalk visibly '+
+      'refusing a hundred dollars in front of four strangers, and Chip Winthrop has never in his '+
+      'life been able to look like that.'],
+    charm:['"You said it was a nice hundred dollars," you tell him. "Hold it. Say that again."',
+      'And because you asked him nicely, in a voice he likes, in front of people, he does.',
+      '"...It is a nice hundred dollars," Chip says, and hears it happen, and cannot get it back.'],
+    force:['You take his wrist. Not hard — just entirely, the way you take something that was '+
+      'never going to be handed over.',
+      'You turn the hand palm-up, put the money in it, and close the fingers one at a time.',
+      'He lets you. That is the part neither of you is ever going to bring up again.'],
+    math:['"Twenty-five cents," you say. "At nine and a quarter, which is your number and not mine. '+
+      'Compounded since Tuesday."',
+      'It is not a hundred dollars. It is not within a hundred miles of a hundred dollars, and you '+
+      'both know it, and that is exactly why it works.',
+      'He takes the money to make the arithmetic stop.'],
+    heat:['"You drove four hundred yards down this strip," you say, "and parked where you could see '+
+      'me. You have been there all afternoon. So watch."',
+      'You put it into his hand slowly enough that he has to decide twice not to pull it back.',
+      'He decides twice.']
+  }[kind];
+
+  say(beat, { speaker:CAST.chip.name, look:CAST.chip, then:()=>{
+    Audio_.sfx('fanfare');
+    closeup(CAST.chip, [
+      'Chip Winthrop is holding one hundred dollars that he did not want, cannot hand back, and '+
+      'is not going to put away.',
+      '"...It is a hundred dollars," he says. The sentence does not do the work he needs it to do.',
+      'He looks at the money. Then at you. Then, for less than a second, up at the tower.',
+      '"There is a hustle on the strip Thursday. Everybody who is nobody will be there." He puts '+
+      'the car in gear without getting into it. "Come. I want to watch it happen to you in front '+
+      'of people."',
+      'Then he puts the hundred in his shirt pocket. The shirt does not have a pocket. He does it '+
+      'anyway, and neither of you says a word about that either.'],
+      ()=>{ GS.flags.levelDone = true; GS.flags.chipOnStrip = false; saveGame();
+            GS.scene = 'complete'; GS.completeAt = clock; });
+  }});
 }
 
 /* ---- looking at what you are carrying ---------------------------------- */
@@ -2907,8 +3161,8 @@ const TRAITS = {
            ['#b4703a','#d8965a'],['#8e2a4e','#c4406a'],['#7a7488','#a8a2b4']],
   outfit: ['blazer','tank','hawaii','polo','sequin','bikini','lingerie','slip','corset','halter'],
   outfitN:['BLAZER','TANK TOP','HAWAIIAN','POLO','SEQUINS','BIKINI','LINGERIE','SLIP','CORSET','HALTER'],
-  figure: ['straight','curved','broad'],
-  figureN:['STRAIGHT','CURVED','BROAD'],
+  figure: ['straight','curved','hourglass','broad'],
+  figureN:['STRAIGHT','CURVED','HOURGLASS','BROAD'],
   shirtC: [['#e94f6a','#b8324a'],['#2fa8a0','#1d7a74'],['#f0c23d','#c99a1a'],
            ['#7a5fd8','#5a3fa8'],['#f5e6d3','#c4bca8'],['#2a3f5e','#1b2a42']],
   skin:   ['fair','tan','deep','pale'],
@@ -3157,7 +3411,7 @@ function drawCard(t){
   r(96, 88, 128, 1, 'rgba(255,46,136,.6)');
   textC('SMALL CHANGE', 160, 96, P.gold, FONT.big);
   g.globalAlpha = Math.max(0, Math.min(1,(cardT-900)/600));
-  textC('the boardwalk · the pier · whatever is under it', 160, 126, '#7a5f96', FONT.sm);
+  textC('he flicked a quarter at you. give it back.', 160, 126, '#7a5f96', FONT.sm);
   g.globalAlpha = 1;
   if(cardT > 1800 && Math.floor(t/600)%2===0)
     textC('CLICK TO CONTINUE', 160, 172, '#5a4470', FONT.sm);
@@ -3189,6 +3443,12 @@ function routeNotes(){
     const tier = heatTier(heatOf(who));
     if(tier) n.push(CAST[who].name + ' ' + tier + '.');
   }
+  const fin = { plain:'Made Chip put his hand out first, and said nothing at all.',
+                charm:'Made Chip say it was a nice hundred dollars, out loud, in public.',
+                force:'Closed Chip\'s fingers around it one at a time.',
+                math:'Paid Chip back at his own interest rate.',
+                heat:'Made Chip take it slowly, while everybody watched.' }[GS.flags.chipEnding];
+  if(fin) n.unshift(fin);
   if(secretsFound())
     n.push('Found ' + secretsFound() + ' of ' + SECRET_COUNT + ' things nobody mentioned.');
   if(GS.deaths) n.push('Died ' + GS.deaths + (GS.deaths===1?' time. It happens.':' times. Enthusiastically.'));

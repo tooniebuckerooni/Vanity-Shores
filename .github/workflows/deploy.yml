@@ -1,0 +1,72 @@
+# Publishes the game to GitHub Pages and tags every successful deploy, so there
+# is always a known-good build to hand a tester — or to go back to.
+#
+#   game   ->  https://tooniebuckerooni.github.io/Vanity-Shores/
+#   bible  ->  https://tooniebuckerooni.github.io/Vanity-Shores/docs/game-bible.html
+#
+# One-time setup: repo Settings -> Pages -> Source: "GitHub Actions".
+name: Deploy
+
+on:
+  push:
+    branches: [claude/level-1-game-build-ip4kml]
+    paths-ignore: ['**.md']
+  workflow_dispatch:
+    inputs:
+      milestone:
+        description: 'Name this build (e.g. level-1-testers). Leave blank for a dated tag.'
+        required: false
+        type: string
+
+permissions:
+  contents: write        # to push the milestone tag
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.pages.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # The game is one self-contained file with no build step, so "building"
+      # is just handing the repo to Pages as-is.
+      - name: Check the game parses before shipping it to anybody
+        run: |
+          awk '/^<script>/{f=1;next} /^<\/script>/{f=0} f' index.html > /tmp/game.js
+          node --check /tmp/game.js
+          echo "index.html: $(wc -l < index.html) lines, $(wc -c < index.html) bytes"
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+      - id: pages
+        uses: actions/deploy-pages@v4
+
+      - name: Tag the milestone
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          NAME="${{ github.event.inputs.milestone }}"
+          if [ -n "$NAME" ]; then
+            TAG="$NAME"
+          else
+            TAG="build-$(date -u +%Y%m%d-%H%M)"
+          fi
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, leaving it alone."
+          else
+            git tag -a "$TAG" -m "Live at ${{ steps.pages.outputs.page_url }}"
+            git push origin "$TAG"
+            echo "Tagged $TAG"
+          fi
