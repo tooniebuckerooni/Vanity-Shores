@@ -3319,23 +3319,35 @@ function monteTalk(){  /* @owner monte @critical */
     sayAs('monte', ['Fifty to sit.','That\'s not me being tough, that\'s the whole business. Under '+
       'fifty you\'re not a player, you\'re *weather*.',
       'Come back when you\'re holding.']); return; }
+  /* The card is the win condition; the four routes are only how you cash it.
+     That was true before and completely invisible — four options all opening
+     "Play —" read as four guesses rather than one certainty spent four ways.
+     Each names its method now, the card gets said out loud, and refusing to use
+     it is labelled as a refusal instead of hiding among the winners. */
+  const card = has('fortune');
   const opts = [];
-  if(has('fortune')){
-    if(gated('monteTable','charm')) opts.push({ text:'Play — but sell the crowd on you first.', tag:'CHARM',
-      fn:()=>monteWin('charm') });
-    if(gated('monteTable','money')) opts.push({ text:'Play — and bet like you already know.', tag:'MONEY',
-      fn:()=>monteWin('money') });
-    if(gated('monteTable','fight')) opts.push({ text:'Play — then take hold of his left wrist.', tag:'FIGHTING',
-      fn:()=>monteWin('fight') });
-    opts.push({ text:'Play — and watch only his left hand.', fn:()=>monteWin('plain') });
+  if(card){
+    if(gated('monteTable','charm')) opts.push({ text:'Work the crowd instead of the shells.',
+      tag:'CHARM', fn:()=>monteWin('charm') });
+    if(gated('monteTable','money')) opts.push({ text:'Bet like the outcome is already settled.',
+      tag:'MONEY', fn:()=>monteWin('money') });
+    if(gated('monteTable','fight')) opts.push({ text:'Take hold of his left wrist.',
+      tag:'FIGHTING', fn:()=>monteWin('fight') });
+    opts.push({ text:'Watch his left hand. Nothing else.', fn:()=>monteWin('plain') });
   }
-  opts.push({ text:'Put fifty down. Follow the shells.', fn:monteLose });
+  opts.push({ text: card ? 'Ignore the card. Follow the shells like everybody else.'
+                         : 'Put fifty down. Follow the shells.', fn:monteLose });
   opts.push({ text:'Walk away.', fn:()=>narrate('You walk away from the table, which is the single '+
     'most profitable decision anyone has made under this pier all year.') });
 
-  sayAs('monte', ['Fifty to sit, pays three to one, one pea, three shells, and the pea is right '+
+  const patter = ['Fifty to sit, pays three to one, one pea, three shells, and the pea is right '+
     'there where you can see it. I\'m not hiding anything. Look at my hands.',
-    'Everybody looks at my hands. That\'s free too.'], { choices:opts });
+    'Everybody looks at my hands. That\'s free too.'];
+  if(card) patter.push('Madame LaRue\'s card is in your pocket. You have stopped needing to read '+
+    'it. THE PEA IS NEVER UNDER A SHELL. WATCH THE LEFT HAND, NOT THE SHELLS.',
+    'Knowing that is not the same as getting paid for it. That part is decided by how you sit down.');
+
+  sayAs('monte', patter, { choices:opts });
 }
 function monteLose(){  /* @owner monte */
   pay(-ECONOMY.monteStake, false); Audio_.sfx('shell'); GS.hustleTries++;
