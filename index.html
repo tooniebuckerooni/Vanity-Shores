@@ -2235,6 +2235,26 @@ const CAST = {
          shirtStyle:'tank', shirt:'#e8e4d8', shirtD:'#c4c0b4',
          pants:'#3a3448', pantsD:'#241f30', shoes:'#241134', acc:'chain',
          stubble:true, build:1, eyes:'#3a2a1a' },
+  /* The crowd the FREE GIFT sign builds. Eight bodies, all different, none of
+     them anybody — they exist so the bandshell has an audience and so that
+     audience can visibly thin out. */
+  c0:{ name:'a tourist', skin:'fair', hair:'perm',     hairC:'#b4703a', hairC2:'#d8965a', figure:'curved',
+       shirtStyle:'tank',   shirt:'#f0a8c0', pants:'#e8e0d0', size:-1 },
+  c1:{ name:'a tourist', skin:'deep', hair:'cap',      hairC:'#c41d68', hairC2:'#8e1148',
+       shirtStyle:'hawaii', shirt:'#f0c23d', pants:'#3a4a6a', build:1 },
+  c2:{ name:'a tourist', skin:'tan',  hair:'blowout',  hairC:'#2a1c14', hairC2:'#4a3424', figure:'hourglass',
+       shirtStyle:'halter', shirt:'#4de0a0', skirt:'#2a3448', shoes:'#241134', size:-1, build:-1 },
+  c3:{ name:'a tourist', skin:'burn', hair:'bald',     hairC:'#8a8290', hairC2:'#6a6270',
+       shirtStyle:'hawaii', shirt:'#21c8d6', pants:'#d8cfa8', build:1, size:1 },
+  c4:{ name:'a tourist', skin:'pale', hair:'ponytail', hairC:'#e8c45a', hairC2:'#f4e29a', figure:'curved',
+       shirtStyle:'tank',   shirt:'#e94f6a', skirt:'#f0e6d2', size:-2 },
+  c5:{ name:'a tourist', skin:'deep', hair:'spikes',   hairC:'#1c1030', hairC2:'#3a2352',
+       shirtStyle:'mesh',   shirt:'#2a2438', shirtD:'#1a1626', inner:'#f5e6d3', pants:'#241134', acc:'shades' },
+  c6:{ name:'a tourist', skin:'tan',  hair:'bun',      hairC:'#5a3a24', hairC2:'#8a5a34', figure:'curved',
+       shirtStyle:'blazer', shirt:'#8e2a4e', shirtD:'#5e1a32', inner:'#f5e6d3', skirt:'#2a1a30', build:-1 },
+  c7:{ name:'a tourist', skin:'fair', hair:'pomp',     hairC:'#7a7488', hairC2:'#a8a2b4',
+       shirtStyle:'sequin', shirt:'#3a5a8c', shirtD:'#24406a', inner:'#e8e4d8', pants:'#2a2438', size:1 },
+
   rube1:{ name:'a tourist', skin:'fair', role:'Set dressing. Proves the boardwalk has other people on it.', where:'Boardwalk', hair:'perm', hairC:'#b4703a', hairC2:'#d8965a', figure:'curved',
           shirtStyle:'tank', shirt:'#f0a8c0', pants:'#e8e0d0', size:-1, still:true },
   rube2:{ name:'a tourist', skin:'deep', role:'Set dressing. Proves the boardwalk has other people on it.', where:'Boardwalk', hair:'cap', hairC:'#c41d68', hairC2:'#8e1148',
@@ -2256,17 +2276,32 @@ function cutaway(paint, pages, then){
 }
 /* A face, filling the screen, with the room drawn out from behind it. Used when
    somebody gets close enough that the scene is their expression. */
-function closeup(look, pages, then){
-  GS.cut = { look, pages, i:0, then, t0:clock };
+/* stage[] is optional, one entry per page: how hard the camera pushes in, how
+   much the frame shakes, how fast the speed lines turn, and anything held up
+   in shot. Absent, a closeup plays exactly as it always did. */
+function closeup(look, pages, then, stage){
+  GS.cut = { look, pages, i:0, then, stage, t0:clock, pageAt:clock };
   GS.msg = null; GS.scene = 'cutaway';
 }
 function drawCloseup(t){
+  const c  = GS.cut;
+  const st = (c.stage && c.stage[c.i]) || {};
+  const since = t - (c.pageAt || c.t0);
+  /* the push settles over the first half-second of a page rather than snapping */
+  const ease = Math.min(1, since/500);
+  const push = 1 + ((st.push || 1) - 1) * ease;
+  const shk  = (REDUCED || !st.shake) ? 0 : st.shake * Math.max(0, 1 - since/900);
+  const jx = shk ? (Math.random()*2-1)*shk : 0;
+  const jy = shk ? (Math.random()*2-1)*shk : 0;
+
   r(0, 0, W, 200, '#08040e');
   const cx = 160, cy = 62;
-  g.strokeStyle = 'rgba(255,46,136,.40)'; g.lineWidth = 1;
+  g.strokeStyle = 'rgba(255,46,136,' + (0.40 * (st.rays === undefined ? 1 : st.rays)) + ')';
+  g.lineWidth = 1;
+  const spin = REDUCED ? 0 : t/3400 * (st.rays === undefined ? 1 : st.rays);
   for(let i = 0; i < 30; i++){
-    const a = i/30*Math.PI*2 + (REDUCED ? 0 : t/3400);
-    const r0 = 48 + (i % 3)*8;
+    const a = i/30*Math.PI*2 + spin;
+    const r0 = (48 + (i % 3)*8) * push;
     g.beginPath();
     g.moveTo(cx + Math.cos(a)*r0, cy + Math.sin(a)*r0);
     g.lineTo(cx + Math.cos(a)*280, cy + Math.sin(a)*280);
@@ -2274,33 +2309,37 @@ function drawCloseup(t){
   }
   g.globalAlpha = .40; r(0, 0, W, 200, '#180624'); g.globalAlpha = 1;
 
-  const b = portraitBuffer(GS.cut.look, false);
-  const w2 = PW*2, h2 = PH*2, bx = cx - w2/2, by = 8;
+  /* he blinks, which is most of what stops a portrait reading as a photograph */
+  const blink = !REDUCED && Math.floor(t/2400) % 5 === 0 && Math.floor(t/120) % 2 === 0;
+  const b  = portraitBuffer(c.look, blink);
+  const w2 = Math.round(PW*2*push), h2 = Math.round(PH*2*push);
+  const bx = Math.round(cx - w2/2 + jx), by = Math.round(8 - (h2 - PH*2)/2 + jy);
   r(bx-2, by-2, w2+4, h2+4, '#241134');
   g.drawImage(b, 0, 0, PW, PH, bx, by, w2, h2);
   r(bx-2, by-2, w2+4, 1, P.hot); r(bx-2, by+h2+1, w2+4, 1, P.hot);
   r(bx-2, by-2, 1, h2+4, P.hot); r(bx+w2+1, by-2, 1, h2+4, P.hot);
+  if(st.prop) st.prop(bx, by, w2, h2, t, since);
 
-  const lines = wrap(GS.cut.pages[GS.cut.i], FONT.dlg, 288);
-  const lh = lines.length > 3 ? 11 : 13;
-  let ty = 178 - lines.length*lh;
-  for(const ln of lines){ textC(ln, 160, ty, P.bone, FONT.dlg); ty += lh; }
+  const cap = cutCaption(c.pages[c.i], 84);
+  let ty = 184 - cap.ls.length*cap.lh;
+  for(const ln of cap.ls){ textC(ln, 160, ty, P.bone, cap.font); ty += cap.lh; }
   if(Math.floor(t/500)%2 === 0)
-    textC(GS.cut.i < GS.cut.pages.length-1 ? 'MORE' : 'CLICK TO GO BACK',
+    textC(c.i < c.pages.length-1 ? 'MORE' : 'CLICK TO GO BACK',
           160, 190, '#6b4d8a', FONT.sm);
 }
 
 /* Fit a caption into the 74px between the frame and the prompt. Never returns
    a line height shorter than the type it is setting. */
-function cutCaption(str){
+function cutCaption(str, room){
+  const space = room || 78;
   for(let px = 16; px >= 11; px--){
     const font = scaleFont(FONT.dlg, px/16);
     const ls   = wrap(str, font, 292);
-    const lh   = Math.max(px - 3, Math.round(px * 0.81));
-    if(ls.length * lh <= 74) return { ls, lh, font };
+    const lh   = Math.max(px - 2, Math.round(px * 0.95));   // VT323 descends
+    if(ls.length * lh <= space) return { ls, lh, font };
   }
   const font = scaleFont(FONT.dlg, 11/16);
-  return { ls: wrap(str, font, 292), lh: 9, font };
+  return { ls: wrap(str, font, 292), lh: 11, font };
 }
 function drawCutaway(t){
   if(GS.cut.look) return drawCloseup(t);
@@ -2329,7 +2368,7 @@ function drawCutaway(t){
 }
 function advanceCutaway(){
   const c = GS.cut;
-  if(c.i < c.pages.length-1){ c.i++; Audio_.sfx('click'); return; }
+  if(c.i < c.pages.length-1){ c.i++; c.pageAt = clock; Audio_.sfx('click'); return; }
   GS.cut = null; GS.scene = 'play'; Audio_.scene('play');
   if(c.then) c.then();
 }
@@ -2392,6 +2431,12 @@ function reviveFromDeath(){
 }
 
 /* ---------- 5c. ROOMS ---------------------------------------------------- */
+/* Where the crowd stands, front row first — so thinning it takes the back of
+   the room away rather than punching holes in the middle of it. */
+const CROWD_SPOTS = [[88,150],[112,158],[136,150],[100,164],
+                     [160,156],[126,142],[178,148],[150,166]];
+const crowdSize = () => Math.max(2, 8 - (GS.flags.encores || 0) * 2);
+
 const ROOMS = {
 
 /* ============================ ARRIVAL ==================================== */
@@ -2599,8 +2644,16 @@ pier:{
              if(GS.flags.crowdDrawn && !REDUCED && Math.floor(t/240)%2===0)
                text('♪', 66, 100+((t/300)|0)%3, P.gold, FONT.dlg); } },
          { id:'zsazsa', x:266, y:154, look:CAST.zsazsa },
-         { id:'r1', x:96, y:158, look:CAST.rube1, hidden:()=>!GS.flags.crowdDrawn },
-         { id:'r2', x:124, y:162, look:CAST.rube2, hidden:()=>!GS.flags.crowdDrawn } ],
+         /* Eight of them for the first set, two fewer for every encore, floored
+            at the two who have nowhere else to be. The purse already halves each
+            time; this is that same decay standing in front of the bandshell,
+            where the player can watch it happen instead of being told. */
+         ...CROWD_SPOTS.map((sp, i) => ({
+            id:'c'+i, x:sp[0], y:sp[1], look:CAST['c'+i],
+            hidden:()=>!GS.flags.crowdDrawn || i >= crowdSize(),
+            extra:(t)=>{ if(REDUCED || i % 3) return;          // a few of them enjoying it
+              if(Math.floor(t/300 + i) % 4 === 0)
+                text('\u266a', sp[0]+6, sp[1]-46+((t/260+i)|0)%3, 'rgba(255,194,61,.7)', FONT.dlg); } })) ],
   onEnter(){ if(!GS.flags.sawPier){ GS.flags.sawPier = true;
       narrate('The pier. Out here the music from the strip arrives late and slightly wrong, like '+
               'news from a country you used to live in.'); } },
@@ -3399,6 +3452,31 @@ function chipShowdown(){  /* @owner chip @critical */
     '"So," he says. "You have had a day."'], { choices:opts });
 }
 
+/* The hundred, held at the bottom of frame. It will not stay still, because he
+   cannot make his hand stop, and by the last page it is gone into a pocket that
+   does not exist. */
+function heldHundred(bx, by, w2, h2, t, since, settled){
+  const shake = REDUCED ? 0 : (settled ? 0.4 : 1.1);
+  const hx = Math.round(bx + w2*0.52 + Math.sin(t/90)*shake);
+  const hy = Math.round(by + h2 - 14 + Math.cos(t/70)*shake);
+  r(hx, hy, 26, 12, '#cfe0c0');
+  r(hx, hy, 26, 1, '#e8f2e0');
+  r(hx+1, hy+1, 24, 10, '#a8c497');
+  r(hx+9, hy+3, 8, 6, '#cfe0c0');
+  textC('100', hx+13, hy+3, '#2a4a2a', FONT.sm);
+}
+
+/* The curtain of the level, staged. Held, cracked, three looks in four seconds,
+   the invitation, and the pocket that is not there. */
+const CHIP_CURTAIN = [
+  { push:1.00, rays:0.7, prop:(bx,by,w,h,t,s)=>heldHundred(bx,by,w,h,t,s,false) },
+  { push:1.09, rays:1.0, shake:1.6, prop:(bx,by,w,h,t,s)=>heldHundred(bx,by,w,h,t,s,false) },
+  { push:1.05, rays:0.5, prop:(bx,by,w,h,t,s)=>heldHundred(bx,by,w,h,t,s,true) },
+  { push:1.16, rays:1.9, shake:2.2, prop:(bx,by,w,h,t,s)=>heldHundred(bx,by,w,h,t,s,true) },
+  { push:1.12, rays:1.4, prop:(bx,by,w,h,t,s)=>heldHundred(bx,by,w,h,t,s,true) },
+  { push:1.00, rays:0.35 }
+];
+
 function chipTakes(kind){  /* @owner chip */
   GS.flags.chipEnding = kind;
   addHeat('chip', kind === 'heat' ? 14 : 8);
@@ -3434,13 +3512,14 @@ function chipTakes(kind){  /* @owner chip */
       'is not going to put away.',
       '"...It is a hundred dollars," he says. The sentence does not do the work he needs it to do.',
       'He looks at the money. Then at you. Then, for less than a second, up at the tower.',
-      '"There is a hustle on the strip Thursday. Everybody who is nobody will be there." He puts '+
-      'the car in gear without getting into it. "Come. I want to watch it happen to you in front '+
-      'of people."',
+      '"There is a hustle on the strip Thursday. Everybody who is nobody will be there."',
+      'He puts the car in gear without getting into it. "Come. I want to watch it happen to you '+
+      'in front of people."',
       'Then he puts the hundred in his shirt pocket. The shirt does not have a pocket. He does it '+
       'anyway, and neither of you says a word about that either.'],
       ()=>{ GS.flags.levelDone = true; GS.flags.chipOnStrip = false; saveGame();
-            GS.scene = 'complete'; GS.completeAt = clock; });
+            GS.scene = 'complete'; GS.completeAt = clock; },
+      CHIP_CURTAIN);
   }});
 }
 
