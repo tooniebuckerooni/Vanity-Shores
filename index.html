@@ -530,6 +530,38 @@ function drawPersonRaw(x, y, o, t, walkPhase, blink){
     r(hx - hw*0.30, hdT - hh*0.02, hw*1.60, Math.max(1, hh*0.07), shade(hc, .16));
     px(Math.round(hx + hw*0.1), Math.round(hdT - hh*0.22), P.gold);
   }
+  /* Marks. What last night left on you. Nobody in Vanity Shores will mention
+     any of this — the joke is between the game and the person holding the
+     mouse — but it is on the sprite until something takes it off. */
+  if(o.marks){
+    /* At CHAR_H 40 a cheek is one logical pixel wide, so a soft blend simply
+       disappears — the same thing that killed the hourglass waist. These are
+       painted as solid, grid-aligned pixels at full alpha instead, sized as
+       fractions of the head so they hold up when Level 2 goes to 72. */
+    const R = Math.round;
+    if(o.marks.indexOf('flushed') >= 0){
+      const cw = Math.max(2, R(hw*0.22)), ch = Math.max(1, R(hh*0.12));
+      const cy = R(hdT + hh*0.60);
+      r(R(cx - hw*0.44), cy, cw, ch, '#e0455f');
+      r(R(cx + hw*0.44) - cw, cy, cw, ch, '#e0455f');
+    }
+    if(o.marks.indexOf('lipstick') >= 0)
+      r(R(cx + m.shW*0.14), R(torT + m.torH*0.05),
+        Math.max(2, R(m.shW*0.16)), Math.max(1, R(m.H*0.030)), '#c8143e');
+    if(o.marks.indexOf('stain') >= 0){
+      const sw = Math.max(2, R(m.shW*0.20)), sh = Math.max(2, R(m.torH*0.16));
+      const sx = R(cx - m.shW*0.20), sy = R(torT + m.torH*0.44);
+      r(sx, sy, sw, sh, '#e8dcb0');
+      r(sx, sy, sw, Math.max(1, R(sh*0.4)), '#f4ecd0');
+    }
+    if(o.marks.indexOf('dishevel') >= 0){
+      const dw = Math.max(1, R(hw*0.12));
+      r(R(cx + hw*0.46), R(hdT - hh*0.26), dw, Math.max(2, R(hh*0.34)),
+        o.hairC2 || '#6b4426');
+      r(R(cx - hw*0.54), R(hdT - hh*0.14), dw, Math.max(2, R(hh*0.22)),
+        o.hairC2 || '#6b4426');
+    }
+  }
   return { headTop: hdT, headX: hx, headW: hw, torsoTop: torT };
 }
 
@@ -537,7 +569,7 @@ function drawPersonRaw(x, y, o, t, walkPhase, blink){
 function lookKey(o){
   return [o.skin,o.hair,o.hairC,o.hairC2,o.shirtStyle,o.shirt,o.shirtD,o.shirtL,o.inner,
           o.pants,o.skirt,o.shoes,o.acc,o.hat,o.hatC,o.figure,o.build,o.size,o.pose,
-          o.lips,o.stubble,o.mustache,o.still].join('|');
+          o.lips,o.stubble,o.mustache,o.still,o.marks].join('|');
 }
 function spriteBuffer(o, t, walkPhase, bobF, blink){
   const bucket = walkPhase ? (Math.floor((walkPhase % (Math.PI*2)) / (Math.PI*2) * 8) + 1) : 0;
@@ -1736,26 +1768,31 @@ const GS = {
   scene:'title',
   name:'', look:{ skin:'tan', hair:'blowout', hairC:'#3b2416', hairC2:'#6b4426', figure:'straight',
                   shirtStyle:'blazer', shirt:'#e94f6a', shirtD:'#b8324a', inner:'#f5e6d3',
-                  pants:'#2f3a6b', pantsD:'#1e2648', acc:'none', eyes:'#3a5a8c' },
+                  pants:'#2f3a6b', pantsD:'#1e2648', acc:'none', eyes:'#3a5a8c',
+                  marks:'' },
   stats:{ money:34, fight:33, charm:33 },
   cash:0,                                     // cents
   room:'boardwalk',
   inv:[], flags:{}, heat:{}, secrets:{}, cut:null, verb:'look', sel:null,
   player:{ x:60, y:150, tx:60, ty:150, walking:false, phase:0 },
-  msg:null, invOpen:false, deaths:0, hustleTries:0
+  msg:null, invOpen:false, deaths:0, hustleTries:0,
+  tally:{}                                  // the run ledger; see TALLY
 };
 
 function saveGame(){
   try{ localStorage.setItem(SAVE_KEY, JSON.stringify({
     name:GS.name, look:GS.look, stats:GS.stats, cash:GS.cash, room:GS.room,
-    inv:GS.inv, flags:GS.flags, heat:GS.heat, secrets:GS.secrets, deaths:GS.deaths, v:1 })); }catch(e){}
+    inv:GS.inv, flags:GS.flags, heat:GS.heat, secrets:GS.secrets, deaths:GS.deaths,
+    tally:GS.tally, v:1 })); }catch(e){}
 }
 function loadGame(){
   try{ const s = JSON.parse(localStorage.getItem(SAVE_KEY)||'null');
     if(s && s.v===1 && s.name){ Object.assign(GS, {
       name:s.name, look:s.look, stats:s.stats, cash:s.cash, room:s.room,
       inv:s.inv||[], flags:s.flags||{}, heat:s.heat||{}, secrets:s.secrets||{},
-      deaths:s.deaths||0 }); return true; }
+      deaths:s.deaths||0, tally:s.tally||{} });
+      if(!GS.look.marks) GS.look.marks = '';        // saves from before marks existed
+      return true; }
   }catch(e){}
   return false;
 }
@@ -1765,10 +1802,55 @@ function wipeSave(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
 const money = () => '$' + (GS.cash/100).toFixed(2);
 function pay(cents, sfx){
   GS.cash += cents;
+  if(cents > 0) tick('earned', cents);
   if(sfx!==false) Audio_.sfx(cents>0?'cash':'deny');
   if(GS.cash >= ECONOMY.stakeLine && !GS.flags.stake) GS.flags.stake = true;
   saveGame();
 }
+/* ---- the run ledger ------------------------------------------------------
+   Counters that outlive the level. The end card, the save file and Canon all
+   read this one table, so adding a ticker is a single entry here rather than
+   four edits in four places. Levels 2 onward keep ticking the same counters —
+   the closing card of the whole game is this list, totalled. */
+const TALLY = {
+  deaths:   { label:'Died',                              short:'DIED' },
+  laid:     { label:'Got somewhere',                     short:'GOT SOMEWHERE' },
+  pocketed: { label:'Pocketed something nobody offered', short:'POCKETED' },
+  leaned:   { label:'Leaned on somebody',                short:'LEANED' },
+  flirted:  { label:'Tried it on',                       short:'TRIED IT ON' },
+  encores:  { label:'Made Dickie sing again',            short:'ENCORES' },
+  earned:   { label:'Earned',                            short:'TOOK IN',  cash:true },
+  dropped:  { label:'Lost to your own stupidity',        short:'DROPPED',  cash:true }
+};
+function tick(k, n){
+  GS.tally[k] = (GS.tally[k] || 0) + (n === undefined ? 1 : n);
+  saveGame();
+}
+const tallied = k => GS.tally[k] || 0;
+
+/* ---- marks ---------------------------------------------------------------
+   Deliberately unremarked. Nothing in the world reacts to these; they are on
+   the sprite and in the save, and they travel to the next level with you. */
+const MARKS = {
+  flushed:  'high colour that has not gone down',
+  lipstick: 'a print on the collar, not your shade',
+  stain:    'something on the front you have decided not to look at',
+  dishevel: 'hair that has given up'
+};
+function mark(id){
+  const set = (GS.look.marks || '').split(',').filter(Boolean);
+  if(set.indexOf(id) < 0) set.push(id);
+  GS.look.marks = set.sort().join(',');
+  saveGame();
+}
+function unmark(id){
+  GS.look.marks = (GS.look.marks || '').split(',')
+    .filter(x => x && x !== id).join(',');
+  saveGame();
+}
+const marked = id => (GS.look.marks || '').indexOf(id) >= 0;
+const markCount = () => (GS.look.marks || '').split(',').filter(Boolean).length;
+
 function has(id){ return GS.inv.indexOf(id) >= 0; }
 function give(id){ if(!has(id)){ GS.inv.push(id); Audio_.sfx('pickup'); } saveGame(); }
 function drop(id){ const i=GS.inv.indexOf(id); if(i>=0) GS.inv.splice(i,1);
@@ -2208,6 +2290,18 @@ function drawCloseup(t){
           160, 190, '#6b4d8a', FONT.sm);
 }
 
+/* Fit a caption into the 74px between the frame and the prompt. Never returns
+   a line height shorter than the type it is setting. */
+function cutCaption(str){
+  for(let px = 16; px >= 11; px--){
+    const font = scaleFont(FONT.dlg, px/16);
+    const ls   = wrap(str, font, 292);
+    const lh   = Math.max(px - 3, Math.round(px * 0.81));
+    if(ls.length * lh <= 74) return { ls, lh, font };
+  }
+  const font = scaleFont(FONT.dlg, 11/16);
+  return { ls: wrap(str, font, 292), lh: 9, font };
+}
 function drawCutaway(t){
   if(GS.cut.look) return drawCloseup(t);
   r(0, 0, W, 200, '#08040e');
@@ -2222,10 +2316,13 @@ function drawCutaway(t){
   r(bx-3, by-3, bw+6, 1, '#5a2a72'); r(bx-3, by+bh+2, bw+6, 1, '#5a2a72');
   g.globalAlpha = 1;
 
-  const lines = wrap(GS.cut.pages[GS.cut.i], FONT.dlg, 292);
-  const lh = lines.length > 4 ? 11 : 13;                  // whatever the font does
-  let ty = 172 - lines.length*lh;
-  for(const ln of lines){ textC(ln, 160, ty, P.bone, FONT.dlg); ty += lh; }
+  /* The old rule dropped the line height to 11px past four lines, which is
+     shorter than the glyphs — five-line captions overlapped each other. Shrink
+     the type until the block fits the gap under the frame instead, the same way
+     the dialogue box does it. */
+  const cap = cutCaption(GS.cut.pages[GS.cut.i]);
+  let ty = 178 - cap.ls.length*cap.lh;
+  for(const ln of cap.ls){ textC(ln, 160, ty, P.bone, cap.font); ty += cap.lh; }
   if(Math.floor(t/500)%2 === 0)
     textC(GS.cut.i < GS.cut.pages.length-1 ? 'MORE' : 'CLICK TO GO BACK',
           160, 186, '#6b4d8a', FONT.sm);
@@ -2264,9 +2361,28 @@ const DEATHS = {
         'something a man with a future does. The railing is ninety years old.',
         sting:'The pilings below are barnacled, immovable, and well attended by crabs.' }
 };
+/* Dying used to be free, which made the death cards a gallery rather than a
+   consequence. It now costs a quarter of the purse — enough to feel, never
+   enough to strand you, because Dickie's floor means any purse can be rebuilt.
+   That recoverability is not a hope, it is asserted by canon --check. */
 function die(kind){
-  GS.deaths++; GS.msg = null; GS.scene = 'death'; GS.deathKind = kind;
+  GS.deaths++; tick('deaths');
+  GS.deathToll = Math.floor(GS.cash * 0.25 / 25) * 25;
+  if(GS.cash > 0 && GS.deathToll < 25) GS.deathToll = Math.min(25, GS.cash);
+  if(GS.deathToll > 0){ GS.cash -= GS.deathToll; tick('dropped', GS.deathToll); }
+  GS.msg = null; GS.scene = 'death'; GS.deathKind = kind;
   Audio_.sfx('death'); Audio_.scene('tense'); saveGame();
+}
+/* What it cost you, said in the register of somebody who is not sympathetic. */
+function deathToll(){
+  const n = GS.deaths;
+  if(!GS.deathToll)
+    return n > 3 ? 'You had nothing on you. Again.' : 'You had nothing on you, which is the only mercy here.';
+  const c = '$' + (GS.deathToll/100).toFixed(2);
+  return n === 1 ? 'Somebody went through your pockets before the ambulance. ' + c + ' gone.'
+       : n === 2 ? 'Same somebody. Same pockets. ' + c + ' gone.'
+       : n <= 4  ? 'They know your pockets by name now. ' + c + ' gone.'
+       :           'There is a man on this boardwalk whose entire income is you. ' + c + ' gone.';
 }
 function reviveFromDeath(){
   GS.scene = 'play'; Audio_.scene('play');
@@ -2658,7 +2774,7 @@ function flirtBeat(who, beats, perBeat){
   const i = GS.flags[key] || 0;
   if(i < beats.length){
     GS.flags[key] = i + 1;
-    addHeat(who, perBeat);
+    addHeat(who, perBeat); tick('flirted');
     return beats[i];
   }
   return null;
@@ -2852,7 +2968,7 @@ function brendaOut(kind){  /* @owner brenda */
       'coupon, and a gift card she is definitely not logging.']); return;
   }
   if(kind==='fight'){
-    give('aloe'); GS.flags.brendaWary = true;   // earned now, not on dismissal
+    give('aloe'); GS.flags.brendaWary = true; tick('leaned');   // earned now, not on dismissal
     sayAs('brenda', ['You do not say anything. You just stay exactly where you are, at exactly the '+
       'distance where a person has to decide what you are.',
       'Twenty seconds of that and her pitch dies in the middle of a sentence about *equity*.',
@@ -2885,7 +3001,7 @@ function takeSign(){  /* @owner brenda */
   if(!GS.flags.pitchDone){
     Audio_.sfx('deny');
     sayAs('brenda','Hand. Off. The sign, sweetheart. The sign is *the whole business*.'); return; }
-  GS.flags.signTaken = true; give('sign');
+  GS.flags.signTaken = true; give('sign'); tick('pocketed');
   narrate(['She has turned to work a family of four with the dead-eyed patience of a heron.',
     'You lift the FREE GIFT sign off its stake and walk away with it under your arm. Nobody stops '+
     'you. Nobody ever stops a person carrying something confidently.',
@@ -2930,31 +3046,72 @@ function paintBoothBack(bx, by, bw, bh, t){
   textC('SHORELINE', cx, by+13, '#0a3c44', FONT.sm);
   r(cx-34, by+66, 68, 2, '#b8ac94');
 
-  /* a structural event, entirely in the canvas wall */
-  const wob = REDUCED ? 0 : Math.sin(t/170) * 3;
-  const bul = REDUCED ? 4 : 4 + Math.sin(t/170) * 2.5;
-  g.fillStyle = '#f2e8d4';
-  g.beginPath();
-  g.ellipse(cx + wob, by+42, 13 + bul, 15, 0, 0, Math.PI*2);
-  g.fill();
-  g.fillStyle = '#d8ccb4';
-  g.beginPath(); g.ellipse(cx + wob + 5, by+46, 7, 9, 0, 0, Math.PI*2); g.fill();
+  /* A structural event, entirely in the canvas wall — and it plays as a scene
+     rather than one flat loop. The page the reader is on sets the tempo: the
+     canopy is still while she is closing up, finds a rhythm, loses its mind,
+     and is completely still again by the time the booth reopens. Everything
+     stays on the far side of the canvas. That is the whole joke. */
+  const page = (GS.cut && GS.cut.i) || 0;
+  const TEMPO = [0, 300, 150, 0];                     // ms per cycle, by page
+  const AMPL  = [0.6, 2.2, 5.0, 0];
+  const per = TEMPO[Math.min(page, 3)], amp = AMPL[Math.min(page, 3)];
+  const ph  = (REDUCED || !per) ? 0 : Math.sin(t/per);
+  const wob = REDUCED ? 0 : ph * amp;
+  const bul = REDUCED ? 4 : 4 + Math.abs(ph) * amp * 0.9;
+  const lean = REDUCED ? 0 : ph * amp * 0.5;
 
-  r(cx+26, by+40, 14, 22, P.gold);                        // the sign, propped up
-  r(cx+27, by+41, 12, 20, '#c41d68');
-  textC('FREE', cx+33, by+42, P.bone, FONT.sm);
-  textC('GIFT', cx+33, by+50, P.bone, FONT.sm);
+  if(page === 3){                                     // afterwards: just a wall
+    g.fillStyle = '#efe5d1';
+    g.beginPath(); g.ellipse(cx, by+44, 12, 14, 0, 0, Math.PI*2); g.fill();
+  } else {
+    g.fillStyle = '#f2e8d4';
+    g.beginPath();
+    g.ellipse(cx + wob, by+42, 13 + bul, 15, 0, 0, Math.PI*2);
+    g.fill();
+    g.fillStyle = '#d8ccb4';
+    g.beginPath(); g.ellipse(cx + wob + 5, by+46, 7, 9, 0, 0, Math.PI*2); g.fill();
+    /* the whole canopy takes the load, not just the wall */
+    g.globalAlpha = .30;
+    r(cx-34 + lean, by+18, 68, 3, '#8a7a62');
+    g.globalAlpha = 1;
+    if(page === 2 && !REDUCED){                       // the frame gives up a little
+      for(let i=0;i<3;i++){
+        const dy = by + 22 + i*14 + Math.sin(t/150 + i)*1.5;
+        g.globalAlpha = .22; r(cx-34, dy, 68, 1, '#b8a888'); g.globalAlpha = 1;
+      }
+    }
+  }
 
-  const gx = bx + 18, gy = by + bh - 38;                  // one witness
-  const turn = Math.floor(t/900) % 2;
+  /* Propped up, then knocked, then facing the wrong way for the rest of the
+     afternoon — which is the only thing the boardwalk ever gets to see. */
+  const pg = (GS.cut && GS.cut.i) || 0;
+  g.save();
+  g.translate(cx+32, by+50);
+  g.rotate(pg >= 3 ? 0.22 : pg === 2 ? (REDUCED ? 0.06 : Math.sin(t/150)*0.07) : 0);
+  r(-14,-12,28,24, P.gold);
+  r(-13,-11,26,22,'#c41d68');
+  textC(pg >= 3 ? 'EERF' : 'FREE', 0, -8, P.bone, FONT.sm);
+  textC(pg >= 3 ? 'TFIG' : 'GIFT', 0,  1, P.bone, FONT.sm);
+  g.restore();
+
+  /* One witness. It looks away on page one out of manners, gives that up by
+     page two, and does not blink again for the rest of the scene. */
+  const gx = bx + 18, gy = by + bh - 38;
+  const turn = pg === 0 ? (Math.floor(t/900) % 2) : 1;
   r(gx, gy, 4, 3, P.bone); r(gx + (turn?3:-1), gy-1, 2, 2, P.bone);
   px(gx + (turn?4:-1), gy-1, P.gold);
   r(gx+1, gy+3, 1, 2, P.gold);
+  if(pg >= 2 && !REDUCED && Math.floor(t/260) % 2)     // a small head tilt
+    px(gx + 4, gy - 2, P.bone);
 }
 
 function brendaSecret(){  /* @owner brenda */
   drop('sign'); GS.flags.signReturned = true; foundSecret('brenda');
   addHeat('brenda', 25);
+  /* Earned here, not in a then() — a then() fires on dismissal and a room
+     transition can eat it. The marks stay on the sprite into Level 2, and
+     nobody anywhere in the game will mention them. */
+  tick('laid'); mark('flushed'); mark('lipstick');
   sayAs('brenda', ['You hand back the FREE GIFT sign.',
     'She looks at it. She looks at the bandshell, four hundred yards down the pier, where it has '+
     'obviously been. She looks at you.',
@@ -3088,7 +3245,7 @@ function encoreTake(){
 }
 function dickieEncore(){  /* @owner dickie */
   const take = encoreTake();
-  GS.flags.encores = (GS.flags.encores || 0) + 1;
+  GS.flags.encores = (GS.flags.encores || 0) + 1; tick('encores');
   pay(take); Audio_.sfx('cash');
   sayAs('dickie', [(GS.flags.encores > 2
       ? 'He does it again. There are four people now, and two of them are waiting for somebody '+
@@ -3179,7 +3336,7 @@ function monteWin(kind){  /* @owner monte */
   }[kind];
   pay(beats.take);
   GS.flags.monteWon = true;
-  if(kind==='fight') GS.flags.monteEnemy = true;
+  if(kind==='fight'){ GS.flags.monteEnemy = true; tick('leaned'); }
   Audio_.sfx('fanfare'); Audio_.scene('win');
   say(beats.lines.concat([
     'You come out from under the pier holding ' + money() + '.',
@@ -3601,8 +3758,17 @@ function routeNotes(){
   if(fin) n.unshift(fin);
   if(secretsFound())
     n.push('Found ' + secretsFound() + ' of ' + SECRET_COUNT + ' things nobody mentioned.');
-  if(GS.deaths) n.push('Died ' + GS.deaths + (GS.deaths===1?' time. It happens.':' times. Enthusiastically.'));
   return n;
+}
+/* The tickers, one line. They keep counting through Levels 2-11; the closing
+   card of the whole game is this same table, totalled. */
+function tallyStrip(){
+  const parts = [];
+  for(const k in TALLY){
+    const v = tallied(k); if(!v) continue;
+    parts.push(TALLY[k].short + ' ' + (TALLY[k].cash ? '$' + (v/100).toFixed(2) : v));
+  }
+  return parts.join('   \u00b7   ');
 }
 function drawComplete(t){
   const el = t - GS.completeAt;
@@ -3621,12 +3787,18 @@ function drawComplete(t){
 
   const notes = routeNotes();
   let ny = 82;
-  for(let i=0;i<notes.length && ny < 146;i++){
+  for(let i=0;i<notes.length && ny < 134;i++){
     g.globalAlpha = Math.min(1, Math.max(0,(el - 600 - i*260)/400));
     const ls = wrap(notes[i], FONT.sm, 244);
     text('\u00b7', 40, ny+1, P.hot, FONT.sm);
     for(let j=0;j<ls.length;j++) text(ls[j], 50, ny+j*10, P.bone, FONT.sm);
     ny += ls.length*10 + 3;
+  }
+  const strip = tallyStrip();
+  if(strip){
+    g.globalAlpha = Math.min(1, Math.max(0,(el-1500)/500));
+    textC(strip, 160, 140, P.gold, FONT.sm);
+    g.globalAlpha = 1;
   }
   g.globalAlpha = Math.min(1, Math.max(0,(el-1800)/600));
   r(30, 150, 260, 1, 'rgba(255,46,136,.35)');
@@ -3647,8 +3819,9 @@ function drawDeath(t){
   const x=20, bw=280;
   const lines = wrap(d.body, FONT.dlg, bw-24);
   const stg   = wrap(d.sting, FONT.dlg, bw-24);
-  const lh = (lines.length + stg.length) > 9 ? 11 : 13;
-  const bh = 28 + lines.length*lh + 8 + stg.length*lh + 24;
+  const toll  = wrap(deathToll(), FONT.dlg, bw-24);
+  const lh = (lines.length + stg.length + toll.length) > 10 ? 11 : 13;
+  const bh = 28 + lines.length*lh + 8 + stg.length*lh + 8 + toll.length*lh + 24;
   const y  = clamp(Math.round((200-bh)/2), 4, 40);
   r(x,y,bw,bh,'#1a0610');
   r(x,y,bw,2,'#e02a4a'); r(x,y+bh-2,bw,2,'#e02a4a');
@@ -3659,6 +3832,8 @@ function drawDeath(t){
   for(const ln of lines){ text(ln, x+12, ty, P.bone, FONT.dlg); ty += lh; }
   ty += 8;
   for(const ln of stg){ text(ln, x+12, ty, '#c49ab0', FONT.dlg); ty += lh; }
+  ty += 8;
+  for(const ln of toll){ text(ln, x+12, ty, GS.deathToll ? P.gold : '#7a6a90', FONT.dlg); ty += lh; }
   const bq = {x:110,y:y+bh-19,w:100,h:14}, hv = inRect(mouse,bq);
   r(bq.x,bq.y,bq.w,bq.h, hv?'#e02a4a':'#3a0c18');
   textC('TRY AGAIN', 160, bq.y+3, hv?P.bone:'#ff8a9a', FONT.sm);

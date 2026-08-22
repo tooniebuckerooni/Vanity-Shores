@@ -49,6 +49,16 @@ function askStranger(){  /* @owner stranger */
   ];
 }
 
+/* NOT a defect, and the trap that catches naive scanners: a prop painter whose
+   comment contains an apostrophe. If brace-matching does not skip comments, the
+   apostrophe in "bus's" opens a string that never closes, the block runs off the
+   end of the file, and this silently swallows every scene below it. It must be
+   reported as neither a scene nor unclaimed. */
+function paintShelter(){           // the bus's shelter, such as it is
+  var a = { roof:1, bench:{ slats:3 } };
+  return a;
+}
+
 /* DEFECT 3: talks to the player, but carries no @owner tag, so its dialogue would
    go uncounted. Canon must report it rather than skip it. */
 function driverShrugs(){

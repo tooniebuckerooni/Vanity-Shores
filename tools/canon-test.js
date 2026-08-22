@@ -37,6 +37,8 @@ const has = (list, level, re) => list.some(f => f.level === level && re.test(f.t
      'catches the planted untagged scene');
   ok(has(toy.findings, 'note',  /written but never read/),
      'reports an uncollected flag as a promise, not a bug');
+  ok(!toy.unclaimed.some(u => u.name === 'paintShelter') && !toy.scenes.paintShelter,
+     'an apostrophe in a comment does not swallow the rest of the file');
   ok(toy.findings.filter(f => f.level === 'error').length === 2,
      'reports exactly the two planted errors and no phantom third');
 

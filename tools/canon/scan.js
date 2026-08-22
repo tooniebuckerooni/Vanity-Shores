@@ -5,14 +5,22 @@
  * how to read the @owner tags that say which character a scene belongs to.
  */
 
-/* Brace-match from an opening delimiter, skipping anything inside a string.
-   Naive matching breaks on the first "}" in a line of dialogue. */
+/* Brace-match from an opening delimiter, skipping anything inside a string OR a
+   comment. Naive matching breaks on the first "}" in a line of dialogue — and
+   skipping only strings still breaks on an apostrophe inside a comment, which
+   opens a string that never closes and swallows the rest of the file. That one
+   is not hypothetical: it silently ate a prop painter in the real game and
+   reported it as 567 words of unclaimed dialogue. */
 function blockFrom(src, openIdx, open, close){
-  let depth = 0, q = null, esc = false;
+  let depth = 0, q = null, esc = false, line = false, block = false;
   for(let i = openIdx; i < src.length; i++){
-    const c = src[i];
+    const c = src[i], n = src[i + 1];
+    if(line){ if(c === '\n') line = false; continue; }
+    if(block){ if(c === '*' && n === '/'){ block = false; i++; } continue; }
     if(esc){ esc = false; continue; }
     if(q){ if(c === '\\') esc = true; else if(c === q) q = null; continue; }
+    if(c === '/' && n === '/'){ line  = true; i++; continue; }
+    if(c === '/' && n === '*'){ block = true; i++; continue; }
     if(c === '"' || c === "'" || c === '`'){ q = c; continue; }
     if(c === open) depth++;
     else if(c === close){ depth--; if(depth === 0) return src.slice(openIdx, i + 1); }
