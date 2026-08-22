@@ -357,9 +357,16 @@ function drawComplete(t){
   textC('Chip stops mocking you and starts competing.', 160, 168, '#7a5f96', FONT.sm);
   g.globalAlpha = 1;
 
-  const bq = {x:106,y:180,w:108,h:15}, hv = inRect(mouse,bq);
+  const canL2 = typeof enterLevel2 === 'function' && !GS.flags.level2Done;
+  const bq = { x: canL2 ? 30 : 106, y:180, w:108, h:15 }, hv = inRect(mouse,bq);
   r(bq.x,bq.y,bq.w,bq.h, hv?P.hot:'#2a1140'); r(bq.x,bq.y,bq.w,1, hv?'#ff9ac8':'#5a2a72');
-  textC('PLAY AGAIN', 160, bq.y+4, hv?P.bone:P.dim, FONT.sm);
+  textC('PLAY AGAIN', bq.x + bq.w/2, bq.y+4, hv?P.bone:P.dim, FONT.sm);
+  if(canL2){
+    const cbq = {x:184,y:180,w:108,h:15}, chv = inRect(mouse,cbq);
+    r(cbq.x,cbq.y,cbq.w,cbq.h, chv?P.hot:'#3d1f52');
+    r(cbq.x,cbq.y,cbq.w,1, chv?'#ff9ac8':'#7a4fa0');
+    textC('CONTINUE ▶', cbq.x + cbq.w/2, cbq.y+4, chv?P.bone:P.gold, FONT.sm);
+  }
 }
 
 /* ---- DEATH ---- */
@@ -406,7 +413,9 @@ function handleClick(p){
     case 'title': {
       const fresh = !localStorage.getItem(SAVE_KEY);
       if(!fresh && p.y>=154 && p.y<=170){ if(loadGame()){ Audio_.sfx('click');
-        if(GS.flags.levelDone){ GS.scene='complete'; GS.completeAt=clock; } else enterPlay(); return; } }
+        if(GS.flags.level2Done){ GS.scene='complete2'; GS.complete2At=clock; }
+        else if(GS.flags.levelDone){ GS.scene='complete'; GS.completeAt=clock; }
+        else enterPlay(); return; } }
       Audio_.sfx('click'); wipeSave(); GS.scene='create'; showNameBox(true); return; }
     case 'create': return createClick(p);
     case 'drive':  Audio_.sfx('click'); startLevelCard(); return;
@@ -414,6 +423,16 @@ function handleClick(p){
     case 'death': Audio_.sfx('click'); reviveFromDeath(); return;
     case 'cutaway': advanceCutaway(); return;
     case 'complete': {
+      const canL2 = typeof enterLevel2 === 'function' && !GS.flags.level2Done;
+      const pbq = { x: canL2 ? 30 : 106, y:180, w:108, h:15 };
+      if(inRect(p,pbq)){ Audio_.sfx('click'); wipeSave(); location.reload(); return; }
+      if(canL2){
+        const cbq = {x:184,y:180,w:108,h:15};
+        if(inRect(p,cbq)){ Audio_.sfx('click'); enterLevel2(); return; }
+      }
+      return; }
+    case 'levelcard2': if(card2T>700){ Audio_.sfx('click'); enterPlay2(); } return;
+    case 'complete2': {
       const bq = {x:106,y:180,w:108,h:15};
       if(inRect(p,bq)){ Audio_.sfx('click'); wipeSave(); location.reload(); } return; }
     case 'play': return playClick(p);
@@ -547,17 +566,20 @@ function frame(now){
   g.imageSmoothingEnabled = false;
   if(GS.scene==='play'){ updatePlayer(dt); }
   if(GS.scene==='levelcard') cardT += dt*1000;
+  if(GS.scene==='levelcard2' && typeof card2T === 'number') card2T += dt*1000;
   if(GS.scene==='drive')     driveT += dt*1000;
 
   switch(GS.scene){
-    case 'title':     drawTitle(now); break;
-    case 'create':    drawCreate(now); break;
-    case 'drive':     drawDrive(now); break;
-    case 'levelcard': drawCard(now); break;
-    case 'complete':  drawComplete(now); break;
-    case 'death':     drawDeath(now); break;
-    case 'cutaway':   drawCutaway(now); break;
-    default:          drawRoom(now);
+    case 'title':      drawTitle(now); break;
+    case 'create':     drawCreate(now); break;
+    case 'drive':      drawDrive(now); break;
+    case 'levelcard':  drawCard(now); break;
+    case 'levelcard2': if(typeof drawCard2==='function') drawCard2(now); break;
+    case 'complete':   drawComplete(now); break;
+    case 'complete2':  if(typeof drawComplete2==='function') drawComplete2(now); break;
+    case 'death':      drawDeath(now); break;
+    case 'cutaway':    drawCutaway(now); break;
+    default:           drawRoom(now);
   }
   if(fadeDir){                                    // room-to-room wipe
     fade += fadeDir * dt * 3.4;
