@@ -154,31 +154,47 @@ with <code>docs/game-bible.html</code>, the bible is right and this is stale.</p
 </section>
 
 <section id="split">
-  <h2>Step 1 — split the content out of index.html <span>do this first</span></h2>
-  <p class="lede"><b>Before writing one line of Level 2.</b> Not hygiene — it is the thing that makes
-  parallel work possible at all, because two agents cannot both be editing
-  <code>index.html</code>.</p>
-  <p class="lede">The file is 4,109 lines: roughly 2,150 of systems, 1,750 of Level 1 content, 200 of
-  boot. Systems are done and will not grow much; content grows about 1,500 lines per level. There is
-  exactly one clean seam right now, at the <code>§5 CONTENT</code> boundary, with four rooms on the
-  far side of it. At twelve rooms this costs several times more.</p>
+  <h2>Step 1 — the split <span>done</span></h2>
+  <p class="lede"><b>This is finished.</b> It is written up rather than deleted because the shape it
+  left behind is the shape Level 2 has to fit into.</p>
+  <p class="lede">The game is <code>index.html</code> plus <code>js/*.js</code>, loaded as
+  <b>plain classic scripts in dependency order</b> — not modules, because ES modules fail on
+  <code>file://</code> and the page has to open straight off a disk. They share one global scope
+  exactly as the single file did, so <b>load order still matters</b>: a file that runs at load time
+  cannot reference a <code>const</code> declared in a later one.</p>
+  <div class="scroll"><table><thead><tr><th>file</th><th>lines</th><th>what is in it</th></tr></thead>
+    <tbody>
+    <tr><th><code>js/core.js</code></th><td class="num">48</td><td>palette, canvas, render target, helpers</td></tr>
+    <tr><th><code>js/cast.js</code></th><td class="num">899</td><td>the procedural cast — <code>setCharHeight</code> lives here</td></tr>
+    <tr><th><code>js/text.js</code></th><td class="num">54</td><td>1-bit thresholded webfont type</td></tr>
+    <tr><th><code>js/scenery.js</code></th><td class="num">428</td><td>backdrops, props, baked room layers</td></tr>
+    <tr><th><code>js/audio.js</code></th><td class="num">241</td><td>the adaptive score</td></tr>
+    <tr><th><code>js/engine.js</code></th><td class="num">446</td><td>state, money, items, movement, interface, dispatch</td></tr>
+    <tr><th><code>js/level1.js</code></th><td class="num">1342</td><td><b>Level 1 content</b> — the shape your file copies</td></tr>
+    <tr><th><code>js/shell.js</code></th><td class="num">569</td><td>front of house, input, loop, <code>boot()</code> — <b>must load last</b></td></tr>
+  </tbody></table></div>
+
+  <h3 class="sub2">Adding Level 2 is three things</h3>
   <ul class="plain">
-    <li><b>Plain <code>&lt;script src&gt;</code> tags in order.</b> No bundler, no build step, no
-      modules — ES modules fail on <code>file://</code> and the game must still open as a static
-      file. Load order is the dependency order the single file already has.</li>
-    <li><b>Suggested layout.</b> <code>index.html</code> keeps the shell and boot;
-      <code>js/core.js</code>, <code>js/art.js</code>, <code>js/audio.js</code>,
-      <code>js/engine.js</code>, <code>js/level1.js</code>, then <code>js/level2.js</code>.</li>
-    <li><b>Nothing may become a module or gain a dependency.</b> Zero assets, zero packages, one
-      page that runs anywhere is the whole premise of the project.</li>
+    <li><b>Write <code>js/level2.js</code>.</b> Copy the shape of <code>js/level1.js</code>: the
+      cast entries, the rooms, the scripted scenes. Nothing outside your file needs editing for
+      content.</li>
+    <li><b>Add one <code>&lt;script src&gt;</code> to <code>index.html</code></b>, after
+      <code>level1.js</code> and <b>before <code>shell.js</code></b>. Put it after and boot runs
+      before your rooms exist.</li>
+    <li><b>Add it to <code>sources</code> in <code>tools/vanity-shores.canon.js</code>.</b></li>
   </ul>
-  <div class="note"><b>Canon needs one change when you do this, and it will not tell you.</b> The
-  probe drives the live page, so it keeps seeing everything automatically. But the source
-  <em>scanner</em> reads one file — <code>fs.readFileSync(cfg.artifact)</code> in
-  <code>tools/canon/index.js</code>. After the split it must read and concatenate the
-  <code>js/</code> files, or every load number silently drops to zero and every scene reports as
-  unclaimed. <b>Verify by running <code>node tools/canon.js</code> before and after and diffing the
-  word counts.</b> They should be identical.</div>
+  <div class="note"><b>That third one is the trap, and it fails silently.</b> Canon's probe drives
+  the live page, so every runtime table stays correct and nothing errors. But the <em>scanner</em>
+  reads text — miss the entry and your whole level counts as zero words with every scene reported
+  unclaimed, while the bible looks perfectly healthy. <code>tools/canon/index.js</code> now refuses
+  to start if a declared source is missing, but it cannot know about a file you never declared.
+  <b>Check by running <code>node tools/canon.js</code> and confirming your characters appear in the
+  load table with non-zero word counts.</b></div>
+  <p class="lede">The split itself was verified this way and is worth repeating for any structural
+  change: word counts, branch counts, load scores, flag count, scene count and gate count were
+  byte-identical before and after. If a refactor moves code, that comparison is the proof it moved
+  nothing else.</p>
 </section>
 
 <section id="sierra">
