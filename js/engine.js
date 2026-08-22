@@ -430,8 +430,13 @@ const SHRUG = {
 function shrug(verb){ const a=SHRUG[verb]||SHRUG.look; return a[(Math.random()*a.length)|0]; }
 
 function doAction(hs, verb){
+  /* An exit TRAVELS. It used to narrate its description first and only leave
+     once the player had paged all the way through, which reads exactly like the
+     click not working — especially on Level 2's alley, the one route to the win
+     line, sitting in a crowded corner. The descriptions still exist as data for
+     the hover label and the bible; they just no longer stand between a player
+     and a door. */
   if(hs.exit){
-    if(verb==='look' && hs.desc){ narrate(hs.desc, { then:hs.go }); return; }
     if(verb==='talk'){ narrate('You do not need to ask its permission.', { then:hs.go }); return; }
     hs.go(); return;
   }

@@ -384,7 +384,7 @@ Object.assign(ROOMART, {
       railing(0, 100, 96); railing(140, W, 96);
       palmTree(18, 116, 58, 3, '#0f0620', '#241a3a');
       palmTree(290, 114, 52, 8, '#0f0620', '#241a3a');
-      bigCart(174, 138);
+      bigCart(158, 138);
       /* the timeshare booth (packed up) */
       bigBooth(232, 152);
       /* the bench at the far left */
@@ -417,28 +417,34 @@ Object.assign(ROOMART, {
       }
       /* a lit flyer taped to the churro cart if Marnie has been talked to */
       if(GS.flags.marnieMet && !GS.flags.marnieHired){
-        r(196, 128, 16, 12, '#efe4c8');
-        r(196, 128, 16, 1, '#c4b892');
-        textC('OPEN', 204, 129, '#8a2050', FONT.sm);
-        textC('HUSTLE', 204, 134, '#8a2050', FONT.sm);
+        r(180, 128, 16, 12, '#efe4c8');
+        r(180, 128, 16, 1, '#c4b892');
+        textC('OPEN', 188, 129, '#8a2050', FONT.sm);
+        textC('HUSTLE', 188, 134, '#8a2050', FONT.sm);
       }
       /* a moth around the churro cart light */
       if(!REDUCED){
-        const mx = 190 + Math.sin(t/240)*10, my = 90 + Math.cos(t/300)*5;
+        const mx = 174 + Math.sin(t/240)*10, my = 90 + Math.cos(t/300)*5;
         px(mx, my, '#f5e6d3'); px(mx+1, my, '#c8b898');
       }
       /* the alley between the cart and the booth — a black slot with a pool of
          light at the far end so the exit reads as an exit and not an oversight */
-      r(214, 100, 20, 44, '#0a0410');
-      r(214, 100, 20, 1, '#3d2255'); r(214, 143, 20, 1, '#3d2255');
-      r(214, 100, 1, 44, '#241134'); r(233, 100, 1, 44, '#241134');
-      const rg = g.createRadialGradient(224, 140, 2, 224, 140, 22);
-      rg.addColorStop(0, 'rgba(255,194,61,.55)'); rg.addColorStop(1, 'rgba(0,0,0,0)');
-      g.fillStyle = rg; g.fillRect(214, 118, 20, 30);
+      r(208, 98, 24, 48, '#0a0410');
+      r(208, 98, 24, 1, '#3d2255'); r(208, 145, 24, 1, '#3d2255');
+      r(208, 98, 1, 48, '#241134'); r(231, 98, 1, 48, '#241134');
+      const rg = g.createRadialGradient(220, 142, 2, 220, 142, 24);
+      rg.addColorStop(0, 'rgba(255,194,61,.62)'); rg.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = rg; g.fillRect(208, 116, 24, 32);
+      /* an arrow on the floor of it, because a dark slot is not an instruction */
+      if(REDUCED || Math.floor(t/520)%6 !== 0){
+        const ay = 138 + (REDUCED ? 0 : Math.floor(t/400)%2);
+        r(219, ay, 2, 5, P.gold);
+        r(217, ay+3, 6, 1, P.gold); r(218, ay+4, 4, 1, P.gold); r(219, ay+5, 2, 1, P.gold);
+      }
       /* the KINGFISHER hint, spelled small at the top of the alley */
       const on2 = REDUCED || Math.floor(t/650)%9 !== 0;
-      textC('KF', 224, 104, on2 ? P.hot : '#5a2a72', FONT.sm);
-      textC('WALL', 224, 136, '#8a68ad', FONT.sm);
+      textC('KF', 220, 102, on2 ? P.hot : '#5a2a72', FONT.sm);
+      textC('WALL', 220, 128, '#8a68ad', FONT.sm);
     }
   },
 
@@ -740,9 +746,11 @@ bwalk2:{
         'and nobody standing in front of it.',
       go:()=>gotoRoom('pier2', 16, 158) },
 
-    { id:'alleyN', pri:3, name:'the alley to the wall', x:212, y:100, w:22, h:44, approach:[222,150],
-      exit:true, desc:'A service alley between the churro cart and the timeshare booth, running back '+
-        'behind the strip. At the far end: a pool of light, a stanchion, and Chip Winthrop.',
+    /* Reaches down into the walk band so a near miss still lands on it, and the
+       description is one line: three lines of prose between the player and the
+       only exit to the level's win line read as the click not working. */
+    { id:'alleyN', pri:3, name:'the alley to the wall', x:206, y:96, w:28, h:56, approach:[220,150],
+      exit:true, desc:'A service alley running back behind the strip, towards a pool of light.',
       go:()=>gotoRoom('wall', 40, 160) }
   ]
 },
