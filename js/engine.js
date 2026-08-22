@@ -352,12 +352,34 @@ function drawCursor(){
 /* ---------- 4c. ROOM RENDER ---------------------------------------------- */
 let clock = 0;
 function hotspotsOf(room){ return ROOMS[room].hotspots.filter(h => !h.hidden || !h.hidden()); }
+/* A person's clickable area is derived from the person, not authored per room.
+   Hand-written rects were sized by eye for a 40px cast, so at Sierra 72 the head
+   and hat of every character stuck out above their own hitbox — measured at 62%
+   to 81% of sprite height in Level 2, against 105% to 115% in Level 1.
+   This unions the authored rect with the bounds actually drawn, so it can only
+   ever grow a box, never shrink one, and it tracks CHAR_H on its own from here. */
+function hitRect(h){
+  if((h.pri || 0) < 2) return h;                 // scenery keeps its authored rect
+  const rm = ROOMS[GS.room];
+  for(const n of rm.npcs){
+    if(n.hidden && n.hidden()) continue;
+    if(n.x < h.x - 4 || n.x > h.x + h.w + 4) continue;
+    if(n.y < h.y - 4 || n.y > h.y + h.h + 12) continue;
+    const m = charMetrics(n.look || {});
+    const w = Math.max(m.shW, m.hiW, m.headW * 1.7) + 4;
+    const x0 = Math.min(h.x, n.x - w / 2), y0 = Math.min(h.y, n.y - m.H - 2);
+    const x1 = Math.max(h.x + h.w, n.x + w / 2), y1 = Math.max(h.y + h.h, n.y + 2);
+    return { x:x0, y:y0, w:x1 - x0, h:y1 - y0, pri:h.pri };
+  }
+  return h;
+}
 function hotspotAt(p){
   let best = null, bestArea = Infinity, bestPri = -1;
-  for(const h of hotspotsOf(GS.room)){
+  for(const h0 of hotspotsOf(GS.room)){
+    const h = hitRect(h0);
     if(p.x>=h.x && p.x<h.x+h.w && p.y>=h.y && p.y<h.y+h.h){
       const pri = h.pri||0, a = h.w*h.h;       // a person beats the building behind them
-      if(pri > bestPri || (pri === bestPri && a < bestArea)){ best = h; bestPri = pri; bestArea = a; }
+      if(pri > bestPri || (pri === bestPri && a < bestArea)){ best = h0; bestPri = pri; bestArea = a; }
     }
   }
   return best;

@@ -427,6 +427,18 @@ Object.assign(ROOMART, {
         const mx = 190 + Math.sin(t/240)*10, my = 90 + Math.cos(t/300)*5;
         px(mx, my, '#f5e6d3'); px(mx+1, my, '#c8b898');
       }
+      /* the alley between the cart and the booth — a black slot with a pool of
+         light at the far end so the exit reads as an exit and not an oversight */
+      r(214, 100, 20, 44, '#0a0410');
+      r(214, 100, 20, 1, '#3d2255'); r(214, 143, 20, 1, '#3d2255');
+      r(214, 100, 1, 44, '#241134'); r(233, 100, 1, 44, '#241134');
+      const rg = g.createRadialGradient(224, 140, 2, 224, 140, 22);
+      rg.addColorStop(0, 'rgba(255,194,61,.55)'); rg.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = rg; g.fillRect(214, 118, 20, 30);
+      /* the KINGFISHER hint, spelled small at the top of the alley */
+      const on2 = REDUCED || Math.floor(t/650)%9 !== 0;
+      textC('KF', 224, 104, on2 ? P.hot : '#5a2a72', FONT.sm);
+      textC('WALL', 224, 136, '#8a68ad', FONT.sm);
     }
   },
 
@@ -622,10 +634,10 @@ bwalk2:{
            hidden:()=>GS.flags.marnieAtWall },
          { id:'dickieN', x:196, y:156, look:CAST.dickie,
            hidden:()=>!GS.flags.dickiePaid || GS.flags.dickieAtWall },
-         { id:'gilN', x:250, y:160, look:CAST.gil,
+         { id:'gilN', x:26, y:170, look:CAST.gil,
            hidden:()=>!GS.flags.gilPaid,
            extra:()=>{ /* Gil is wearing a Shoreline polo now — one stripe fix */
-             r(246, 118, 8, 4, '#2fa8a0'); r(246, 118, 8, 1, '#6fe0d0'); } },
+             r(22, 128, 8, 4, '#2fa8a0'); r(22, 128, 8, 1, '#6fe0d0'); } },
          { id:'zsazN', x:270, y:162, look:CAST.zsazsa,
            hidden:()=>GS.flags.zsaAtWall } ],
   onEnter(){ L2Enter();
@@ -661,7 +673,7 @@ bwalk2:{
       useItem:(it)=>{ if(it==='flyer'){ sayAs('dickie','I know, kid. Every crown gets one before '+
         'they take it off.'); return true; } return false; } },
 
-    { id:'gilN', pri:2, name:'the man in the polo', x:240, y:114, w:22, h:54, approach:[240,166],
+    { id:'gilN', pri:2, name:'the man in the polo', x:12, y:120, w:28, h:56, approach:[46,170],
       hidden:()=>!GS.flags.gilPaid,
       look:()=>narrate(['Same man. Same shade of red. He is wearing a Shoreline Residences polo now, '+
         'peeling out of the collar of it, the tag still stapled to the hem.',
@@ -728,11 +740,10 @@ bwalk2:{
         'and nobody standing in front of it.',
       go:()=>gotoRoom('pier2', 16, 158) },
 
-    { id:'wallExit', name:'the wall', x:310, y:170, w:10, h:8, approach:[302,166],
-      hidden:()=>true },       // never; visible via 'eastN' path
-
-    { id:'wallJump', name:'the far end of the strip', x:200, y:170, w:0, h:0,
-      hidden:()=>true }
+    { id:'alleyN', pri:3, name:'the alley to the wall', x:212, y:100, w:22, h:44, approach:[222,150],
+      exit:true, desc:'A service alley between the churro cart and the timeshare booth, running back '+
+        'behind the strip. At the far end: a pool of light, a stanchion, and Chip Winthrop.',
+      go:()=>gotoRoom('wall', 40, 160) }
   ]
 },
 
