@@ -137,8 +137,41 @@ function drawTitle(t){
     textC('START', 160, 140, '#ff8ac0', FONT.bg);
   }
   if(hasSave) textC('CONTINUE', 160, 160, P.surf, FONT.sm);
-  textC('ACT 1  ·  LEVEL 1  ·  FREE DEMO', 160, 176, '#a08cb4', FONT.sm);
-  textC('CLICK TO BEGIN', 160, 188, '#6b4d8a', FONT.sm);
+  textC('ENTER CODE', 160, 170, P.gold, FONT.sm);
+  textC('ACT 1  ·  LEVEL 1  ·  FREE DEMO', 160, 182, '#a08cb4', FONT.sm);
+  textC('CLICK TO BEGIN', 160, 192, '#6b4d8a', FONT.sm);
+}
+
+/* ---- PASSCODE ENTRY ---- */
+function drawCodeEntry(t){
+  const gr = g.createLinearGradient(0,0,0,200);
+  gr.addColorStop(0,'#140a22'); gr.addColorStop(1,'#2a1140');
+  g.fillStyle = gr; g.fillRect(0,0,W,200);
+  vectorGrid(t, 150, .4);
+  textC('ENTER YOUR CODE', 160, 22, P.gold, FONT.bg);
+  r(70,44,180,1,'rgba(255,46,136,.4)');
+  textC('Eight characters. Written on the card at the end of a level.',
+        160, 54, '#a08cb4', FONT.sm);
+  r(96,74,128,20,'#0d0518'); r(96,74,128,1,P.surf);
+  textC(GS.codeBuf || '· · · ·   · · · ·', 160, 79,
+        GS.codeBuf ? P.bone : '#4a3a60', FONT.bg);
+  if(GS.codeBad && clock - GS.codeBad < 2200)
+    textC('THAT IS NOT A CODE.', 160, 102, P.bad, FONT.sm);
+  else
+    textC('A code carries what you did, not what you had.', 160, 102, '#6b5a86', FONT.sm);
+  const ok = {x:96,y:126,w:60,h:16}, bk = {x:164,y:126,w:60,h:16};
+  const oh = inRect(mouse,ok), bh = inRect(mouse,bk);
+  r(ok.x,ok.y,ok.w,ok.h, oh?P.surf:'#123a44'); textC('GO', ok.x+ok.w/2, ok.y+4, oh?'#08202a':P.surf, FONT.sm);
+  r(bk.x,bk.y,bk.w,bk.h, bh?P.hot:'#3a1030');  textC('BACK', bk.x+bk.w/2, bk.y+4, bh?P.bone:'#c07aa0', FONT.sm);
+  textC('Type it, then press Enter.', 160, 156, '#5a4470', FONT.sm);
+}
+function submitCode(){
+  const c = parseCode(GS.codeBuf);
+  if(!c){ GS.codeBad = clock; Audio_.sfx('deny'); return; }
+  Audio_.sfx('fanfare');
+  GS.pendingLevel = applyCode(c);
+  showNameBox(false); GS.codeBuf = '';
+  GS.scene = 'create'; showNameBox(true);          // you still pick who you are
 }
 
 /* ---- CHARACTER CREATION ---- */
@@ -348,13 +381,16 @@ function drawComplete(t){
   const strip = tallyStrip();
   if(strip){
     g.globalAlpha = Math.min(1, Math.max(0,(el-1500)/500));
-    textC(strip, 160, 140, P.gold, FONT.sm);
+    textC(strip, 160, 138, P.gold, FONT.sm);
     g.globalAlpha = 1;
   }
+  /* The card is out of vertical room, so the code earns its space by replacing
+     the flavour line under NEXT — the button already says what happens next. */
   g.globalAlpha = Math.min(1, Math.max(0,(el-1800)/600));
-  r(30, 150, 260, 1, 'rgba(255,46,136,.35)');
-  textC('NEXT — LEVEL 2: OTHER PEOPLE\'S MONEY', 160, 156, P.gold, FONT.sm);
-  textC('Chip stops mocking you and starts competing.', 160, 168, '#7a5f96', FONT.sm);
+  r(30, 148, 260, 1, 'rgba(255,46,136,.35)');
+  textC('CODE   ' + makeCode(), 160, 152, P.gold, FONT.bg);
+  textC('write it down — it gets you back here without replaying Level 1',
+        160, 169, '#6b5a86', FONT.sm);
   g.globalAlpha = 1;
 
   const canL2 = typeof enterLevel2 === 'function' && !GS.flags.level2Done;
@@ -412,12 +448,20 @@ function handleClick(p){
   switch(GS.scene){
     case 'title': {
       const fresh = !localStorage.getItem(SAVE_KEY);
-      if(!fresh && p.y>=154 && p.y<=170){ if(loadGame()){ Audio_.sfx('click');
+      if(p.y>=166 && p.y<=178){                       // ENTER CODE
+        Audio_.sfx('click'); GS.codeBuf=''; GS.codeBad=0;
+        GS.scene='code'; showNameBox(true); return; }
+      if(!fresh && p.y>=154 && p.y<=166){ if(loadGame()){ Audio_.sfx('click');
         if(GS.flags.level2Done){ GS.scene='complete2'; GS.complete2At=clock; }
         else if(GS.flags.levelDone){ GS.scene='complete'; GS.completeAt=clock; }
         else enterPlay(); return; } }
       Audio_.sfx('click'); wipeSave(); GS.scene='create'; showNameBox(true); return; }
     case 'create': return createClick(p);
+    case 'code': {
+      if(inRect(p,{x:96,y:126,w:60,h:16})) return submitCode();
+      if(inRect(p,{x:164,y:126,w:60,h:16})){
+        Audio_.sfx('click'); showNameBox(false); GS.scene='title'; }
+      return; }
     case 'drive':  Audio_.sfx('click'); startLevelCard(); return;
     case 'levelcard': if(cardT>700){ Audio_.sfx('click'); enterPlay(); } return;
     case 'death': Audio_.sfx('click'); reviveFromDeath(); return;
@@ -478,6 +522,10 @@ function createClick(p){
     GS.cash = GS.stats.money * ECONOMY.startPerMoneyPoint;   // what you brought with you
     Audio_.lean(GS.stats.money, GS.stats.fight, GS.stats.charm);
     Audio_.sfx('fanfare'); showNameBox(false);
+    if(GS.pendingLevel > 1){                       // arrived by code, not by bus
+      const lv = GS.pendingLevel; GS.pendingLevel = 0; saveGame();
+      if(lv >= 2 && typeof enterLevel2 === 'function'){ enterLevel2(); return; }
+    }
     GS.scene = 'drive'; driveT = 0; Audio_.scene('play'); saveGame();
   }
 }
@@ -494,8 +542,16 @@ function positionNameBox(){
   nameBox.style.height = (13*sy) + 'px';
   nameBox.style.fontSize = Math.max(10, Math.round(11*sy)) + 'px';
 }
-nameBox.addEventListener('input', () => { GS.name = nameBox.value.replace(/[<>]/g,''); });
-nameBox.addEventListener('keydown', e => { if(e.key==='Enter'){ e.preventDefault(); nameBox.blur(); } });
+nameBox.addEventListener('input', () => {
+  if(GS.scene === 'code'){ GS.codeBuf = nameBox.value.toUpperCase().slice(0,9); return; }
+  GS.name = nameBox.value.replace(/[<>]/g,'');
+});
+nameBox.addEventListener('keydown', e => {
+  if(e.key !== 'Enter') return;
+  e.preventDefault();
+  if(GS.scene === 'code') return submitCode();
+  nameBox.blur();
+});
 
 addEventListener('keydown', e => {
   if(document.activeElement === nameBox) return;      // typing a name
@@ -572,6 +628,7 @@ function frame(now){
   switch(GS.scene){
     case 'title':      drawTitle(now); break;
     case 'create':     drawCreate(now); break;
+    case 'code':       drawCodeEntry(now); break;
     case 'drive':      drawDrive(now); break;
     case 'levelcard':  drawCard(now); break;
     case 'levelcard2': if(typeof drawCard2==='function') drawCard2(now); break;

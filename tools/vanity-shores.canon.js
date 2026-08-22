@@ -21,7 +21,7 @@ module.exports = {
   /* index.html is what the browser loads; these are what the scanner reads.
      ADD A NEW LEVEL'S FILE HERE when you add one, or its dialogue is invisible
      to every measurement in the bible. */
-  sources: ['core','cast','text','scenery','audio','engine','level1','level2','shell']
+  sources: ['core','cast','text','scenery','audio','engine','passcode','level1','level2','shell']
              .map(n => path.join(ROOT, 'js', n + '.js')),
 
   /* Settle on the game saying it is up, never on a clock. */

@@ -1616,13 +1616,14 @@ function drawComplete2(t){                              /* @owner system */
   const strip = tallyStrip();
   if(strip){
     g.globalAlpha = Math.min(1, Math.max(0,(el-1500)/500));
-    textC(strip, 160, 140, P.gold, FONT.sm);
+    textC(strip, 160, 138, P.gold, FONT.sm);
     g.globalAlpha = 1;
   }
   g.globalAlpha = Math.min(1, Math.max(0,(el-1800)/600));
-  r(30, 150, 260, 1, 'rgba(255,46,136,.35)');
-  textC('END OF THE FREE DEMO — THE WALL IS OPEN.', 160, 156, P.gold, FONT.sm);
-  textC('Level 3 opens the door. Bring the ring.', 160, 168, '#7a5f96', FONT.sm);
+  r(30, 148, 260, 1, 'rgba(255,46,136,.35)');
+  textC('CODE   ' + makeCode(), 160, 152, P.gold, FONT.bg);
+  textC('END OF THE FREE DEMO — write the code down. It brings you back here.',
+        160, 169, '#6b5a86', FONT.sm);
   g.globalAlpha = 1;
 
   const bq = {x:106,y:180,w:108,h:15}, hv = inRect(mouse,bq);
