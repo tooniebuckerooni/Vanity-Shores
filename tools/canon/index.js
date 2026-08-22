@@ -64,7 +64,15 @@ function audit(ctx, cfg){
 }
 
 async function run(cfg, opts = {}){
-  const src = fs.readFileSync(cfg.artifact, 'utf8');
+  /* The probe drives the live page, so it keeps seeing everything however the
+     source is arranged. The SCANNER does not — it reads text. Once a game is
+     split across files, cfg.sources has to name them all or every measurement
+     silently drops to zero and every scene reports as unclaimed. Silent is the
+     danger: nothing errors, the numbers just quietly become lies. */
+  const files = cfg.sources && cfg.sources.length ? cfg.sources : [cfg.artifact];
+  for(const f of files)
+    if(!fs.existsSync(f)) throw new Error('canon: source not found: ' + f);
+  const src = files.map(f => fs.readFileSync(f, 'utf8')).join('\n');
 
   const data = await probe(cfg.artifact, cfg.extract,
                            { chrome: cfg.chrome || process.env.CHROME_PATH,

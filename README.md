@@ -47,7 +47,10 @@ Nothing here is blocked on an image generator.
 ## Layout
 
 ```
-index.html              the entire game
+index.html              the page; loads js/*.js in dependency order
+js/core,cast,text,scenery,audio,engine   the machinery
+js/level1.js            Level 1 content — the shape a new level copies
+js/shell.js             front of house, input, loop, boot() — loads last
 tools/canon.js          reads the shipping game: writes the bible, checks the rules
 tools/canon/            the generator, with nothing game-specific in it
 tools/vanity-shores.canon.js   this game's adapter (the only file that knows the game)

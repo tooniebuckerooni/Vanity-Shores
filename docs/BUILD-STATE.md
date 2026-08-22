@@ -275,6 +275,32 @@ Content scales fine, but `index.html` will not stay comfortable much past ~5000
 lines. When Level 3 lands, split content out into a `LEVELS` array of modules and
 concatenate at build time, keeping the single-file output.
 
+## The file layout
+
+The game was one file until it was four thousand lines. It is now `index.html`
+plus `js/*.js`, loaded as **plain classic scripts in dependency order** — not
+modules, because ES modules fail on `file://` and the page has to open straight
+off a disk. They share one global scope, exactly as the single file did, so load
+order still matters: a file that runs at load time cannot reference a `const`
+declared in a later one.
+
+```
+js/core.js      palette, canvas, render target, small helpers
+js/cast.js      the procedural cast (setCharHeight lives here)
+js/text.js      1-bit thresholded webfont type
+js/scenery.js   backdrops, props, baked room layers
+js/audio.js     the adaptive score
+js/engine.js    state, money, items, movement, interface, dispatch
+js/level1.js    LEVEL 1 CONTENT — cast, economy, rooms, scripted scenes
+js/shell.js     front of house, input, loop, boot()  ← must load last
+```
+
+**Adding a level is two edits plus the file:** a `<script src>` in `index.html`
+before `shell.js`, and an entry in `sources` in `tools/vanity-shores.canon.js`.
+Miss the second and nothing errors — Canon's probe still drives the live page, so
+the runtime tables are right, but the *scanner* reads text and that level's
+dialogue silently counts as zero words with every scene unclaimed.
+
 ## Canon, and the game bible
 
 `node tools/canon.js` drives the real `index.html` in a headless browser, reads

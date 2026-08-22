@@ -46,9 +46,14 @@ jobs:
       - uses: actions/checkout@v4
       - name: Check the game parses before shipping it to anybody
         run: |
-          awk '/^<script>/{f=1;next} /^<\/script>/{f=0} f' index.html > /tmp/game.js
-          node --check /tmp/game.js
-          echo "index.html: $(wc -l < index.html) lines, $(wc -c < index.html) bytes"
+          # The game is plain scripts in dependency order, no build step, so
+          # "building" is checking each one parses and handing the repo to Pages.
+          for f in js/*.js; do node --check "$f" || exit 1; echo "  ok $f"; done
+          # index.html must actually load them, or Pages serves a blank page.
+          for f in js/*.js; do
+            grep -q "src=\"$f\"" index.html || { echo "::error::$f is not loaded by index.html"; exit 1; }
+          done
+          echo "$(ls js/*.js | wc -l) scripts, $(cat js/*.js | wc -l) lines total"
 
       # Canon reads the shipping game and asserts the rules that are otherwise
       # only prose in CLAUDE.md: no required beat gated on every route, no build

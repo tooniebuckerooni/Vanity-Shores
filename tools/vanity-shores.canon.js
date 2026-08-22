@@ -18,6 +18,12 @@ module.exports = {
   artifact: path.join(ROOT, 'index.html'),
   out:      path.join(ROOT, 'docs', 'game-bible.html'),
 
+  /* index.html is what the browser loads; these are what the scanner reads.
+     ADD A NEW LEVEL'S FILE HERE when you add one, or its dialogue is invisible
+     to every measurement in the bible. */
+  sources: ['core','cast','text','scenery','audio','engine','level1','shell']
+             .map(n => path.join(ROOT, 'js', n + '.js')),
+
   /* Settle on the game saying it is up, never on a clock. */
   ready: 'typeof ROOMS === "object" && typeof GS === "object" && GS.scene',
 

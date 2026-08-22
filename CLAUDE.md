@@ -1,8 +1,13 @@
 # Vanity Shores
 
-A browser adventure game in the Sierra / Leisure Suit Larry tradition. One
-self-contained `index.html`, no build step, no dependencies, no asset files —
-every sprite, backdrop, portrait and note is generated in code at runtime.
+A browser adventure game in the Sierra / Leisure Suit Larry tradition. No build
+step, no dependencies, no asset files — every sprite, backdrop, portrait and note
+is generated in code at runtime. `index.html` loads `js/*.js` as plain scripts in
+dependency order, so it still opens straight off a disk.
+
+**A new level is a new file in `js/`, added to `index.html` before `shell.js`
+(where `boot()` lives) and to `sources` in `tools/vanity-shores.canon.js` (or its
+dialogue is invisible to the bible).**
 
 **Act 1, Level 1 ships and is playable end to end.** Levels 2–11 are not built.
 
