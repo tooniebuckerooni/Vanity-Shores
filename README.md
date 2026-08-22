@@ -55,6 +55,7 @@ tools/canon-test.js     Canon's own suite, against a deliberately broken fixture
 docs/game-bible.html    every character, location, payout and gate (generated)
 docs/art-and-arc.html   art commissioning briefs + the Act 2 plan (authored)
 docs/acts-3-7.html      per-level beats for the rest of the game (authored)
+docs/level2-handoff.html  build order for Level 2 + the Sierra 72 jump (authored)
 docs/design-handoff.md  the original design document (internal)
 docs/BUILD-STATE.md     architecture notes + what to build next
 ```

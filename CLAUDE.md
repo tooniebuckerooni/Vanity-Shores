@@ -19,7 +19,11 @@ every sprite, backdrop, portrait and note is generated in code at runtime.
    interests actually pay off. Read it before writing any Act 2 content.
 4. **`docs/acts-3-7.html`** — authored: per-level beats for the rest of the
    game, the cross-level payoff table, and the Level 4 quarantine.
-5. `docs/design-handoff.md` — the original design document. Internal.
+5. **`docs/level2-handoff.html`** — the build order for Level 2 and the jump to
+   Sierra 72: split the content out first, what `setCharHeight(72)` costs, and
+   which Level 1 flags Level 2 has to read. Start here if you are building
+   Level 2.
+6. `docs/design-handoff.md` — the original design document. Internal.
 
 ## Canon does the checking, so you do not have to remember
 

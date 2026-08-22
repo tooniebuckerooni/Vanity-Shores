@@ -1,0 +1,338 @@
+<title>Level 2 and Sierra 72</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Silkscreen:wght@400;700&family=VT323&display=swap">
+<style>
+:root{
+  --void:#10071c; --panel:#1a0d2c; --panel2:#221237; --edge:#33204a;
+  --bone:#f0e4d4; --mute:#a08cb4; --dim:#6f5a8c;
+  --hot:#ff2e88; --surf:#21e0d6; --gold:#ffc23d; --bad:#ff5f6d; --good:#4de0a0;
+  --ui:"Silkscreen",ui-monospace,monospace;
+  --body:"Archivo",system-ui,sans-serif;
+  --game:"VT323",ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--void); color:var(--bone); font-family:var(--body);
+  font-size:16px; line-height:1.6; -webkit-font-smoothing:antialiased}
+.wrap{display:grid; grid-template-columns:210px minmax(0,1fr); gap:44px;
+  max-width:1120px; margin:0 auto; padding:40px 24px 96px}
+@media (max-width:820px){ .wrap{grid-template-columns:1fr; gap:24px} nav.side{position:static !important} }
+
+nav.side{position:sticky; top:40px; align-self:start}
+nav.side .brand{font-family:var(--ui); font-size:11px; letter-spacing:.16em;
+  color:var(--hot); text-transform:uppercase; line-height:1.7; margin-bottom:18px}
+nav.side .brand b{display:block; color:var(--bone); font-weight:400}
+nav.side ol{list-style:none; border-left:1px solid var(--edge)}
+nav.side a{display:block; padding:5px 0 5px 14px; margin-left:-1px;
+  border-left:1px solid transparent; color:var(--mute); text-decoration:none; font-size:13.5px}
+nav.side a:hover{color:var(--bone); border-left-color:var(--hot)}
+nav.side a:focus-visible{outline:2px solid var(--surf); outline-offset:2px}
+
+h1{font-family:var(--ui); font-size:24px; line-height:1.4; color:var(--bone);
+  text-wrap:balance; margin-bottom:8px}
+.sub{color:var(--mute); max-width:66ch; margin-bottom:34px}
+section{margin-bottom:52px; scroll-margin-top:24px}
+h2{font-family:var(--ui); font-size:13px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--surf); padding-bottom:8px; border-bottom:1px solid var(--edge); margin-bottom:18px}
+h2 span{color:var(--dim); float:right; letter-spacing:.1em}
+h3.sub2{font-family:var(--ui); font-size:11px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--dim); margin:26px 0 10px}
+p.lede{color:var(--mute); max-width:68ch; margin-bottom:18px}
+p.lede + p.lede{margin-top:-8px}
+
+.card{background:var(--panel); border:1px solid var(--edge); border-radius:3px;
+  padding:18px 20px; margin-bottom:16px}
+.card header{display:flex; align-items:baseline; gap:12px; margin-bottom:4px; flex-wrap:wrap}
+.card h3{font-family:var(--ui); font-size:14px; letter-spacing:.04em; color:var(--bone)}
+.card .who{color:var(--mute); font-size:13.5px; flex:1}
+.pill{font-family:var(--ui); font-size:9px; letter-spacing:.1em; text-transform:uppercase;
+  padding:3px 7px; border-radius:2px; white-space:nowrap}
+.pill.ok{background:rgba(77,224,160,.14); color:var(--good)}
+.pill.warn{background:rgba(255,194,61,.14); color:var(--gold)}
+.pill.crit{background:rgba(255,95,109,.14); color:var(--bad)}
+.pill.info{background:rgba(33,224,214,.13); color:var(--surf)}
+
+dl.facts{display:grid; gap:2px; margin:14px 0}
+dl.facts div{display:grid; grid-template-columns:96px minmax(0,1fr); gap:12px;
+  font-size:14px; padding:6px 0; border-bottom:1px solid rgba(51,32,74,.55)}
+dt{font-family:var(--ui); font-size:9px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--dim); padding-top:4px}
+dd{color:var(--bone)}
+dd em{color:var(--mute); font-style:normal}
+
+.prompt{background:#120a1e; border:1px solid var(--edge); border-left:2px solid var(--gold);
+  border-radius:2px; padding:14px 16px; margin-top:12px}
+.prompt b{display:block; font-family:var(--ui); font-size:9px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--gold); margin-bottom:8px}
+.prompt p{font-family:var(--game); font-size:17px; line-height:1.4; color:var(--bone);
+  max-width:74ch}
+.avoid{margin-top:10px; font-size:13.5px; color:var(--mute)}
+.avoid b{color:var(--bad); font-weight:600}
+
+ul.plain{list-style:none; display:grid; gap:9px; max-width:70ch}
+ul.plain li{padding-left:15px; position:relative; color:var(--mute); font-size:14.5px}
+ul.plain li::before{content:""; position:absolute; left:0; top:.62em;
+  width:5px; height:5px; background:var(--hot); border-radius:1px}
+ul.plain b{color:var(--bone); font-weight:600}
+
+.scroll{overflow-x:auto; margin-top:12px}
+table{border-collapse:collapse; width:100%; font-size:13.5px}
+th,td{text-align:left; padding:8px 14px 8px 0; border-bottom:1px solid rgba(51,32,74,.6);
+  vertical-align:top}
+thead th{font-family:var(--ui); font-size:9px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--dim); border-bottom-color:var(--edge)}
+tbody th{font-weight:600; color:var(--bone); white-space:nowrap; padding-right:18px}
+code{font-family:var(--ui); font-size:10px; letter-spacing:.04em; color:var(--surf);
+  background:var(--panel2); padding:2px 5px; border-radius:2px}
+.note{border-left:2px solid var(--hot); padding:2px 0 2px 14px; margin:16px 0;
+  color:var(--mute); font-size:14.5px; max-width:68ch}
+.note b{color:var(--bone)}
+footer{border-top:1px solid var(--edge); padding-top:16px; color:var(--dim); font-size:13px}
+</style>
+
+<div class="wrap">
+<nav class="side">
+  <div class="brand">Vanity Shores<b>Level 2 Handoff</b></div>
+  <ol>
+    <li><a href="#state">Where Level 1 stands</a></li>
+    <li><a href="#split">Step 1 — the split</a></li>
+    <li><a href="#sierra">Step 2 — Sierra 72</a></li>
+    <li><a href="#spine">Step 3 — the spine</a></li>
+    <li><a href="#level2">Level 2 itself</a></li>
+    <li><a href="#rules">What fails the build</a></li>
+    <li><a href="#done">Definition of done</a></li>
+  </ol>
+</nav>
+
+<main>
+<h1>Level 2, and the jump to Sierra 72</h1>
+<p class="sub">A build order for whoever takes Level 2. Read it top to bottom: the three steps are
+in dependency order, and doing them out of order costs a rewrite. Everything here about Level 1 was
+read out of the shipping build by <code>node tools/canon.js</code> — if a number below disagrees
+with <code>docs/game-bible.html</code>, the bible is right and this is stale.</p>
+
+<section id="state">
+  <h2>Where Level 1 stands <span>done</span></h2>
+  <p class="lede">Shipping, played end to end, deployed and tagged
+  <code>level-1-testers-2</code>. Four rooms, six speaking characters plus an eight-strong crowd,
+  25 state flags, 17 Canon checks green. <b>It is closed.</b> Touch it only where Level 2 forces you
+  to, and re-run <code>--check</code> when you do.</p>
+
+  <h3 class="sub2">Every named build finishes, and none of them skip the boss</h3>
+  <div class="scroll"><table><thead><tr><th>build</th><th>ceiling before the table</th>
+    <th>finishes on</th><th>encores needed</th></tr></thead><tbody>
+    <tr><th>Even 34/33/33</th><td class="num">$63.40</td><td class="num">$113.40</td><td class="num">1</td></tr>
+    <tr><th>Money 60</th><td class="num">$76.00</td><td class="num">$176.00</td><td class="num">0</td></tr>
+    <tr><th>Fighting 60</th><td class="num">$52.00</td><td class="num">$122.00</td><td class="num">0</td></tr>
+    <tr><th>Charm 60</th><td class="num">$82.00</td><td class="num">$207.00</td><td class="num">0</td></tr>
+    <tr><th>Money 45 / Charm 45</th><td class="num">$84.50</td><td class="num">$209.50</td><td class="num">0</td></tr>
+    <tr><th>Minimum lean 38</th><td class="num">$73.80</td><td class="num">$173.80</td><td class="num">0</td></tr>
+  </tbody></table></div>
+  <p class="lede">Every ceiling is under the $100 stake line, which is what makes Monte mandatory
+  rather than optional. That is not a hope — <code>canon --check</code> fails the build if any
+  build reaches the line without sitting down, if any build cannot finish, or if the encore
+  ceiling creeps back over the line. <b>Keep those three true in Level 2's economy too.</b></p>
+  <p class="lede">Of the <b>3,741</b> legal 100-point splits (minimum 5 per stat), 3,663 — 97.9% —
+  clear at least one gate at 38. <em>An earlier note in chat said 4,186 splits and 71.8%; both
+  figures were wrong. These are computed by the sweep in <code>tools/canon/metrics.js</code>.</em></p>
+
+  <h3 class="sub2">Authoring load — the budget you are spending into</h3>
+  <div class="scroll"><table><thead><tr><th>character</th><th>load</th><th>varies on</th><th>read</th>
+    </tr></thead><tbody>
+    <tr><th>Chip</th><td class="num">30</td><td>build, flags, heat</td><td><span class="pill warn">at the boundary</span></td></tr>
+    <tr><th>Dickie</th><td class="num">24</td><td>build, flags, items, purse</td><td><span class="pill ok">comfortable</span></td></tr>
+    <tr><th>Monte</th><td class="num">24</td><td>build, flags, items, purse</td><td><span class="pill ok">comfortable</span></td></tr>
+    <tr><th>Gil</th><td class="num">18</td><td>build, flags, items</td><td><span class="pill ok">comfortable</span></td></tr>
+    <tr><th>Brenda</th><td class="num">10</td><td>build, flags</td><td><span class="pill ok">comfortable</span></td></tr>
+    <tr><th>LaRue</th><td class="num">8</td><td>build, flags, heat, items</td><td><span class="pill ok">comfortable</span></td></tr>
+  </tbody></table></div>
+  <div class="note"><b>Chip is the one to watch.</b> The score is <code>branches × axes</code>,
+  multiplicative, because the matrix you write by hand is the product of the axes and not their sum.
+  He is at 30 across three axes and he is in every level of the game. Adding one axis to Chip in
+  Level 2 does not add lines — it multiplies a column. Over 80 fails the build, and at that point
+  he needs a goal-driven backend rather than more hand-written branches.</div>
+</section>
+
+<section id="split">
+  <h2>Step 1 — split the content out of index.html <span>do this first</span></h2>
+  <p class="lede"><b>Before writing one line of Level 2.</b> Not hygiene — it is the thing that makes
+  parallel work possible at all, because two agents cannot both be editing
+  <code>index.html</code>.</p>
+  <p class="lede">The file is 4,109 lines: roughly 2,150 of systems, 1,750 of Level 1 content, 200 of
+  boot. Systems are done and will not grow much; content grows about 1,500 lines per level. There is
+  exactly one clean seam right now, at the <code>§5 CONTENT</code> boundary, with four rooms on the
+  far side of it. At twelve rooms this costs several times more.</p>
+  <ul class="plain">
+    <li><b>Plain <code>&lt;script src&gt;</code> tags in order.</b> No bundler, no build step, no
+      modules — ES modules fail on <code>file://</code> and the game must still open as a static
+      file. Load order is the dependency order the single file already has.</li>
+    <li><b>Suggested layout.</b> <code>index.html</code> keeps the shell and boot;
+      <code>js/core.js</code>, <code>js/art.js</code>, <code>js/audio.js</code>,
+      <code>js/engine.js</code>, <code>js/level1.js</code>, then <code>js/level2.js</code>.</li>
+    <li><b>Nothing may become a module or gain a dependency.</b> Zero assets, zero packages, one
+      page that runs anywhere is the whole premise of the project.</li>
+  </ul>
+  <div class="note"><b>Canon needs one change when you do this, and it will not tell you.</b> The
+  probe drives the live page, so it keeps seeing everything automatically. But the source
+  <em>scanner</em> reads one file — <code>fs.readFileSync(cfg.artifact)</code> in
+  <code>tools/canon/index.js</code>. After the split it must read and concatenate the
+  <code>js/</code> files, or every load number silently drops to zero and every scene reports as
+  unclaimed. <b>Verify by running <code>node tools/canon.js</code> before and after and diffing the
+  word counts.</b> They should be identical.</div>
+</section>
+
+<section id="sierra">
+  <h2>Step 2 — Sierra 72</h2>
+  <p class="lede">The renderer is already ready. Every proportion in <code>charMetrics</code> is a
+  fraction of <code>CHAR_H</code>, so <code>setCharHeight(72)</code> resizes the buffers and clears
+  the sprite cache on its own. Outfits paint inside a clip of the torso path, so all ten inherit the
+  new silhouette for free. The marks were deliberately sized as fractions of head height for this.</p>
+
+  <h3 class="sub2">What is free</h3>
+  <ul class="plain">
+    <li><b>Every character, every outfit, every hairstyle.</b> One call.</li>
+    <li><b>The anatomy that could not survive at 40px starts working.</b> The hourglass waist is
+      painted as a dark wedge inside the torso clip because a 1px keyline closes any gap under about
+      3px. At 72 the geometry can carry it — and the marks stop being 1px hints.</li>
+    <li><b>Portraits and closeups.</b> Separate buffers at <code>PW×PH</code>, unaffected.</li>
+  </ul>
+
+  <h3 class="sub2">What costs real work — the four backdrops</h3>
+  <p class="lede">Props and walk bands are composed for a 40px cast. At 72 a figure is 1.8× taller and
+  the sprite buffer goes from 74px to 134px, which is most of a 200px-tall screen.</p>
+  <div class="scroll"><table><thead><tr><th>room</th><th>walk band</th><th>head height at back line</th>
+    <th>props to re-scale</th></tr></thead><tbody>
+    <tr><th>arrival</th><td class="num">y 134–168 (34px)</td><td class="num">y 62</td><td>bus stop, bench, Chip's convertible</td></tr>
+    <tr><th>boardwalk</th><td class="num">y 126–168 (42px)</td><td class="num">y 54</td><td>timeshare booth, bench, railings, 12 hotspots</td></tr>
+    <tr><th>pier</th><td class="num">y 132–168 (36px)</td><td class="num">y 60</td><td>bandshell, fortune tent, 8 crowd spots</td></tr>
+    <tr><th>underpier</th><td class="num">y 118–168 (50px)</td><td class="num">y 46</td><td>Monte's folding table, pilings</td></tr>
+  </tbody></table></div>
+  <p class="lede"><b>That head-height column is the problem in one number.</b> A 72px figure standing
+  on the back line of arrival puts its head at y=62 — up in the skyline, well above the horizon the
+  backdrop was painted for. Each room needs the walk band moved down, the horizon raised, or both,
+  and the props re-proportioned to match. <b>Approach points and hotspot rectangles move with
+  them.</b></p>
+  <div class="note"><b>Cheapest way to see the damage before committing to it:</b> open the game,
+  run <code>setCharHeight(72)</code> in the console, and walk all four rooms. Nothing will crash —
+  it will just look wrong, specifically and legibly, and that tells you the order to fix things in.
+  Do that before writing any content.</div>
+  <p class="lede">Level 1 is <b>not</b> being re-cut to 72. It ships at 40 and stays there. If the
+  mixed scale reads badly across the level boundary, that is a product decision for the lead, not
+  something to solve by quietly rescaling a shipped, tagged, tested level.</p>
+</section>
+
+<section id="spine">
+  <h2>Step 3 — the spine, and what does not carry itself</h2>
+  <div class="note"><b>All 25 of Level 1's flags currently read as <code>live</code>.</b> Level 1
+  consumes everything it writes. That means <b>nothing propagates to Level 2 automatically</b> —
+  there is no inheritance mechanism, only flags sitting in the save that a later level has to
+  deliberately read. Canon reports a flag written and never read as <code>awaiting-payoff</code>,
+  which is a note rather than an error precisely so this stays visible.</div>
+
+  <h3 class="sub2">What Level 2 should read from Level 1</h3>
+  <div class="scroll"><table><thead><tr><th>state</th><th>values</th><th>why Level 2 wants it</th>
+    </tr></thead><tbody>
+    <tr><th><code>chipEnding</code></th><td><code>plain</code> / <code>charm</code> / <code>force</code> / <code>math</code> / <code>heat</code></td>
+      <td>How you put a hundred dollars in his hand. This is the single most important thing Level 1
+        hands forward — it sets Chip's whole register as he flips from mocking to competing.</td></tr>
+    <tr><th><code>heat.chip</code>, <code>heat.brenda</code></th><td>0–100</td>
+      <td>Attraction is tracked and never resolved in Act 1. Level 2 is where it starts reading.</td></tr>
+    <tr><th><code>brendaWary</code></th><td>set / unset</td>
+      <td>Intimidating her in Level 1 <b>permanently closes</b> her route. Level 2 must honour that.</td></tr>
+    <tr><th><code>monteWon</code> / <code>monteEnemy</code></th><td>set / unset</td>
+      <td>Whether you beat him, and whether you took his wrist doing it.</td></tr>
+    <tr><th><code>GS.secrets.brenda</code></th><td>set / unset</td>
+      <td>Whether the player found what is behind the unit.</td></tr>
+    <tr><th><code>GS.look.marks</code></th><td>comma list</td>
+      <td><b>Carries itself</b> — rides on the look, so it is already in the save and on the sprite.
+        Nothing in the world may comment on it. That rule holds for every level.</td></tr>
+    <tr><th><code>GS.tally.*</code></th><td>counters</td>
+      <td><b>Carries itself.</b> Keep ticking the same counters with <code>tick()</code>; the closing
+        card of the whole game is <code>TALLY</code> totalled. Add a ticker by adding one entry.</td></tr>
+  </tbody></table></div>
+
+  <h3 class="sub2">What Level 2 must write for the back half</h3>
+  <p class="lede">From <code>docs/acts-3-7.html</code>, which planned the later levels against these.
+  Both are <b>proposed</b> — the names are a request on you, not a fact.</p>
+  <ul class="plain">
+    <li><code>l2Crew</code> — who the player ran the string of cons with. Read by Level 5, which
+      needs one warm body who will vouch for a stranger buying a laundromat.</li>
+    <li><code>l2Burned</code> — who paid for the stake and did not know it. Read by Level 10, where
+      the ledger Roxy reads from wants a name.</li>
+  </ul>
+  <p class="lede">Keep them cheap and keep them about people. A flag that records a number ages
+  badly; a flag that records <em>who</em> pays off six levels later.</p>
+</section>
+
+<section id="level2">
+  <h2>Level 2 — <em>Other People's Money</em></h2>
+  <p class="lede">Chip stops mocking and starts competing. Reuse arrival, boardwalk, pier and
+  underpier; add one or two locations — the wall, then the Kingfisher. The room, hotspot and dialogue
+  shapes are all data, so a new level is mostly content.</p>
+  <ul class="plain">
+    <li><b>The win line must be a person, not a number.</b> This is Level 1's hardest-won lesson.
+      The level used to end when the purse crossed $100 and it was inert; it ends on a confrontation
+      now and it lands. Money is the ticket, never the trophy.</li>
+    <li><b>The want has escalated, it has not matured.</b> Act 1 was revenge on the class of people
+      who flick quarters. Act 2 is wanting to be <em>seen</em> — plus appetite. The character is not
+      learning better, they are getting more of what they came for and enjoying it. Do not write
+      Level 2 as the beginning of a redemption.</li>
+    <li><b>Sex is per-character, and Level 2 is not where it wins.</b> Easter-egg tier and special
+      items here. A level that is <em>won</em> by getting laid is Level 4 or 5. Occasionally it
+      should be a bad idea and kill you — that is also later, not here.</li>
+    <li><b>Adult content stages off-screen in a <code>cutaway</code>.</b> Funnier, cheaper, and it
+      keeps the build shippable without an age gate. See <code>brendaSecret</code> for the pattern:
+      the vignette reads <code>GS.cut.i</code> so the page sets the tempo.</li>
+    <li><b>Deaths cost a quarter of the purse.</b> Any new death must leave the player able to climb
+      out. <code>--check</code> enforces it.</li>
+  </ul>
+</section>
+
+<section id="rules">
+  <h2>What fails the build</h2>
+  <p class="lede">These are not style notes. <code>node tools/canon.js --check</code> exits non-zero
+  on all of them and the deploy runs it on every push.</p>
+  <ul class="plain">
+    <li><b>Every scene declares its owner at the declaration.</b>
+      <code>function chipBeat(){  /* @owner chip */</code>. Narration belonging to no character is
+      <code>@owner system</code>. An untagged scene is reported as <em>unclaimed</em> rather than
+      skipped — a loud gap beats a silent miscount.</li>
+    <li><b>A beat the player must get past is <code>@critical</code></b>, and it fails the build if
+      every one of its choices ends up behind a stat gate. An even split clears nothing.</li>
+    <li><b>Money is in cents.</b> <code>ECONOMY</code> and <code>GATES</code> are the single source
+      of truth. Nothing hard-codes a figure or a threshold.</li>
+    <li><b>Set flags when they are earned, never in a <code>then</code> callback.</b> A
+      <code>then</code> fires on dismissal and can be lost to a room transition.</li>
+    <li><b>Regenerate the bible</b> with <code>node tools/canon.js</code> after any change to a
+      location, character, payout or gate. Never hand-edit <code>docs/game-bible.html</code>.</li>
+    <li><b>Run <code>node tools/canon-test.js</code>.</b> 17 checks against a fixture with defects
+      planted on purpose. A checker that has quietly stopped checking also reports a clean bill of
+      health.</li>
+    <li><b>Wait on game state, never on the clock.</b> Every false test failure this project has had
+      came from a fixed delay. Dialogue choices only become selectable on the final view of the
+      final page, and room transitions take about 600ms of fade.</li>
+  </ul>
+</section>
+
+<section id="done">
+  <h2>Definition of done</h2>
+  <ul class="plain">
+    <li>Content split out of <code>index.html</code>, and Canon's word counts identical before and after.</li>
+    <li><code>setCharHeight(72)</code> in effect for Level 2's rooms, all backdrops recomposed, no
+      figure standing in the skyline.</li>
+    <li>Every Level 2 scene carries <code>@owner</code>; required beats carry <code>@critical</code>
+      and keep an ungated route.</li>
+    <li>Level 2 reads <code>chipEnding</code> and both heat tracks, and honours
+      <code>brendaWary</code> as a permanent closure.</li>
+    <li><code>l2Crew</code> and <code>l2Burned</code> written, and showing as
+      <code>awaiting-payoff</code> in the bible — that is the spine working, not a bug.</li>
+    <li>The win line is a person.</li>
+    <li><code>node tools/canon.js --check</code> and <code>node tools/canon-test.js</code> both green.</li>
+    <li>No character over load 80 — check Chip first.</li>
+  </ul>
+</section>
+
+<footer>Authored, not generated. The numbers about Level 1 were read out of the shipping build;
+regenerate <code>docs/game-bible.html</code> and trust that over this page.</footer>
+</main>
+</div>
