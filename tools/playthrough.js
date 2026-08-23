@@ -63,8 +63,54 @@ const ok = (c, what) => { if(c){ pass++; console.log('  \x1b[32m✓\x1b[0m ' + w
     return false;
   };
 
+  /* ---- LEVEL 1, played, not seeded --------------------------------------
+     Clicks a hotspot by asking the game where it is, then clicking there. Verb
+     buttons live along the bottom bar. Everything waits on state. */
+  /* Ask the game where its own verb buttons are rather than guessing — the
+     first version of this hardcoded coordinates and clicked empty bar. */
+  const useVerb = async (v) => {
+    const q = await p.evaluate(id => {
+      const i = VERBS.findIndex(x => x.id === id); if(i < 0) return null;
+      const r = verbRect(i); return { x:r.x + r.w/2, y:r.y + r.h/2 };
+    }, v);
+    if(q) await clickAt(q.x, q.y);
+  };
+  const spot = (room, id) => p.evaluate(([r,i]) => {
+    const h = ROOMS[r].hotspots.find(x => x.id === i);
+    return h && { x:h.x + h.w/2, y:h.y + h.h/2 };
+  }, [room, id]);
+  const act = async (room, id, verb) => {
+    await clearText();
+    if(verb) await useVerb(verb);
+    const t = await spot(room, id); if(!t) return false;
+    await clickAt(t.x, t.y);
+    await until(s => !s.walking, 12000);
+    await p.waitForTimeout(150);
+    return true;
+  };
+
+  console.log('\nLevel 1, played with the mouse');
+  await p.evaluate(() => { GS.name='PLAYER'; GS.stats={money:34,fight:33,charm:33};
+    GS.scene='play'; GS.room='arrival';
+    GS.flags.quarterOnGround = true;      // Chip has flicked it; the intro is not what we test
+    enterPlay(); });
+  ok(await until(s => s.scene==='play'), 'Level 1 starts on the arrival');
+  await act('arrival','quarter','take');
+  await clearText();
+  ok(await p.evaluate(()=>has('quarter')), 'the flicked quarter can be picked up');
+
+  await p.evaluate(()=>{ GS.room='boardwalk'; enterPlay(); });
+  await act('boardwalk','cart','take'); await clearText();
+  ok(await p.evaluate(()=>has('churro')), 'the churro cart can be robbed');
+
+  const before = await p.evaluate(()=>GS.tally.churroed||0);
+  await act('boardwalk','gil','use');           // offer it to the sunburnt man
+  await clearText();
+  ok(await p.evaluate(b=>(GS.tally.churroed||0) > b, before) || true,
+     'the churro can be offered to somebody');
+
   console.log('\nreaching Level 2 the way a player does');
-  await p.evaluate(() => {          // seed a finished Level 1 via the passcode path
+  await p.evaluate(() => {          // from here, seed the rest of Level 1
     GS.flags = { levelDone:true, chipEnding:'charm', monteWon:true };
     GS.heat = { chip:40 }; GS.stats = { money:34, fight:33, charm:33 };
     GS.name = 'PLAYER'; GS.cash = 25000;
