@@ -136,10 +136,19 @@ function drawTitle(t){
     g.globalAlpha=.28; r(122,136,76,19,P.hot); g.globalAlpha=1;
     textC('START', 160, 140, '#ff8ac0', FONT.bg);
   }
-  if(hasSave) textC('CONTINUE', 160, 160, P.surf, FONT.sm);
-  textC('ENTER CODE', 160, 170, P.gold, FONT.sm);
-  textC('ACT 1  ·  LEVEL 1  ·  FREE DEMO', 160, 182, '#a08cb4', FONT.sm);
-  textC('CLICK TO BEGIN', 160, 192, '#6b4d8a', FONT.sm);
+  /* Boxes, not lines of text: on a phone a bare word is not obviously a button
+     and 8px of type is not obviously a target. Each is 16 logical pixels tall,
+     which is a thumb at any of the scales fitScreen picks. */
+  const btn = (label, y, col, on) => {
+    const q = { x:96, y:y, w:128, h:16 }, hv = inRect(mouse, q);
+    r(q.x, q.y, q.w, q.h, hv ? col : 'rgba(26,15,46,.85)');
+    r(q.x, q.y, q.w, 1, hv ? P.bone : col);
+    textC(label, 160, y + 4, hv ? P.ink : col, FONT.sm);
+    return q;
+  };
+  if(hasSave) btn('CONTINUE', 152, P.surf);
+  btn('ENTER CODE', hasSave ? 172 : 158, P.gold);
+  textC('ACT 1  ·  FREE DEMO', 160, 186, '#6b4d8a', FONT.sm);
 }
 
 /* ---- PASSCODE ENTRY ---- */
@@ -159,7 +168,7 @@ function drawCodeEntry(t){
     textC('THAT IS NOT A CODE.', 160, 102, P.bad, FONT.sm);
   else
     textC('A code carries what you did, not what you had.', 160, 102, '#6b5a86', FONT.sm);
-  const ok = {x:96,y:126,w:60,h:16}, bk = {x:164,y:126,w:60,h:16};
+  const ok = {x:92,y:124,w:64,h:20}, bk = {x:164,y:124,w:64,h:20};
   const oh = inRect(mouse,ok), bh = inRect(mouse,bk);
   r(ok.x,ok.y,ok.w,ok.h, oh?P.surf:'#123a44'); textC('GO', ok.x+ok.w/2, ok.y+4, oh?'#08202a':P.surf, FONT.sm);
   r(bk.x,bk.y,bk.w,bk.h, bh?P.hot:'#3a1030');  textC('BACK', bk.x+bk.w/2, bk.y+4, bh?P.bone:'#c07aa0', FONT.sm);
@@ -448,18 +457,19 @@ function handleClick(p){
   switch(GS.scene){
     case 'title': {
       const fresh = !localStorage.getItem(SAVE_KEY);
-      if(p.y>=166 && p.y<=178){                       // ENTER CODE
+      const codeY = fresh ? 158 : 172;                // matches drawTitle's boxes
+      if(inRect(p,{x:96,y:codeY,w:128,h:16})){        // ENTER CODE
         Audio_.sfx('click'); GS.codeBuf=''; GS.codeBad=0;
         GS.scene='code'; showNameBox(true); return; }
-      if(!fresh && p.y>=154 && p.y<=166){ if(loadGame()){ Audio_.sfx('click');
+      if(!fresh && inRect(p,{x:96,y:152,w:128,h:16})){ if(loadGame()){ Audio_.sfx('click');
         if(GS.flags.level2Done){ GS.scene='complete2'; GS.complete2At=clock; }
         else if(GS.flags.levelDone){ GS.scene='complete'; GS.completeAt=clock; }
         else enterPlay(); return; } }
       Audio_.sfx('click'); wipeSave(); GS.scene='create'; showNameBox(true); return; }
     case 'create': return createClick(p);
     case 'code': {
-      if(inRect(p,{x:96,y:126,w:60,h:16})) return submitCode();
-      if(inRect(p,{x:164,y:126,w:60,h:16})){
+      if(inRect(p,{x:92,y:124,w:64,h:20})) return submitCode();
+      if(inRect(p,{x:164,y:124,w:64,h:20})){
         Audio_.sfx('click'); showNameBox(false); GS.scene='title'; }
       return; }
     case 'drive':  Audio_.sfx('click'); startLevelCard(); return;
@@ -502,22 +512,25 @@ function playClick(p){
   clickScene(p);
 }
 function createClick(p){
+  /* Anything that is not the name field dismisses the keyboard, so spending
+     points does not happen behind it. */
+  if(!inRect(p,{x:8,y:40,w:108,h:13})) nameBox.blur();
   for(let i=0;i<CC_ROWS.length;i++){
     const row = CC_ROWS[i], y = 58 + i*15, n = TRAITS[row.pool].length;
-    if(inRect(p,{x:46,y:y,w:11,h:12})){ CC.i[row.key] = (CC.i[row.key]+n-1)%n; Audio_.sfx('click'); return; }
-    if(inRect(p,{x:101,y:y,w:11,h:12})){ CC.i[row.key] = (CC.i[row.key]+1)%n; Audio_.sfx('click'); return; }
+    if(inRect(p,{x:42,y:y-2,w:18,h:16})){ CC.i[row.key] = (CC.i[row.key]+n-1)%n; Audio_.sfx('click'); return; }
+    if(inRect(p,{x:98,y:y-2,w:18,h:16})){ CC.i[row.key] = (CC.i[row.key]+1)%n; Audio_.sfx('click'); return; }
   }
   for(let i=0;i<3;i++){
     const st = STAT_ROWS[i], y = 46 + i*36, left = 100 - ccTotal();
-    if(inRect(p,{x:190,y:y+19,w:13,h:11}) && CC.stats[st.key]>5){ CC.stats[st.key]--; Audio_.sfx('click'); return; }
-    if(inRect(p,{x:206,y:y+19,w:13,h:11}) && left>0){ CC.stats[st.key]++; Audio_.sfx('coin'); return; }
-    if(inRect(p,{x:190,y:y+10,w:116,h:7})){
+    if(inRect(p,{x:186,y:y+16,w:18,h:17}) && CC.stats[st.key]>5){ CC.stats[st.key]--; Audio_.sfx('click'); return; }
+    if(inRect(p,{x:204,y:y+16,w:18,h:17}) && left>0){ CC.stats[st.key]++; Audio_.sfx('coin'); return; }
+    if(inRect(p,{x:190,y:y+6,w:116,h:14})){        // the bar itself, thumb-height
       const want = clamp(Math.round((p.x-190)/116*90), 5, 90);
       const others = ccTotal() - CC.stats[st.key];
       CC.stats[st.key] = clamp(want, 5, 100-others); Audio_.sfx('click'); return; }
   }
   if(inRect(p,{x:8,y:40,w:108,h:13})){ nameBox.focus(); return; }
-  if(100-ccTotal()===0 && GS.name.trim() && inRect(p,{x:104,y:164,w:112,h:17})){
+  if(100-ccTotal()===0 && GS.name.trim() && inRect(p,{x:96,y:160,w:128,h:24})){
     GS.look = ccLook(); GS.stats = { money:CC.stats.money, fight:CC.stats.fight, charm:CC.stats.charm };
     GS.cash = GS.stats.money * ECONOMY.startPerMoneyPoint;   // what you brought with you
     Audio_.lean(GS.stats.money, GS.stats.fight, GS.stats.charm);
@@ -529,9 +542,17 @@ function createClick(p){
     GS.scene = 'drive'; driveT = 0; Audio_.scene('play'); saveGame();
   }
 }
+const TOUCH = (typeof matchMedia === 'function' && matchMedia('(pointer:coarse)').matches);
 function showNameBox(on){
   nameBox.style.display = on ? 'block' : 'none';
-  if(on){ nameBox.value = GS.name; positionNameBox(); setTimeout(()=>nameBox.focus(), 60); }
+  if(!on){ nameBox.blur(); return; }
+  nameBox.value = GS.name;
+  positionNameBox();
+  /* A mouse gets the caret for free. A phone does NOT: auto-focusing throws the
+     keyboard up over the stat controls before the player has asked to type, and
+     it will not go away while they are trying to spend points. They tap the
+     name field when they want it. */
+  if(!TOUCH) setTimeout(()=>nameBox.focus(), 60);
 }
 function positionNameBox(){
   const b = cvs.getBoundingClientRect(), wrapB = document.getElementById('bezelwrap').getBoundingClientRect();
@@ -571,16 +592,23 @@ addEventListener('keydown', e => {
 /* ---- presentation scaling ---- */
 let scaleMode = 'auto';
 function fitScreen(){
-  const availW = innerWidth - 32, availH = innerHeight - 118;
-  let n = Math.min(Math.floor(availW/W), Math.floor(availH/200));
-  n = Math.max(1, Math.min(4, n));
-  if(scaleMode !== 'auto') n = Math.min(scaleMode, Math.max(1, Math.floor(availW/W)));
-  const want = Math.max(2, n);                    // never rasterise type below 2x
+  /* The DISPLAYED size is fractional; the BACKING STORE stays an integer
+     multiple. It used to be integer on both, which meant a 390px phone got
+     scale 1 — a 320px game marooned in the middle of the screen with every
+     control at a third the size it needed to be. The backing store is what
+     keeps the pixels crisp, and it does not have to match the CSS size. */
+  const narrow = innerWidth < 560;
+  const availW = innerWidth - (narrow ? 8 : 32);
+  const availH = innerHeight - (narrow ? 86 : 118);
+  let d = Math.min(availW / W, availH / 200);
+  d = Math.max(1, Math.min(4, d));
+  if(scaleMode !== 'auto') d = Math.min(scaleMode, Math.max(1, availW / W));
+  const want = Math.max(2, Math.min(4, Math.ceil(d)));   // never rasterise type below 2x
   if(want !== SC){ SC = want; TXSC = SC; _tcache.clear(); }
   if(cvs.width !== W*SC){ cvs.width = W*SC; cvs.height = 200*SC; }
-  cvs.style.width  = (W*n) + 'px';
-  cvs.style.height = (200*n) + 'px';
-  cvs.style.imageRendering = (n === SC) ? 'pixelated' : 'auto';
+  cvs.style.width  = (W*d) + 'px';
+  cvs.style.height = (200*d) + 'px';
+  cvs.style.imageRendering = Math.abs(d - Math.round(d)) < 0.02 ? 'pixelated' : 'auto';
   positionNameBox();
 }
 addEventListener('resize', fitScreen);

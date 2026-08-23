@@ -1,4 +1,7 @@
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#10071c">
+<meta name="mobile-web-app-capable" content="yes">
 <title>Vanity Shores</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,7 +31,10 @@ body{
   display:flex; flex-direction:column; align-items:center; gap:10px;
   max-width:100%;
 }
+html,body{ overscroll-behavior:none; }
 #bezelwrap{
+  touch-action:manipulation; -webkit-user-select:none; user-select:none;
+  -webkit-tap-highlight-color:transparent;
   position:relative; line-height:0;
   padding:10px; border-radius:6px;
   background:linear-gradient(180deg,#26103c,#150a24);
@@ -52,6 +58,8 @@ canvas#screen{
   position:absolute; display:none; font-family:var(--body);
   background:#1a0f2e; color:var(--gold); border:2px solid var(--hot);
   outline:none; padding:2px 6px; letter-spacing:.06em;
+  /* 16px or larger, or iOS zooms the whole page in when it takes focus */
+  font-size:16px;
 }
 #namebox:focus-visible{box-shadow:0 0 0 2px var(--surf)}
 #strip{
@@ -80,7 +88,9 @@ canvas#screen{
     <canvas id="screen" width="320" height="200" aria-label="Vanity Shores game screen"></canvas>
     <div id="scan"></div>
     <div id="vig"></div>
-    <input id="namebox" maxlength="14" autocomplete="off" spellcheck="false" aria-label="Enter your name">
+    <input id="namebox" maxlength="14" autocomplete="off" spellcheck="false"
+           autocapitalize="characters" autocorrect="off" enterkeyhint="done"
+           aria-label="Enter your name">
   </div>
   <div id="strip"></div>
   <div id="foot">
