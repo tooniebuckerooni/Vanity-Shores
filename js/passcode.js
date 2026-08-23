@@ -67,6 +67,20 @@ function codeState(){
   };
 }
 
+/* A one-line English gloss of what a code remembers, printed under it. A code
+   that says what it is gets passed around; eight characters on their own do not. */
+function codeGloss(){
+  const st = codeState(), bits = [];
+  bits.push('Level ' + Math.min(3, st.level));
+  const route = CODE_ENDINGS[st.l2Ending] || CODE_ENDINGS[st.chipEnding];
+  if(route) bits.push(route + ' route');
+  const tier = HEAT_TIERS[HEAT_TIERS.length - st.heatChip];
+  if(tier) bits.push('Chip ' + tier[1]);
+  if(st.secrets) bits.push(st.secrets + ' secret' + (st.secrets>1?'s':''));
+  if(st.marks)   bits.push('marked');
+  return bits.join(' \u00b7 ');
+}
+
 function makeCode(){
   const st = codeState();
   let bits = 0n, width = 0n;

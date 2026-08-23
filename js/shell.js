@@ -389,7 +389,7 @@ function drawComplete(t){
   g.globalAlpha = Math.min(1, Math.max(0,(el-1800)/600));
   r(30, 148, 260, 1, 'rgba(255,46,136,.35)');
   textC('CODE   ' + makeCode(), 160, 152, P.gold, FONT.bg);
-  textC('write it down — it gets you back here without replaying Level 1',
+  textC(codeGloss() + '  —  write it down, or send it to somebody',
         160, 169, '#6b5a86', FONT.sm);
   g.globalAlpha = 1;
 

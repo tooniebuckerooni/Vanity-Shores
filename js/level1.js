@@ -345,8 +345,7 @@ boardwalk:{
         'he is extremely good at it.']),
       talk:()=>chipStrip(),
       take:()=>narrate('You would need a much larger bag and a much better lawyer.'),
-      useItem:(it)=>{ if(it==='churro'){ sayAs('chip','I do not eat anything I can see the sugar '+
-        'on.'); return true; } return false; } },
+      useItem:(it)=>{ if(it==='churro') return churroOn('chip'); return false; } },
 
     { id:'gil', pri:2, name:'the sunburnt man', x:50, y:112, w:28, h:46, approach:[74,152],
       look:()=>narrate('A man the colour of a stop sign, radiating heat like a parked car. His '+
@@ -358,7 +357,7 @@ boardwalk:{
         if(it==='aloe'){ gilPayoff(); return true; }
         if(it==='spf'){ sayAs('gil', 'SPF two? SPF TWO? Buddy, that\'s not lotion, that\'s BASTING. '+
           'Get away from me.'); Audio_.sfx('deny'); return true; }
-        if(it==='churro'){ sayAs('gil', 'I can\'t eat. Chewing moves my FACE.'); return true; }
+        if(it==='churro') return churroOn('gil');
         return false; } },
 
     { id:'bench', name:'the bench', x:42, y:130, w:44, h:24, approach:[66,158],
@@ -373,6 +372,7 @@ boardwalk:{
         'who knows precisely what the jacket is doing and has priced the heat into it.']),
       talk:()=>brendaTalk(),
       useItem:(it)=>{
+        if(it==='churro') return churroOn('brenda');
         if(it==='sign'){
           if(GS.flags.brendaWary){
             drop('sign'); GS.flags.signReturned = true;
@@ -466,7 +466,7 @@ pier:{
         'on television once and has been paying for it ever since.'),
       talk:()=>dickieTalk(),
       useItem:(it)=>{ if(it==='sign'){ plantSign(); return true; }
-        if(it==='churro'){ sayAs('dickie','Not while I\'m ON, kid. Sugar on the vowels.'); return true; }
+        if(it==='churro') return churroOn('dickie');
         return false; } },
 
     { id:'stage', name:'the bandshell', x:6, y:70, w:98, h:62, approach:[100,148],
@@ -479,7 +479,8 @@ pier:{
         'that go over you like a customs officer. She is reading you right now. She has not asked '+
         'permission and she is not going to.'),
       talk:()=>zsaTalk(),
-      useItem:(it)=>{ if(it==='quarter'){ zsaReading(); return true; }
+      useItem:(it)=>{ if(it==='churro') return churroOn('zsazsa');
+        if(it==='quarter'){ zsaReading(); return true; }
         if(it==='fortune'){ sayAs('zsazsa','I know what it says, sugar. I wrote it.'); return true; }
         return false; } },
 
@@ -534,7 +535,7 @@ underpier:{
       talk:()=>monteTalk(),
       useItem:(it)=>{ if(it==='fortune'){ sayAs('monte','You want me to read your palm? Wrong tent, '+
         'wrong end of the pier.'); return true; }
-        if(it==='churro'){ sayAs('monte','I\'m working.'); return true; } return false; } },
+        if(it==='churro') return churroOn('monte'); return false; } },
 
     { id:'table', name:'the folding table', x:174, y:144, w:60, h:16, approach:[190,162],
       look:()=>narrate('Green felt gone bald in three places. Three walnut shells and a pea that has '+
@@ -876,6 +877,52 @@ const SECRETS = {
                   'like you already (heat 18+), and intimidating her earlier closes it for good.',
             payoff:'A cutaway, and the largest single heat swing in the level.' }
 };
+/* ---- the churro ----------------------------------------------------------
+   Offering a stolen churro to somebody tells you more about them than any
+   dialogue tree does, so everybody gets a real answer and nobody's answer moves
+   the plot. Lines cycle, so pushing it on somebody twice is its own joke. The
+   churro survives every offer: nobody in this town accepts food from you. */
+const CHURRO_TAKES = {
+  chip:   ['"I do not eat anything I can see the sugar on," Chip says, to the churro, not to you.',
+           'He looks at it a second time. "...Where did you get that."',
+           '"Put it away. Someone will think it is yours."',
+           'He takes it, holds it exactly like a cigar, gives it back, and says nothing about any of that.'],
+  brenda: ['"Sweetheart, I have watched you steal a sign today. I am not eating out of your hand."',
+           'She looks at the churro. She looks at you holding the churro. "It is four-fifteen in the afternoon."',
+           '"If you are trying to buy me with a fried thing on a stick, aim higher and try later."',
+           '"Ask me again after seven and hold it differently."'],
+  gil:    ['"I can\'t eat. Chewing moves my FACE."',
+           '"Is it hot? Everything is hot. I am the sun now."',
+           '"Put it on my shoulder. No. Do not put it on my shoulder."'],
+  zsazsa: ['Madame LaRue looks at the churro for a long moment. "The cinnamon says yes. The rest of it says Tuesday."',
+           'She takes a bite without breaking eye contact and hands the rest back, which is somehow the most confident thing you have ever seen.',
+           '"Sugar on the fingers ruins the cards, and I like the cards."',
+           '"You are holding that," she says, "the way a man holds something he has not thought through."'],
+  dickie: ['"Not while I\'m ON, kid. Sugar on the vowels."',
+           '"In seventy-nine a woman threw one of those at me in Reno. I ate it. I was hungry and it was Reno."',
+           '"Kid. Kid. I am a professional. Hold it lower and I will think about it."'],
+  monte:  ['"I\'m working."',
+           'He does not look up. "Grease on the felt and I have to buy a new felt."',
+           'He looks up exactly once. "Is that for me or is that a distraction." It is a distraction. He knows it is.'],
+  marnie: ['"You brought me a churro." She sounds genuinely thrown. "Nobody brings me anything."',
+           'She eats half of it in one go and gives you back the end, which is the half nobody wants.',
+           '"That is the second nicest thing anybody has done at this wall tonight and it is not even close to the first."'],
+  hoyt:   ['"Oh — no, thank you, I\'ve — actually, is that free?" It is not free. He takes it anyway.',
+           'He is holding the churro exactly the way he was holding his drink, which is badly.',
+           '"Do you know, this is the best part of my evening."'],
+  vince:  ['Vince does not move his eyes off the rope. "No food on the door."',
+           'Still not looking at you. "No."',
+           'The smallest possible sigh. "It is going to be a long night and you are not helping."']
+};
+function churroOn(who){  /* @owner system */
+  const lines = CHURRO_TAKES[who]; if(!lines) return false;
+  const k = who + 'Churro';
+  const i = GS.flags[k] || 0;
+  GS.flags[k] = i + 1; tick('churroed');
+  sayAs(who, lines[Math.min(i, lines.length - 1)]);
+  return true;
+}
+
 const SECRET_COUNT = Object.keys(SECRETS).length;
 function foundSecret(id){ GS.secrets[id] = true; saveGame(); }
 const secretsFound = () => Object.keys(GS.secrets).length;

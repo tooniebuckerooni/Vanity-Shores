@@ -67,6 +67,7 @@ const TALLY = {
   leaned:   { label:'Leaned on somebody',                short:'LEANED' },
   flirted:  { label:'Tried it on',                       short:'TRIED IT ON' },
   encores:  { label:'Made Dickie sing again',            short:'ENCORES' },
+  churroed: { label:'Offered somebody a stolen churro',  short:'CHURRO OFFERED' },
   earned:   { label:'Earned',                            short:'TOOK IN',  cash:true },
   dropped:  { label:'Lost to your own stupidity',        short:'DROPPED',  cash:true }
 };

@@ -666,6 +666,7 @@ bwalk2:{
         if(it==='flyer'){ addHeat('marnie', 3);
           sayAs('marnie', ['"I know what it says, honey. I helped write half of it while he was '+
             'still figuring out how to hold a pen."']); return true; }
+        if(it==='churro') return churroOn('marnie');
         if(it==='matchbook'){ marnieSecret(); return true; }
         if(it==='churro'){ sayAs('marnie', 'Sugar and cinnamon and my whole face. No. Give it here.',
           { then:()=>{ drop('churro'); tick('flirted'); addHeat('marnie', 2); } }); return true; }
@@ -676,7 +677,8 @@ bwalk2:{
       look:()=>narrate('Off the stage tonight, on the boardwalk, sequin jacket over one arm, '+
         'nursing a paper cup of something that smells medicinal. He looks smaller out of the shell.'),
       talk:()=>dickieL2(),
-      useItem:(it)=>{ if(it==='flyer'){ sayAs('dickie','I know, kid. Every crown gets one before '+
+      useItem:(it)=>{ if(it==='churro') return churroOn('dickie');
+        if(it==='flyer'){ sayAs('dickie','I know, kid. Every crown gets one before '+
         'they take it off.'); return true; } return false; } },
 
     { id:'gilN', pri:2, name:'the man in the polo', x:12, y:120, w:28, h:56, approach:[46,170],
@@ -686,7 +688,8 @@ bwalk2:{
         'He is walking a little more slowly than a person walks who has somewhere to be. He is '+
         'holding a laminated welcome packet like a man holding a subpoena.']),
       talk:()=>gilL2(),
-      useItem:(it)=>{ if(it==='matchbook'){ sayAs('gil','No. No, I don’t drink any more. '+
+      useItem:(it)=>{ if(it==='churro') return churroOn('gil');
+        if(it==='matchbook'){ sayAs('gil','No. No, I don’t drink any more. '+
         'Ownership.','I own a thing now and I have not drunk since Tuesday and both are the same '+
         'sentence.'); return true; } return false; } },
 
@@ -778,7 +781,8 @@ pier2:{
         'exactly as hard as he did to eight this afternoon.',
         'The gull knows every word.']),
       talk:()=>dickieL2Talk(),
-      useItem:(it)=>{ if(it==='matchbook'){ dickieMatchbook(); return true; }
+      useItem:(it)=>{ if(it==='churro') return churroOn('dickie');
+        if(it==='matchbook'){ dickieMatchbook(); return true; }
         return false; } },
 
     { id:'stageP', name:'the bandshell', x:6, y:60, w:112, h:78, approach:[100,164],
@@ -790,7 +794,8 @@ pier2:{
       look:()=>narrate('At night the rings catch the neon and the eyes carry a shade the daylight '+
         'kept polite. She is looking at your hands even when your hands are in your pockets.'),
       talk:()=>zsaL2(),
-      useItem:(it)=>{ if(it==='fortune'){ sayAs('zsazsa','I wrote it. It still works.'); return true; }
+      useItem:(it)=>{ if(it==='churro') return churroOn('zsazsa');
+        if(it==='fortune'){ sayAs('zsazsa','I wrote it. It still works.'); return true; }
         return false; } },
 
     { id:'tentP', name:'the fortune tent', x:212, y:74, w:96, h:64, approach:[236,166],
@@ -832,7 +837,8 @@ under2:{
       look:()=>narrate('Same tank, same arms, same table. The shells are wetter tonight and he is '+
         'moving them slower.'),
       talk:()=>monteL2(),
-      useItem:(it)=>{ if(it==='flyer'){ sayAs('monte','I saw the flyer. Kid, that is not a hustle, '+
+      useItem:(it)=>{ if(it==='churro') return churroOn('monte');
+        if(it==='flyer'){ sayAs('monte','I saw the flyer. Kid, that is not a hustle, '+
         'that is a *floor show*. It is not the same job.'); return true; }
         return false; } },
 
@@ -896,7 +902,8 @@ wall:{
         'the shape it is.',
         'He is different at 72 inches. He is smaller.']),
       talk:()=>chipL2Talk(),
-      useItem:(it)=>{ if(it==='flyer'){ sayAs('chip','Yes. I know what it says. I wrote it. '+
+      useItem:(it)=>{ if(it==='churro') return churroOn('chip');
+        if(it==='flyer'){ sayAs('chip','Yes. I know what it says. I wrote it. '+
         'Nobody quotes me back to me on my own boardwalk.'); return true; }
         if(it==='churro'){ sayAs('chip','Not while I am *dealing*.'); return true; }
         if(it==='matchbook'){ sayAs('chip','...Where did you get that?','No. Do not tell me. Put '+
@@ -921,7 +928,8 @@ wall:{
       look:()=>narrate('Two-fifty, black shirt, black jacket, no lanyard. Not for hire. Not '+
         'interested in you either way, which is exactly what makes him worth being interested in.'),
       talk:()=>vinceTalk(),
-      useItem:(it)=>{ if(it==='matchbook'){ vinceMatchbook(); return true; }
+      useItem:(it)=>{ if(it==='churro') return churroOn('vince');
+        if(it==='matchbook'){ vinceMatchbook(); return true; }
         if(it==='coupon'){ sayAs('vince','That coupon is redeemable for a place I have thrown you '+
           'out of already.'); return true; }
         return false; } },
@@ -1503,19 +1511,49 @@ function paintAlleyDark(bx, by, bw, bh, t){
     r(bx+bw/2-4, by+bh-10, 8, 4, '#120a1e'); textC('KF', bx+bw/2, by+bh-9, P.gold, FONT.sm);
     r(bx+bw/2+18, by+bh-8, 8, 3, '#2a1140');
   } else {
-    /* two people, off-set, leaning in from opposite sides — shown only as
-       silhouette against the far wall. the shape hooks up like an ampersand. */
-    g.fillStyle = 'rgba(10,4,20,.85)';
-    g.beginPath();
-    g.ellipse(bx + bw/2 - 12 + wob*0.5, by + bh/2 - 6, 8 + bul*0.4, 12, 0, 0, Math.PI*2);
-    g.fill();
-    g.beginPath();
-    g.ellipse(bx + bw/2 + 10 - wob*0.5, by + bh/2 - 4, 8 + bul*0.4, 12, 0, 0, Math.PI*2);
-    g.fill();
-    /* the leaning frame */
-    g.globalAlpha = .35;
-    r(bx + bw/2 - 22, by + bh/2 + 6 + wob*0.2, 44, 2, '#5a2a72');
-    g.globalAlpha = 1;
+    /* Two people on the far wall, and at 72 there are finally enough pixels for
+       them to read as PEOPLE rather than two wobbling blobs — head, shoulder,
+       hip, and a leg that leaves the ground on page two. Everything stays a
+       shadow: the whole joke is that the wall is the only thing you can see. */
+    const mid = bx + bw/2, gy = by + bh - 16, SH = 'rgba(8,3,18,.88)';
+    const lean = wob * 0.9;
+    const fig = (ox, h, flip, hipShift) => {
+      const fx = mid + ox + lean * (flip ? -1 : 1);
+      g.fillStyle = SH;
+      blob(fx, gy - h, 5.5, 6, SH);                                  // head
+      g.beginPath();                                                 // torso
+      g.moveTo(fx - 7, gy - h + 5);
+      g.quadraticCurveTo(fx - 9 - hipShift, gy - h*0.55, fx - 6, gy - h*0.30);
+      g.lineTo(fx + 6, gy - h*0.30);
+      g.quadraticCurveTo(fx + 9 + hipShift, gy - h*0.55, fx + 7, gy - h + 5);
+      g.closePath(); g.fill();
+      r(fx - 5, gy - h*0.30, 4, h*0.30, SH);                         // legs
+      r(fx + 1, gy - h*0.30, 4, h*0.30, SH);
+      return fx;
+    };
+    const a = fig(-11, 40 + bul, false, bul*0.5);
+    const b2 = fig(  9, 44 + bul, true,  bul*0.2);
+    /* one leg leaving the ground once it gets going */
+    if(page >= 2 && !REDUCED){
+      g.fillStyle = SH;
+      g.beginPath();
+      g.moveTo(a + 2, gy - 12); g.lineTo(b2 - 2, gy - 22 - Math.abs(ph)*4);
+      g.lineTo(b2 - 2, gy - 16 - Math.abs(ph)*4); g.lineTo(a + 2, gy - 7);
+      g.closePath(); g.fill();
+    }
+    /* and something that was being worn is now on the pipe */
+    if(page >= 2){
+      r(bx + 8, by + 20, bw - 16, 1, '#4a2a68');                     // the pipe
+      r(bx + 8, by + 21, bw - 16, 1, '#241134');
+      const sway = REDUCED ? 0 : Math.sin(t/420)*1.5;
+      g.fillStyle = 'rgba(200,40,78,.85)';
+      g.beginPath();
+      g.moveTo(bx + bw*0.40 + sway, by + 21);
+      g.quadraticCurveTo(bx + bw*0.44 + sway*2, by + 30, bx + bw*0.39 + sway*2, by + 36);
+      g.lineTo(bx + bw*0.33 + sway*2, by + 30);
+      g.quadraticCurveTo(bx + bw*0.34 + sway, by + 24, bx + bw*0.37 + sway, by + 21);
+      g.closePath(); g.fill();
+    }
   }
 
   /* one witness at the mouth of the alley: a cat, which turns away on page 2. */
@@ -1641,7 +1679,7 @@ function drawComplete2(t){                              /* @owner system */
   g.globalAlpha = Math.min(1, Math.max(0,(el-1800)/600));
   r(30, 148, 260, 1, 'rgba(255,46,136,.35)');
   textC('CODE   ' + makeCode(), 160, 152, P.gold, FONT.bg);
-  textC('END OF THE FREE DEMO — write the code down. It brings you back here.',
+  textC(codeGloss() + '  —  write it down, or send it to somebody',
         160, 169, '#6b5a86', FONT.sm);
   g.globalAlpha = 1;
 

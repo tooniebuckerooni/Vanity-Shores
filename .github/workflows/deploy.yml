@@ -65,6 +65,10 @@ jobs:
           npx playwright install chromium
           node tools/canon-test.js
           node tools/canon.js --check
+          # And the one that asks the question a player asks first: can I get
+          # there by clicking? Level 2 shipped with its win line unreachable
+          # while every other check above passed.
+          node tools/playthrough.js
 
   # Only from the default branch, or by hand. Feature branches skip this rather
   # than failing on the github-pages environment's branch policy.
