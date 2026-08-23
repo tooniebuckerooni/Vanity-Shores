@@ -137,7 +137,7 @@ this cannot drift from what actually plays. Regenerate with <code>node tools/can
 
 <section id="glance">
   <h2>At a glance</h2>
-  <div class="stats"><div class="stat"><b>9</b><span>locations</span></div><div class="stat"><b>6</b><span>speaking cast</span></div><div class="stat"><b>73</b><span>hotspots</span></div><div class="stat"><b>12</b><span>items</span></div><div class="stat"><b>6,274</b><span>words spoken</span></div><div class="stat"><b>4</b><span>ways to die</span></div><div class="stat"><b>$100.00</b><span>stake line</span></div><div class="stat"><b>60,480</b><span>look combinations</span></div></div>
+  <div class="stats"><div class="stat"><b>9</b><span>locations</span></div><div class="stat"><b>6</b><span>speaking cast</span></div><div class="stat"><b>74</b><span>hotspots</span></div><div class="stat"><b>12</b><span>items</span></div><div class="stat"><b>6,274</b><span>words spoken</span></div><div class="stat"><b>4</b><span>ways to die</span></div><div class="stat"><b>$100.00</b><span>stake line</span></div><div class="stat"><b>60,480</b><span>look combinations</span></div></div>
   <ul class="plain">
     <li><b>The win condition is a person, not a number.</b> Chip flicks a quarter at you in the
       opening minute, then parks where he can watch the whole strip. The level ends when you walk
@@ -660,10 +660,14 @@ this cannot drift from what actually plays. Regenerate with <code>node tools/can
         <div><dt>Walkable</dt><dd>x 22&ndash;296, y 144&ndash;172</dd></div>
         <div><dt>Entry</dt><dd>46, 160</dd></div>
         <div><dt>Standing here</dt><dd>chipW, hoytW, vinceW, marnieW, dickieW, zsazW</dd></div>
-        <div><dt>Hotspots</dt><dd>11</dd></div>
+        <div><dt>Hotspots</dt><dd>12</dd></div>
       </dl>
       <details><summary>Every hotspot</summary><div class="scroll">
-  <table><thead><tr><th>what</th><th>verbs</th><th>rect</th><th></th></tr></thead><tbody><tr><th>Chip Winthrop</th>
+  <table><thead><tr><th>what</th><th>verbs</th><th>rect</th><th></th></tr></thead><tbody><tr><th>the dark end of the alley</th>
+        <td><span class="tag">look</span> <span class="tag">talk</span> <span class="tag">use</span></td>
+        <td class="num">2, 96, 26, 64</td>
+        <td>conditional &middot; pri 3</td>
+      </tr><tr><th>Chip Winthrop</th>
         <td><span class="tag">look</span> <span class="tag">talk</span> <span class="tag">useItem</span></td>
         <td class="num">186, 110, 32, 60</td>
         <td>conditional &middot; pri 2</td>
@@ -674,7 +678,7 @@ this cannot drift from what actually plays. Regenerate with <code>node tools/can
       </tr><tr><th>the man on the door</th>
         <td><span class="tag">look</span> <span class="tag">talk</span> <span class="tag">useItem</span></td>
         <td class="num">250, 106, 26, 60</td>
-        <td>pri 2</td>
+        <td>conditional &middot; pri 2</td>
       </tr><tr><th>Marnie Sable</th>
         <td><span class="tag">look</span> <span class="tag">talk</span></td>
         <td class="num">154, 118, 32, 54</td>
@@ -800,6 +804,8 @@ this cannot drift from what actually plays. Regenerate with <code>node tools/can
      <td class="num">3</td><td class="num">1</td>
      <td><span class="pill ok">passable by anyone</span></td></tr><tr><th>plantSign</th><td>dickie</td><td class="num">4</td>
      <td class="num">3</td><td class="num">1</td>
+     <td><span class="pill ok">passable by anyone</span></td></tr><tr><th>vinceTalk</th><td>vince</td><td class="num">2</td>
+     <td class="num">1</td><td class="num">1</td>
      <td><span class="pill ok">passable by anyone</span></td></tr><tr><th>gilTalk</th><td>gil</td><td class="num">2</td>
      <td class="num">0</td><td class="num">2</td>
      <td><span class="pill ok">passable by anyone</span></td></tr><tr><th>zsaTalk</th><td>zsazsa</td><td class="num">2</td>
@@ -846,7 +852,7 @@ this cannot drift from what actually plays. Regenerate with <code>node tools/can
 </section>
 
 <section id="secrets">
-  <h2>Secrets <span>1</span></h2>
+  <h2>Secrets <span>3</span></h2>
   <p class="lede">Nothing points at these. They are for the player who goes back to a place the
   puzzle has finished with, carrying something nobody asked them to carry. Payoffs happen in a
   <b>cutaway</b> — off-screen is funnier, cheaper to animate, and keeps the game shippable anywhere.</p>
@@ -858,6 +864,24 @@ this cannot drift from what actually plays. Regenerate with <code>node tools/can
         <div><dt>Where</dt><dd>the timeshare booth, boardwalk</dd></div>
         <div><dt>Needs</dt><dd>Bring back the FREE GIFT sign after the bandshell show — Brenda has to like you already (heat 18+), and intimidating her earlier closes it for good.</dd></div>
         <div><dt>Payoff</dt><dd>A cutaway, and the largest single heat swing in the level.</dd></div>
+      </dl>
+      <p class="axes"><span class="mute">A build that muscled its way through Act 1 cannot reach
+      this at all. That is the point of it.</span></p></article>
+    <article class="card"><header><h3>Behind the wall</h3>
+      <span class="pill warn">hidden</span></header>
+      <dl class="facts">
+        <div><dt>Where</dt><dd>the service door, the wall</dd></div>
+        <div><dt>Needs</dt><dd>Bring Marnie the matchbook. Charm route — she has to want you there.</dd></div>
+        <div><dt>Payoff</dt><dd>A cutaway on the far wall of the alley, and the level's largest heat swing.</dd></div>
+      </dl>
+      <p class="axes"><span class="mute">A build that muscled its way through Act 1 cannot reach
+      this at all. That is the point of it.</span></p></article>
+    <article class="card"><header><h3>The dark end of the alley</h3>
+      <span class="pill warn">hidden</span></header>
+      <dl class="facts">
+        <div><dt>Where</dt><dd>the far end of the service alley, past the light</dd></div>
+        <div><dt>Needs</dt><dd>FIGHTING. Let the man on the door put hands on you three times, mark him for it, then find him where the light does not reach.</dd></div>
+        <div><dt>Payoff</dt><dd>He is off this boardwalk for good. Level 3 opens a door with nobody on it.</dd></div>
       </dl>
       <p class="axes"><span class="mute">A build that muscled its way through Act 1 cannot reach
       this at all. That is the point of it.</span></p></article>
@@ -876,7 +900,7 @@ this cannot drift from what actually plays. Regenerate with <code>node tools/can
 </section>
 
 <section id="flags">
-  <h2>State <span>52</span></h2>
+  <h2>State <span>55</span></h2>
   <p class="lede">Level 1's entire persistent memory, and the asymmetry that matters:
   <b>read but never written is a bug</b> — something branches on state nothing sets. <b>Written but
   never read is a promise</b>, not a bug: a later level has not collected it yet. Conflating those
@@ -927,8 +951,11 @@ this cannot drift from what actually plays. Regenerate with <code>node tools/can
      <td class="num">1</td><td><span class="pill ok">live</span></td></tr><tr><th><code>signReturned</code></th><td class="num">3</td>
      <td class="num">1</td><td><span class="pill ok">live</span></td></tr><tr><th><code>signTaken</code></th><td class="num">1</td>
      <td class="num">2</td><td><span class="pill ok">live</span></td></tr><tr><th><code>stake</code></th><td class="num">1</td>
+     <td class="num">3</td><td><span class="pill ok">live</span></td></tr><tr><th><code>vinceGone</code></th><td class="num">1</td>
+     <td class="num">4</td><td><span class="pill ok">live</span></td></tr><tr><th><code>vinceMarked</code></th><td class="num">1</td>
      <td class="num">3</td><td><span class="pill ok">live</span></td></tr><tr><th><code>vinceMatched</code></th><td class="num">1</td>
-     <td class="num">0</td><td><span class="pill warn">awaiting payoff</span></td></tr><tr><th><code>wallDone</code></th><td class="num">1</td>
+     <td class="num">0</td><td><span class="pill warn">awaiting payoff</span></td></tr><tr><th><code>vinceShoves</code></th><td class="num">1</td>
+     <td class="num">1</td><td><span class="pill ok">live</span></td></tr><tr><th><code>wallDone</code></th><td class="num">1</td>
      <td class="num">6</td><td><span class="pill ok">live</span></td></tr><tr><th><code>wallDoorOpen</code></th><td class="num">1</td>
      <td class="num">2</td><td><span class="pill ok">live</span></td></tr><tr><th><code>wallReady</code></th><td class="num">1</td>
      <td class="num">1</td><td><span class="pill ok">live</span></td></tr><tr><th><code>wallSat</code></th><td class="num">1</td>

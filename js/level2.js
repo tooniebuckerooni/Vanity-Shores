@@ -171,12 +171,12 @@ function bigCart(x, y){                              // y = ground line
   r(x, y-30, 46, 22, '#c04533');
   r(x, y-30, 46, 2, '#e8664e');
   r(x+2, y-27, 42, 15, '#2a1030');
-  for(let i=0;i<6;i++) r(x+4+i*7, y-25, 5, 10, i%2?P.gold:'#ff8a3d');
+  for(let i=0;i<6;i++) r(x+4+i*7, y-25, 5, 7, i%2?P.gold:'#ff8a3d');
   r(x-3, y-42, 52, 10, '#f0e2c8');                   // striped awning
   for(let i=0;i<52;i+=6) r(x-3+i, y-42, 3, 10, '#c04533');
   r(x, y-8, 46, 4, '#5c3a24');
   r(x+3, y-4, 8, 6, '#1a1420'); r(x+35, y-4, 8, 6, '#1a1420');
-  textC('CHURRO', x+23, y-24, P.bone, FONT.sm);
+  textC('CHURRO', x+23, y-16, P.bone, FONT.sm);
   r(x+8, y-53, 12, 12, P.gold);                      // hanging string lights
   for(let i=0;i<8;i++){ const lx = x-8 + i*8;
     px(lx, y-46, i%2?P.hot:NIGHT.neon2); }
@@ -185,16 +185,22 @@ function bigCart(x, y){                              // y = ground line
 function bigBooth(x, y){                             // Brenda's booth after dark, closed
   r(x, y-56, 66, 56, '#3a2450');
   r(x, y-56, 66, 3, '#5b2170');
-  r(x-3, y-64, 72, 8, '#241134');
-  textC('SHORELINE', x+33, y-63, '#5f93ad', FONT.sm);
+  /* The name sits ON the booth, not on a header above it — up there it was
+     crossed by the boardwalk railing and read as struck through. */
+  r(x-3, y-63, 72, 7, '#241134');
+  r(x-3, y-63, 72, 1, '#3d2255');
+
   for(let yy=y-52; yy<y-8; yy+=4)
     for(let xx=x+4; xx<x+62; xx+=4) if((xx+yy)%3===0) px(xx, yy, '#4a2a6a');
   r(x+2, y-22, 62, 5, '#3d2255');                    // shuttered table
   r(x+2, y-14, 2, 14, '#1a0f2e'); r(x+58, y-14, 2, 14, '#1a0f2e');
   r(x+6, y-52, 54, 22, '#241134');                   // brochures under a shutter
   r(x+6, y-30, 54, 1, '#5b2170');
-  /* A hand-taped flyer, if Brenda took the day off */
-  textC('BACK TUESDAY', x+33, y-45, '#8a68ad', FONT.sm);
+  /* The name, then the flyer under it. Both go on LAST: anything drawn before
+     the brochure panel gets painted over by it. */
+  r(x+4, y-51, 58, 9, '#1c0d30');
+  textC('SHORELINE', x+33, y-49, '#8fc3dd', FONT.sm);
+  textC('BACK TUESDAY', x+33, y-38, '#a884cc', FONT.sm);
 }
 
 function bigTent(x, y){                              // LaRue at 72, holding court
@@ -386,7 +392,7 @@ Object.assign(ROOMART, {
       palmTree(290, 114, 52, 8, '#0f0620', '#241a3a');
       bigCart(158, 138);
       /* the timeshare booth (packed up) */
-      bigBooth(232, 152);
+      bigBooth(240, 152);
       /* the bench at the far left */
       r(38, 138, 56, 5, P.wood4);
       r(38, 143, 56, 3, P.wood2);
@@ -408,7 +414,7 @@ Object.assign(ROOMART, {
       nightGlints(62, 90, t);
       /* three streams of neon along the strip */
       const on = REDUCED || Math.floor(t/700)%11 !== 0;
-      neonTube(232, 96, 68, 2, P.hot, on);            // booth valance
+      neonTube(240, 96, 62, 2, P.hot, on);            // booth valance
       neonTube(174, 108, 46, 1, NIGHT.neon2, REDUCED || Math.floor(t/560)%8!==0);
       /* string lights along the railings */
       for(let x=6; x<W; x+=14){
@@ -879,7 +885,7 @@ wall:{
           px(212, 132+((t/420)|0)%2, P.gold); } },
     { id:'hoytW', x:106, y:162, look:CAST.hoyt,
       hidden:()=>GS.flags.hoytHome },
-    { id:'vinceW', x:262, y:158, look:CAST.vince },
+    { id:'vinceW', x:262, y:158, look:CAST.vince, hidden:()=>GS.flags.vinceGone },
     { id:'marnieW', x:170, y:166, look:CAST.marnie,
       hidden:()=>!GS.flags.marnieAtWall || GS.flags.wallDone },
     { id:'dickieW', x:76, y:158, look:CAST.dickie,
@@ -895,6 +901,15 @@ wall:{
                'of the felt, whose face is his father’s in about ten years and knows it.',
                'This is not the boardwalk any more. This is a room somebody has put outside.']); } },
   hotspots:[
+    /* The unlit end. Nothing points at it and nothing ever mentions it; it is
+       only here at all once the man on the door has a reason to come looking. */
+    { id:'darkend', pri:3, name:'the dark end of the alley', x:2, y:96, w:26, h:64, approach:[26,168],
+      hidden:()=>!GS.flags.vinceMarked || GS.flags.vinceGone,
+      look:()=>narrate('Past the pool of light the alley keeps going. That part of it does not '+
+        'have a bulb, and somebody is standing in it, and he is not standing in it by accident.'),
+      talk:()=>vinceDark(),
+      use:()=>vinceDark() },
+
     { id:'chipW', pri:2, name:'Chip Winthrop', x:186, y:110, w:32, h:60, approach:[196,168],
       hidden:()=>GS.flags.wallDone,
       look:()=>narrate(['At the far end of the felt, both hands flat on it, cap dead level, '+
@@ -925,8 +940,12 @@ wall:{
         return false; } },
 
     { id:'vinceW', pri:2, name:'the man on the door', x:250, y:106, w:26, h:60, approach:[262,168],
-      look:()=>narrate('Two-fifty, black shirt, black jacket, no lanyard. Not for hire. Not '+
-        'interested in you either way, which is exactly what makes him worth being interested in.'),
+      hidden:()=>GS.flags.vinceGone,
+      look:()=>narrate(GS.flags.vinceMarked
+        ? 'Two-fifty, black shirt, and a cheekbone that is going to be a colour tomorrow. He is '+
+          'working the door exactly as well as he was an hour ago and he has not looked at you once.'
+        : 'Two-fifty, black shirt, black jacket, no lanyard. Not for hire. Not '+
+          'interested in you either way, which is exactly what makes him worth being interested in.'),
       talk:()=>vinceTalk(),
       useItem:(it)=>{ if(it==='churro') return churroOn('vince');
         if(it==='matchbook'){ vinceMatchbook(); return true; }
@@ -1335,10 +1354,90 @@ function chipFolds(kind){  /* @owner chip */
 }
 
 /* ---- Vince, the door --------------------------------------------------- */
+/* Level 2's two secrets. Registered here rather than in level1.js, which is why
+   secretCount() had to stop being computed once at load. */
+Object.assign(SECRETS, {
+  marnie: { name:'Behind the wall',
+            where:'the service door, the wall',
+            needs:'Bring Marnie the matchbook. Charm route — she has to want you there.',
+            payoff:'A cutaway on the far wall of the alley, and the level\'s largest heat swing.' },
+  vince:  { name:'The dark end of the alley',
+            where:'the far end of the service alley, past the light',
+            needs:'FIGHTING. Let the man on the door put hands on you three times, mark him '+
+                  'for it, then find him where the light does not reach.',
+            payoff:'He is off this boardwalk for good. Level 3 opens a door with nobody on it.' }
+});
+
+/* ---- Vince, and the only thing on this boardwalk that escalates -----------
+   He gets more physical every time you go near him, because the level needs one
+   person who is a problem you can solve with your hands. A charm build never
+   sees past the third shove; a fighting build gets an option nobody else does. */
 function vinceTalk(){  /* @owner vince */
-  sayAs('vince', ['Not tonight.',
-    'Not any night. This door is *staff*. You are not.',
-    'The felt is the show. The show is *fine*. Enjoy the show.']);
+  const n = (GS.flags.vinceShoves || 0);
+  if(GS.flags.vinceGone) return;
+  if(GS.flags.vinceMarked){
+    sayAs('vince', ['He does not put a hand on you this time.',
+      'He is standing exactly where he was standing, and he is looking at the queue, and the '+
+      'side of his face is telling everybody in it what happened.',
+      '"...Go and stand somewhere else," he says, to the rope.']);
+    return;
+  }
+  GS.flags.vinceShoves = n + 1;
+  const opts = [];
+  if(n >= 2 && gated('wallShowdown','fight'))
+    opts.push({ text:'Put a mark on him where the queue can see it.', tag:'FIGHTING',
+      fn:()=>vinceMark() });
+  opts.push({ text:'Step back off the rope.', fn:()=>sayAs('vince',
+    'That is the first correct decision you have made at this door.') });
+
+  const beat = [
+    ['Not tonight.',
+     'Not any night. This door is *staff*. You are not.',
+     'The felt is the show. The show is *fine*. Enjoy the show.'],
+    ['He puts two fingers on your chest and moves you back four inches, the way you would move a '+
+     'chair that was almost in the way.',
+     '"I said the show is fine."'],
+    ['This time it is a whole hand, and it is not four inches, and the queue behind you goes quiet '+
+     'in the specific way a queue goes quiet.',
+     '"You keep coming back to a door that keeps telling you no. That is not persistence, that is '+
+     'a *hobby*."',
+     'He leaves the hand there a beat longer than he needs to, so that everybody watching learns '+
+     'something about who you are.']
+  ][Math.min(n, 2)];
+  sayAs('vince', beat, n >= 2 ? { choices:opts } : undefined);
+}
+
+/* He wears it for the rest of the level. Marks are not just for the player. */
+function vinceMark(){  /* @owner vince */
+  GS.flags.vinceMarked = true; tick('leaned'); addHeat('marnie', 6);
+  CAST.vince.marks = 'flushed';                    // it shows on him from here
+  sayAs('vince', ['You take the hand off your chest, and you keep it, and you explain to him at '+
+    'close range and in front of forty people exactly whose door this is.',
+    'It takes about a second and a half.',
+    'When he stands back up there is something on his cheekbone that is going to be a colour '+
+    'tomorrow, and the queue has seen all of it, and the rope is still between you.',
+    '"...You should not have done that here," Vince says. Not angry. Filing.',
+    'He goes back to the door. He does not look at you again. He knows where the alley is and so, '+
+    'now, do you.']);
+}
+
+/* The dark end. Fighting only, and only once he is carrying a reason.
+   It happens off-screen, because it always does in this game. */
+function vinceDark(){  /* @owner vince */
+  GS.flags.vinceGone = true; foundSecret('vince'); tick('leaned');
+  narrate(['Past the pool of light the alley keeps going, and the part that keeps going is not lit.',
+    'He is out here because he came out here to find you. That is the part he got wrong.'],
+    { then:()=>cutaway(paintAlleyDark, [
+      'Two people go past the last working bulb. The bulb is not involved.',
+      'It is shorter than the thing at the rope was. It is much quieter. At one point somebody\'s '+
+      'jacket comes off a shoulder and does not go back on.',
+      'One person walks back out towards the neon, rolling a shoulder, checking a knuckle.',
+      'A car door closes somewhere behind the buildings and an engine takes a long time to start.'],
+      ()=>narrate(['Nobody is on the rope for the rest of the night.',
+        'Nobody at the wall mentions it, and nobody at the wall is surprised, and the queue moves '+
+        'faster than it has moved all evening.',
+        'Vince is not on this boardwalk tomorrow. He is not on it after that either.'],
+        { then:saveGame })) });
 }
 function vinceMatchbook(){  /* @owner vince */
   drop('matchbook'); GS.flags.vinceMatched = true;

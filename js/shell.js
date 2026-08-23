@@ -341,7 +341,7 @@ function routeNotes(){
                 heat:'Made Chip take it slowly, while everybody watched.' }[GS.flags.chipEnding];
   if(fin) n.unshift(fin);
   if(secretsFound())
-    n.push('Found ' + secretsFound() + ' of ' + SECRET_COUNT + ' things nobody mentioned.');
+    n.push('Found ' + secretsFound() + ' of ' + secretCount() + ' things nobody mentioned.');
   return n;
 }
 /* The tickers, one line. They keep counting through Levels 2-11; the closing

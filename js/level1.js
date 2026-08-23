@@ -923,7 +923,10 @@ function churroOn(who){  /* @owner system */
   return true;
 }
 
-const SECRET_COUNT = Object.keys(SECRETS).length;
+/* A function, not a constant. It used to be computed the moment level1.js
+   loaded, which meant every secret a later level registered was findable but
+   uncounted — the card said "1 of 1" while two existed. */
+const secretCount = () => Object.keys(SECRETS).length;
 function foundSecret(id){ GS.secrets[id] = true; saveGame(); }
 const secretsFound = () => Object.keys(GS.secrets).length;
 
